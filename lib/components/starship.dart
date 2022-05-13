@@ -1,5 +1,4 @@
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/inputs/inputs.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -26,6 +25,8 @@ class Starship extends SpriteComponent
   bool get debugMode => true;
 
   StartshipState _state = StartshipState.still;
+
+  static const double starshipSpeed = 2.5;
 
   static const double startshipWidth = 32;
   static const double startshipHeight = 8;
@@ -58,10 +59,10 @@ class Starship extends SpriteComponent
     }
     switch (_state) {
       case StartshipState.movingLeft:
-        x -= 3;
+        x -= starshipSpeed;
         break;
       case StartshipState.movingRight:
-        x += 3;
+        x += starshipSpeed;
         break;
       default:
         break;
@@ -77,11 +78,11 @@ class Starship extends SpriteComponent
     super.onCollision(intersectionPoints, other);
     if (other is Field) {
       if (_state == StartshipState.movingLeft) {
-        x += 3;
+        x += starshipSpeed;
         _state = StartshipState.collidingLeft;
       } else if (_state == StartshipState.movingRight) {
         _state == StartshipState.collidingRight;
-        x -= 3;
+        x -= starshipSpeed;
       }
     }
   }

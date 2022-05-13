@@ -10,6 +10,8 @@ class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   @override
   bool get debugMode => true;
 
+  static const double hitboxSize = 15;
+
   late final _fields = [
     extractSprite(0, 0, 224, 240, 'fields.png'),
     extractSprite(232, 0, 224, 240, 'fields.png'),
@@ -22,13 +24,13 @@ class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   Future<void>? onLoad() async {
     await Flame.images.load('fields.png');
     size = Vector2(gameRef.size.x, (gameRef.size.y / 1.8));
-    sprite = _fields[0];
-    add(RectangleHitbox(size: Vector2(15, (gameRef.size.y / 1.8)))
+    sprite = _fields[2];
+    add(RectangleHitbox(size: Vector2(hitboxSize, (gameRef.size.y / 1.8)))
       ..collisionType = CollisionType.passive);
-    add(RectangleHitbox(size: Vector2(gameRef.size.x, 15))
+    add(RectangleHitbox(size: Vector2(gameRef.size.x, hitboxSize))
       ..collisionType = CollisionType.passive);
     add(RectangleHitbox(
-        size: Vector2(gameRef.size.x - 15, (gameRef.size.y / 1.8)))
+        size: Vector2(gameRef.size.x - hitboxSize, (gameRef.size.y / 1.8)))
       ..collisionType = CollisionType.passive);
   }
 }

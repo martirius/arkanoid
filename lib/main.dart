@@ -7,6 +7,8 @@ import 'package:flame/input.dart';
 import 'package:flame/widgets.dart';
 import 'package:flutter/material.dart';
 
+import 'components/ball.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Flame.device.fullScreen();
@@ -25,12 +27,15 @@ class Arkanoid extends FlameGame
       size: 50,
       knobRadius: 20);
   late FireButton _fireButton;
+  late Starship _starship;
+  late Ball _ball;
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    final starship = Starship(_joystick);
+    _starship = Starship(_joystick);
     _fireButton =
-        FireButton(starship, Vector2(50, size.y - ((size.y / 1.8)) / 2));
+        FireButton(_starship, Vector2(50, size.y - ((size.y / 1.8)) / 2));
+    _ball = Ball();
     // final world = World()..add(Starship()..position = Vector2(200, 200));
     // add(world);
     // final camera = CameraComponent(world: world)
@@ -39,9 +44,21 @@ class Arkanoid extends FlameGame
 
     // add(camera);
     add(Field());
-    add(starship);
+    add(_starship);
     add(_fireButton);
     add(_joystick);
+    add(_ball);
+  }
+
+  @override
+  void update(double dt) {
+    // TODO: implement update
+    super.update(dt);
+    if (_ball.y < size.y / 2 + 100) {
+    } else {
+      //ball goes under starship, life lost
+      pauseEngine();
+    }
   }
 }
 
