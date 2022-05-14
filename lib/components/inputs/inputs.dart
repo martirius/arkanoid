@@ -1,12 +1,11 @@
-import 'package:arkanoid/components/starship.dart';
+import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:flame/components.dart';
-import 'package:flame/extensions.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/rendering.dart';
 
 class FireButton extends CircleComponent with Tappable {
-  final Starship _starship;
-  FireButton(this._starship, position) : super(position: position, radius: 50);
+  final List<ButtonInteractable> _buttonInteractables = [];
+  FireButton(position) : super(position: position, radius: 50);
 
   @override
   void render(Canvas canvas) {
@@ -18,8 +17,12 @@ class FireButton extends CircleComponent with Tappable {
 
   @override
   bool onTapDown(TapDownInfo info) {
-    _starship.firePressed();
+    _buttonInteractables.forEach((element) => element.onButtonPressed());
     return true;
+  }
+
+  void addInteractable(ButtonInteractable buttonInteractable) {
+    _buttonInteractables.add(buttonInteractable);
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dart:math';
-
+import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
@@ -9,14 +10,16 @@ import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
 
 class Ball extends SpriteComponent
-    with CollisionCallbacks, HasGameRef<Arkanoid> {
+    with CollisionCallbacks, HasGameRef<Arkanoid>
+    implements ButtonInteractable {
   Ball() : super(scale: Vector2.all(2), size: Vector2(5, 4));
 
   @override
   bool get debugMode => true;
 
-  Vector2 velocity = Vector2(-1, -1);
+  Vector2 velocity = Vector2(1, -1);
   double velocityMultiplier = 1.1;
+  bool ballCanMove = false;
 
   @override
   Future<void>? onLoad() async {
@@ -25,16 +28,40 @@ class Ball extends SpriteComponent
     await FlameAudio.audioCache.load('ball_hit_starship.wav');
 
     sprite = extractSprite(0, 40, 5, 4, 'starship.png');
-    position = Vector2(gameRef.size.x / 2 - 10, gameRef.size.y / 2 + 27);
-    add(RectangleHitbox());
+    add(RectangleHitbox(
+        position: Vector2(0.0, size.y / 2), size: Vector2(size.x + 1, 0.1)));
+    add(RectangleHitbox(
+        position: Vector2(size.x / 2, 0), size: Vector2(0.1, size.y + 1)));
   }
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
-    if (other is Field) {
-      print(x);
-      print(gameRef.size.x);
+    final middleIntersectionPoint =
+        (intersectionPoints.first + intersectionPoints.last) / 2;
+    final ballSpeed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+
+    if (other is Brick) {
+      if (velocityMultiplier < 3) {
+        velocityMultiplier += 0.02;
+        velocity = velocity * 1.05;
+      }
+      final ballSize = Vector2(size.x * scale.x, size.y * scale.y);
+      if (y + ballSize.y <= other.y && middleIntersectionPoint.y <= other.y) {
+        //ball is over brick, invert y
+        velocity.y *= -1;
+      } else {
+        if (y >= other.y + other.size.y &&
+            middleIntersectionPoint.y >= other.y + other.size.y) {
+          velocity.y *= -1;
+          //ball is below brick, inver y
+        } else {
+          //left or right part of brick, invert x
+          velocity.x *= -1;
+        }
+      }
+    } else if (other is Field) {
+      //calculate bouncing with Field borders
       if (x - Field.hitboxSize <= 0 ||
           x + Field.hitboxSize + (size.x * scale.x) >= gameRef.size.x) {
         velocity.x *= -1;
@@ -43,21 +70,23 @@ class Ball extends SpriteComponent
         //top wall
         velocity.y *= -1;
       }
-    } else if (other is Starship) {
+    } else if (other is Starship && ballCanMove) {
       final starship = other;
       //calculate bouncing direction only if startship is lower than ball
       if (y < starship.y) {
         FlameAudio.play('ball_hit_starship.wav');
-        final middleIntersectionPoint =
-            (intersectionPoints.first + intersectionPoints.last) / 2;
         final relativeIntersectX =
             (starship.x + (starship.width * starship.scale.x)) -
                 (middleIntersectionPoint.x);
         var normalizedRelativeIntersectionX =
             (relativeIntersectX / (starship.width * starship.scale.x));
-        var bounceAngle = normalizedRelativeIntersectionX * ((pi - pi / 12));
-        velocity.x = velocityMultiplier * cos(bounceAngle);
-        velocity.y = velocityMultiplier * -sin(bounceAngle);
+        var bounceAngle = (normalizedRelativeIntersectionX * ((pi)));
+        bounceAngle = bounceAngle > pi / 2
+            ? bounceAngle.clamp((pi / 2) + pi / 6, pi - pi / 6)
+            : bounceAngle.clamp(0 + pi / 6, (pi / 2) - pi / 6);
+
+        velocity.x = ballSpeed * cos(bounceAngle);
+        velocity.y = ballSpeed * -sin(bounceAngle);
       }
     }
   }
@@ -65,7 +94,7 @@ class Ball extends SpriteComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (y < gameRef.size.y / 2 + 100) {
+    if (y < gameRef.size.y / 2 + 100 && ballCanMove) {
       calculateBallDirection(1, dt);
     } else {
       //ball goes under starship, life lost
@@ -76,5 +105,10 @@ class Ball extends SpriteComponent
   void calculateBallDirection(double factor, double dt) {
     x += velocity.x;
     y += velocity.y;
+  }
+
+  @override
+  void onButtonPressed() {
+    ballCanMove = true;
   }
 }

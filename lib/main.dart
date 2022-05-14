@@ -1,13 +1,8 @@
-import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/inputs/inputs.dart';
-import 'package:arkanoid/components/starship.dart';
+import 'package:arkanoid/components/levels/level1.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
-import 'package:flame/input.dart';
 import 'package:flame/widgets.dart';
 import 'package:flutter/material.dart';
-
-import 'components/ball.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,45 +15,10 @@ void main() {
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasDraggables, HasTappables {
-  final JoystickComponent _joystick = JoystickComponent(
-      knob: Knob(),
-      background: Background(),
-      margin: const EdgeInsets.only(right: 40, bottom: 100),
-      size: 50,
-      knobRadius: 20);
-  late FireButton _fireButton;
-  late Starship _starship;
-  late Ball _ball;
   @override
-  Future<void> onLoad() async {
-    await super.onLoad();
-    _starship = Starship(_joystick);
-    _fireButton =
-        FireButton(_starship, Vector2(50, size.y - ((size.y / 1.8)) / 2));
-    _ball = Ball();
-    // final world = World()..add(Starship()..position = Vector2(200, 200));
-    // add(world);
-    // final camera = CameraComponent(world: world)
-    //   ..viewfinder.visibleGameSize = Vector2(320, 480)
-    //   ..viewfinder.anchor = Anchor.center;
-
-    // add(camera);
-    add(Field());
-    add(_starship);
-    add(_fireButton);
-    add(_joystick);
-    add(_ball);
-  }
-
-  @override
-  void update(double dt) {
-    // TODO: implement update
-    super.update(dt);
-    if (_ball.y < size.y / 2 + 100) {
-    } else {
-      //ball goes under starship, life lost
-      pauseEngine();
-    }
+  Future<void>? onLoad() async {
+    super.onLoad();
+    add(Level1());
   }
 }
 
