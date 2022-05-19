@@ -17,9 +17,9 @@ class Ball extends SpriteComponent
   @override
   bool get debugMode => true;
 
-  Vector2 velocity = Vector2(1, -1);
-  double velocityMultiplier = 1;
+  Vector2 velocity = Vector2(2, -2);
   bool ballCanMove = false;
+  int _numberOfBrickHit = 0;
 
   @override
   Future<void>? onLoad() async {
@@ -42,9 +42,9 @@ class Ball extends SpriteComponent
     final ballSpeed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 
     if (other is Brick) {
-      if (velocityMultiplier < 1.2) {
-        velocityMultiplier += 0.01;
-        velocity *= velocityMultiplier;
+      _numberOfBrickHit += 1;
+      if (_numberOfBrickHit < 90 && _numberOfBrickHit % 15 == 0) {
+        velocity *= 1.2;
       }
       if (middleIntersectionPoint.y.round() <= other.y &&
           (middleIntersectionPoint.x.round() <= other.x ||

@@ -95,21 +95,24 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
+    _hit(other is Ball);
+  }
 
-    if (other is Ball) {
+  void _hit(bool playAudio) {
+    if (playAudio) {
       if (model == BrickModel.silver || model == BrickModel.gold) {
         FlameAudio.play('ball_hit_block_unbreakable.wav');
       } else {
         FlameAudio.play('ball_hit_block.wav');
       }
-      animation?.reset();
-      _numberOfTimeHit += 1;
-      if (_numberOfTimeHit >= _numberOfHitToBroke && _canBeBroken) {
-        if (powerUp != null && powerUp!.parent == null) {
-          parent?.add(powerUp!..position = position);
-        }
-        removeFromParent();
+    }
+    animation?.reset();
+    _numberOfTimeHit += 1;
+    if (_numberOfTimeHit >= _numberOfHitToBroke && _canBeBroken) {
+      if (powerUp != null && powerUp!.parent == null) {
+        parent?.add(powerUp!..position = position);
       }
+      removeFromParent();
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
+import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
@@ -15,7 +16,7 @@ enum StarshipState {
   collidingRight
 }
 
-enum StarshipAnimation { normal, appearing, extended }
+enum StarshipAnimation { normal, appearing, extended, laser, laserTransforming }
 
 class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     with CollisionCallbacks, HasGameRef<Arkanoid>
@@ -53,6 +54,17 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
         srcPosition: Vector2(64.0, 8.0 * i),
         srcSize: Vector2(48, startshipHeight),
       ));
+  late final spritesLaser = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
+        'starship.png',
+        srcPosition: Vector2(144.0, 8.0 * i),
+        srcSize: Vector2(32.0, startshipHeight),
+      ));
+  late final spriteLaserTransforamation =
+      [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => Sprite.load(
+            'starship.png',
+            srcPosition: Vector2(112.0, 8.0 * i),
+            srcSize: Vector2(32.0, startshipHeight),
+          ));
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
@@ -70,6 +82,14 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
           await Future.wait(spritesExtended),
           stepTime: 0.2,
           loop: true),
+      StarshipAnimation.laser: SpriteAnimation.spriteList(
+          await Future.wait(spritesLaser),
+          stepTime: 0.2,
+          loop: true),
+      StarshipAnimation.laserTransforming: SpriteAnimation.spriteList(
+          await Future.wait(spriteLaserTransforamation),
+          stepTime: 0.1,
+          loop: false)
     };
     current = StarshipAnimation.appearing;
     add(RectangleHitbox());
@@ -84,6 +104,12 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
         animation!.isLastFrame &&
         animation!.elapsed >= 1) {
       current = StarshipAnimation.normal;
+    }
+
+    if (current == StarshipAnimation.laserTransforming &&
+        animation!.isLastFrame &&
+        animation!.elapsed >= 1) {
+      current = StarshipAnimation.laser;
     }
 
     if (_joystickComponent.direction == JoystickDirection.left &&
@@ -126,19 +152,31 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
       other.removeFromParent();
       if (powerUp != other.powerUpType) {
         powerUp = other.powerUpType;
-
+        removePowerUp(powerUp!);
         if (powerUp == PowerUpType.extend) {
           current = StarshipAnimation.extended;
           scale.x = 2.5;
           FlameAudio.play('starship_extends.wav');
-        } else if (positionType == PowerUpType.laser) {}
+        } else if (powerUp == PowerUpType.laser) {
+          current = StarshipAnimation.laserTransforming;
+        }
       }
+    }
+  }
+
+  void removePowerUp(PowerUpType newPowerUp) {
+    if (newPowerUp != PowerUpType.extend) {
+      scale.x = 1.5;
+      current = StarshipAnimation.normal;
     }
   }
 
   @override
   void onButtonPressed() {
     print("fire!");
-    //TODO: add powerup effect here
+    if (powerUp == PowerUpType.laser) {
+      FlameAudio.play('starship_shoot.wav');
+      parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
+    }
   }
 }
