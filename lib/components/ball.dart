@@ -18,7 +18,7 @@ class Ball extends SpriteComponent
   bool get debugMode => true;
 
   Vector2 velocity = Vector2(1, -1);
-  double velocityMultiplier = 1.1;
+  double velocityMultiplier = 1;
   bool ballCanMove = false;
 
   @override
@@ -42,17 +42,21 @@ class Ball extends SpriteComponent
     final ballSpeed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 
     if (other is Brick) {
-      if (velocityMultiplier < 3) {
-        velocityMultiplier += 0.02;
-        velocity = velocity * 1.05;
+      if (velocityMultiplier < 1.2) {
+        velocityMultiplier += 0.01;
+        velocity *= velocityMultiplier;
       }
-      final ballSize = Vector2(size.x * scale.x, size.y * scale.y);
-      if (y + ballSize.y <= other.y && middleIntersectionPoint.y <= other.y) {
+      if (middleIntersectionPoint.y.round() <= other.y &&
+          (middleIntersectionPoint.x.round() <= other.x ||
+              middleIntersectionPoint.x.round() >= other.x)) {
         //ball is over brick, invert y
         velocity.y *= -1;
       } else {
-        if (y >= other.y + other.size.y &&
-            middleIntersectionPoint.y >= other.y + other.size.y) {
+        if (middleIntersectionPoint.y.round() >= other.y + other.size.y &&
+            (middleIntersectionPoint.x.round() <=
+                    other.x + other.size.x * other.scale.x ||
+                middleIntersectionPoint.x.round() >=
+                    other.x + other.size.x * other.scale.x)) {
           velocity.y *= -1;
           //ball is below brick, inver y
         } else {

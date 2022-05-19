@@ -1,4 +1,5 @@
 import 'package:arkanoid/main.dart';
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
@@ -22,6 +23,7 @@ class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
         value,
         spriteSheet.createAnimation(row: key, stepTime: 0.2, loop: true)));
     animation = animations[powerUpType];
+    add(RectangleHitbox()..collisionType = CollisionType.passive);
   }
 
   @override

@@ -1,8 +1,7 @@
+import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-
-import '../main.dart';
 
 enum FieldType {
   blue,
@@ -18,7 +17,7 @@ enum FieldType {
 
 class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   final FieldType fieldType;
-  Field(this.fieldType) : super(position: Vector2(0, 50));
+  Field(this.fieldType);
 
   @override
   bool get debugMode => true;

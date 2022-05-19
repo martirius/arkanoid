@@ -25,14 +25,29 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
   late final int _numberOfHitToBroke;
   final BrickModel model;
   final PowerUp? powerUp;
-  Brick(this.model, this.powerUp)
-      : super(size: Vector2(16, 8), scale: Vector2.all(1.5)) {
+  late final int value;
+  static const int _baseBrickValue = 50;
+  Brick(this.model, this.powerUp, double x)
+      : super(size: Vector2(16, 8), scale: Vector2(x / 16, 1)) {
     _canBeBroken = model != BrickModel.gold;
     _numberOfHitToBroke = model == BrickModel.silver ? 4 : 1;
+    value = model == BrickModel.silver
+        ? _baseBrickValue * _numberOfHitToBroke
+        : _baseBrickValue + 10 * singleSpriteAnimationBricks.indexOf(model);
   }
 
   late final Map<BrickModel, SpriteAnimation> animations;
   int _numberOfTimeHit = 0;
+  static final singleSpriteAnimationBricks = [
+    BrickModel.grey,
+    BrickModel.orange,
+    BrickModel.lightBlue,
+    BrickModel.green,
+    BrickModel.red,
+    BrickModel.blue,
+    BrickModel.pink,
+    BrickModel.yellow
+  ];
 
   @override
   Future<void>? onLoad() async {
@@ -40,24 +55,14 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
     await FlameAudio.audioCache.load('ball_hit_block.wav');
     await FlameAudio.audioCache.load('ball_hit_block_unbreakable.wav');
     await Flame.images.load('blocks_tiles.png');
-    final list = [
-      BrickModel.grey,
-      BrickModel.orange,
-      BrickModel.lightBlue,
-      BrickModel.green,
-      BrickModel.red,
-      BrickModel.blue,
-      BrickModel.pink,
-      BrickModel.yellow
-    ];
-
     Map<BrickModel, SpriteAnimation> breakableAnimation = {};
-    for (BrickModel b in list) {
+    for (BrickModel b in singleSpriteAnimationBricks) {
       breakableAnimation.putIfAbsent(
           b,
           () => SpriteAnimation.spriteList([
-                _extraSingleBlockSprite(16.0 * (list.indexOf(b) % 4),
-                    8.0 * (list.indexOf(b) / 4).floor())
+                _extraSingleBlockSprite(
+                    16.0 * (singleSpriteAnimationBricks.indexOf(b) % 4),
+                    8.0 * (singleSpriteAnimationBricks.indexOf(b) / 4).floor())
               ], stepTime: 1, loop: false));
     }
     animations = {
@@ -100,7 +105,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
       animation?.reset();
       _numberOfTimeHit += 1;
       if (_numberOfTimeHit >= _numberOfHitToBroke && _canBeBroken) {
-        if (powerUp != null) {
+        if (powerUp != null && powerUp!.parent == null) {
           parent?.add(powerUp!..position = position);
         }
         removeFromParent();

@@ -12,7 +12,7 @@ import 'package:flutter/painting.dart';
 abstract class BaseLevel extends PositionComponent
     with HasGameRef<Arkanoid>
     implements ButtonInteractable {
-  BaseLevel(this.bricks, this.fieldType);
+  BaseLevel(this.fieldType);
 
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
@@ -23,9 +23,19 @@ abstract class BaseLevel extends PositionComponent
   late FireButton _fireButton;
   late Starship _starship;
   final List<Ball> balls = [];
-  final List<List<Brick?>> bricks;
+  late final List<List<Brick?>> bricks;
   final FieldType fieldType;
   bool _gameStarted = false;
+  int _currentScore = 0;
+  late final _scoreComponent = TextComponent(
+      text: _currentScore.toString(),
+      textRenderer: TextPaint(
+          style: const TextStyle(
+              color: Color.fromARGB(255, 255, 255, 255),
+              fontFamily: 'Joystix',
+              fontSize: 18),
+          textDirection: TextDirection.ltr),
+      position: Vector2(60, 30));
 
   @override
   Future<void> onLoad() async {
@@ -48,7 +58,7 @@ abstract class BaseLevel extends PositionComponent
     //   ..viewfinder.anchor = Anchor.center;
 
     // add(camera);
-    final field = Field(fieldType);
+    final field = Field(fieldType)..position = Vector2(0, 50);
 
     add(field);
     bricks.forEach(((row) {
@@ -65,11 +75,25 @@ abstract class BaseLevel extends PositionComponent
     _fireButton.addInteractable(_starship);
     _fireButton.addInteractable(this);
     _fireButton.addInteractable(ball);
+
+    //score shower component
+
+    final player1Label = TextComponent(
+        text: '1UP',
+        textRenderer: TextPaint(
+            style: const TextStyle(
+              color: Color.fromARGB(255, 255, 0, 0),
+              fontFamily: 'Joystix',
+              fontSize: 18,
+            ),
+            textDirection: TextDirection.ltr),
+        position: Vector2(50, 10));
+    add(player1Label);
+    add(_scoreComponent);
   }
 
   @override
   void update(double dt) {
-    // TODO: implement update
     super.update(dt);
     if (_gameStarted) {
       final List<Ball> ballsToRemove = [];
@@ -89,13 +113,23 @@ abstract class BaseLevel extends PositionComponent
       final gameBricks = children.whereType<Brick>();
 
       //put brick as null if it doesn't exist anymore
+      MapEntry<int, int>? brickToRemove;
       bricks.forEach(((row) {
-        for (var brick in row.where((element) => element != null)) {
+        for (var brick in row) {
           if (!gameBricks.contains(brick) && brick != null) {
-            brick = null;
+            //brick broken, add score
+            _currentScore += brick.value;
+            _scoreComponent.text = _currentScore.toString();
+            final rowIdx = bricks.indexOf(row);
+            final colIdx = bricks[bricks.indexOf(row)].indexOf(brick);
+            brickToRemove = MapEntry(rowIdx, colIdx);
           }
         }
       }));
+
+      if (brickToRemove != null) {
+        bricks[brickToRemove!.key].removeAt(brickToRemove!.value);
+      }
 
       if (bricks.any((element) => element.any((element) => element != null))) {
         //no more brick, level completed
@@ -105,14 +139,19 @@ abstract class BaseLevel extends PositionComponent
     }
   }
 
-  static List<Brick> createBrickRow(
-      int rowNum, BrickModel brickModel, PowerUpType? powerUpType) {
+  /// This method create a row of bricks of the same type with the same power up
+  List<Brick> createBrickRow(
+    int rowNum,
+    BrickModel brickModel,
+    PowerUpType? powerUpType,
+  ) {
+    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) / 15;
     return List.generate(15, (index) {
-      final block =
-          Brick(brickModel, powerUpType != null ? PowerUp(powerUpType) : null);
+      final block = Brick(brickModel,
+          powerUpType != null ? PowerUp(powerUpType) : null, brickSize);
       return block
         ..position = Vector2(
-            Field.hitboxSize + 2 + (block.size.x * block.scale.x) * index,
+            Field.hitboxSize + (block.size.x * block.scale.x) * index,
             100 +
                 block.size.y * block.scale.y +
                 (block.size.y * block.scale.y) * rowNum);
