@@ -19,9 +19,6 @@ class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   final FieldType fieldType;
   Field(this.fieldType);
 
-  @override
-  bool get debugMode => true;
-
   static const double hitboxSize = 15;
 
   late final _fields = {

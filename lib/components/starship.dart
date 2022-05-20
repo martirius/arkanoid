@@ -28,9 +28,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
             scale: Vector2.all(1.5),
             anchor: Anchor.topLeft);
 
-  @override
-  bool get debugMode => true;
-
   StarshipState _state = StarshipState.still;
 
   static const double starshipSpeed = 4;
@@ -68,7 +65,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
-    await FlameAudio.audioCache.load('Game_Start.ogg');
     await FlameAudio.audioCache.load('starship_extends.wav');
     animations = {
       StarshipAnimation.normal: SpriteAnimation.spriteList(
@@ -93,7 +89,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     };
     current = StarshipAnimation.appearing;
     add(RectangleHitbox());
-    FlameAudio.play('Game_Start.ogg');
   }
 
   @override

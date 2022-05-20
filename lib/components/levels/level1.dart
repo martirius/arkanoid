@@ -4,7 +4,7 @@ import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/power_up.dart';
 
 class Level1 extends BaseLevel {
-  Level1() : super(FieldType.blue);
+  Level1() : super(FieldType.blue, 1);
 
   @override
   Future<void> onLoad() async {

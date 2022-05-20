@@ -14,9 +14,6 @@ class Ball extends SpriteComponent
     implements ButtonInteractable {
   Ball() : super(scale: Vector2.all(2), size: Vector2(5, 4));
 
-  @override
-  bool get debugMode => true;
-
   Vector2 velocity = Vector2(2, -2);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;

@@ -7,12 +7,13 @@ import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/painting.dart';
 
 abstract class BaseLevel extends PositionComponent
     with HasGameRef<Arkanoid>
     implements ButtonInteractable {
-  BaseLevel(this.fieldType);
+  BaseLevel(this.fieldType, this._roundNumber);
 
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
@@ -20,12 +21,14 @@ abstract class BaseLevel extends PositionComponent
       margin: const EdgeInsets.only(right: 40, bottom: 100),
       size: 50,
       knobRadius: 20);
+  final int _roundNumber;
   late FireButton _fireButton;
   late Starship _starship;
   final List<Ball> balls = [];
   late final List<List<Brick?>> bricks;
   final FieldType fieldType;
   bool _gameStarted = false;
+  bool _introFinished = false;
   int _currentScore = 0;
   late final _scoreComponent = TextComponent(
       text: _currentScore.toString(),
@@ -35,11 +38,23 @@ abstract class BaseLevel extends PositionComponent
               fontFamily: 'Joystix',
               fontSize: 18),
           textDirection: TextDirection.ltr),
-      position: Vector2(60, 30));
+      position: Vector2(70, 40),
+      anchor: Anchor.center);
+  late final _roundNumberComponent = TextComponent(
+      text: "Round $_roundNumber\n Ready",
+      textRenderer: TextPaint(
+          style: const TextStyle(
+              color: Color.fromARGB(255, 255, 255, 255),
+              fontFamily: 'Joystix',
+              fontSize: 18),
+          textDirection: TextDirection.ltr),
+      position: Vector2(gameRef.size.x / 2, gameRef.size.y / 1.8 - 100),
+      anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    await FlameAudio.audioCache.load('Game_Start.ogg');
     size = gameRef.size;
     _starship = Starship(_joystick);
     _starship.position = Vector2(
@@ -51,13 +66,6 @@ abstract class BaseLevel extends PositionComponent
     ball.position = Vector2((gameRef.size.x / 2) - ball.size.x / 2,
         (gameRef.size.y / 1.8) - _starship.size.y - 1);
     balls.add(ball);
-    // final world = World()..add(Starship()..position = Vector2(200, 200));
-    // add(world);
-    // final camera = CameraComponent(world: world)
-    //   ..viewfinder.visibleGameSize = Vector2(320, 480)
-    //   ..viewfinder.anchor = Anchor.center;
-
-    // add(camera);
     final field = Field(fieldType)..position = Vector2(0, 50);
 
     add(field);
@@ -68,15 +76,9 @@ abstract class BaseLevel extends PositionComponent
         }
       }
     }));
-    add(_starship);
     add(_fireButton);
     add(_joystick);
-    addAll(balls);
-    _fireButton.addInteractable(_starship);
-    _fireButton.addInteractable(this);
-    _fireButton.addInteractable(ball);
-
-    //score shower component
+    add(_roundNumberComponent);
 
     final player1Label = TextComponent(
         text: '1UP',
@@ -90,52 +92,68 @@ abstract class BaseLevel extends PositionComponent
         position: Vector2(50, 10));
     add(player1Label);
     add(_scoreComponent);
+
+    FlameAudio.play('Game_Start.ogg');
+    // wait for audio to finish to start game
+    Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+      add(_starship);
+      addAll(balls);
+      _fireButton.addInteractable(_starship);
+      _fireButton.addInteractable(this);
+      _fireButton.addInteractable(ball);
+      _roundNumberComponent.removeFromParent();
+      _introFinished = true;
+    });
+    //score shower component
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    if (_gameStarted) {
-      final List<Ball> ballsToRemove = [];
-      for (var ball in balls) {
-        if (ball.y > size.y / 2 + 100) {
-          ballsToRemove.add(ball);
-        }
-      }
-      for (var element in ballsToRemove) {
-        balls.removeAt(balls.indexOf(element));
-        element.removeFromParent();
-      }
-      if (balls.isEmpty) {
-        //all balls are gone, life lost
-        gameRef.pauseEngine();
-      }
-      final gameBricks = children.whereType<Brick>();
-
-      //put brick as null if it doesn't exist anymore
-      MapEntry<int, int>? brickToRemove;
-      bricks.forEach(((row) {
-        for (var brick in row) {
-          if (!gameBricks.contains(brick) && brick != null) {
-            //brick broken, add score
-            _currentScore += brick.value;
-            _scoreComponent.text = _currentScore.toString();
-            final rowIdx = bricks.indexOf(row);
-            final colIdx = bricks[bricks.indexOf(row)].indexOf(brick);
-            brickToRemove = MapEntry(rowIdx, colIdx);
+    if (_introFinished) {
+      if (_gameStarted) {
+        final List<Ball> ballsToRemove = [];
+        for (var ball in balls) {
+          if (ball.y > size.y / 2 + 100) {
+            ballsToRemove.add(ball);
           }
         }
-      }));
+        for (var element in ballsToRemove) {
+          balls.removeAt(balls.indexOf(element));
+          element.removeFromParent();
+        }
+        if (balls.isEmpty) {
+          //all balls are gone, life lost
+          gameRef.pauseEngine();
+        }
+        final gameBricks = children.whereType<Brick>();
 
-      if (brickToRemove != null) {
-        bricks[brickToRemove!.key].removeAt(brickToRemove!.value);
-      }
+        //put brick as null if it doesn't exist anymore
+        MapEntry<int, int>? brickToRemove;
+        bricks.forEach(((row) {
+          for (var brick in row) {
+            if (!gameBricks.contains(brick) && brick != null) {
+              //brick broken, add score
+              _currentScore += brick.value;
+              _scoreComponent.text = _currentScore.toString();
+              final rowIdx = bricks.indexOf(row);
+              final colIdx = bricks[bricks.indexOf(row)].indexOf(brick);
+              brickToRemove = MapEntry(rowIdx, colIdx);
+            }
+          }
+        }));
 
-      if (bricks.any((element) => element.any((element) => element != null))) {
-        //no more brick, level completed
+        if (brickToRemove != null) {
+          bricks[brickToRemove!.key].removeAt(brickToRemove!.value);
+        }
+
+        if (bricks
+            .any((element) => element.any((element) => element != null))) {
+          //no more brick, level completed
+        }
+      } else {
+        balls.first.position.x = _starship.position.x + _starship.size.x / 2;
       }
-    } else {
-      balls.first.position.x = _starship.position.x + _starship.size.x / 2;
     }
   }
 
@@ -160,6 +178,8 @@ abstract class BaseLevel extends PositionComponent
 
   @override
   void onButtonPressed() {
-    _gameStarted = true;
+    if (_introFinished) {
+      _gameStarted = true;
+    }
   }
 }

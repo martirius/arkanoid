@@ -28,7 +28,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
   late final int value;
   static const int _baseBrickValue = 50;
   Brick(this.model, this.powerUp, double x)
-      : super(size: Vector2(16, 8), scale: Vector2(x / 16, 1)) {
+      : super(size: Vector2(16, 8), scale: Vector2(x / 16, x / 16)) {
     _canBeBroken = model != BrickModel.gold;
     _numberOfHitToBroke = model == BrickModel.silver ? 4 : 1;
     value = model == BrickModel.silver
