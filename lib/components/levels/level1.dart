@@ -15,6 +15,7 @@ class Level1 extends BaseLevel {
       createBrickRow(4, BrickModel.blue, PowerUpType.slow),
       createBrickRow(5, BrickModel.pink, PowerUpType.extend),
       createBrickRow(6, BrickModel.green, PowerUpType.laser),
+      List<Brick?>.generate(15, (index) => null)
     ];
     super.onLoad();
   }

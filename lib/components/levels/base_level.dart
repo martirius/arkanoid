@@ -158,7 +158,7 @@ abstract class BaseLevel extends PositionComponent
   }
 
   /// This method create a row of bricks of the same type with the same power up
-  List<Brick> createBrickRow(
+  List<Brick?> createBrickRow(
     int rowNum,
     BrickModel brickModel,
     PowerUpType? powerUpType,
