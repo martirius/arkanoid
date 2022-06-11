@@ -72,7 +72,13 @@ abstract class BaseLevel extends PositionComponent
     bricks.forEach(((row) {
       for (var brick in row) {
         if (brick != null) {
-          add(brick);
+          add(brick
+            ..position = Vector2(
+                Field.hitboxSize +
+                    (brick.size.x * brick.scale.x) * row.indexOf(brick),
+                100 +
+                    brick.size.y * brick.scale.y +
+                    (brick.size.y * brick.scale.y) * bricks.indexOf(row)));
         }
       }
     }));

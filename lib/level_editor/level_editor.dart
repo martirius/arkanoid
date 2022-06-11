@@ -2,11 +2,14 @@ import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/level_editor/brick_details.dart';
+import 'package:arkanoid/level_editor/level_code_generator.dart';
 import 'package:flutter/material.dart';
+import 'package:group_radio_button/group_radio_button.dart';
+import 'dart:html';
 
 void main(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
-
+  window.document.onContextMenu.listen((evt) => evt.preventDefault());
   runApp(const LevelEditorApp());
 }
 
@@ -36,71 +39,187 @@ class _LevelEditorState extends State<LevelEditor> {
 
   FieldType currentFieldType = FieldType.blue;
   Brick? currentBrick = Brick(null, null, 0, 0);
+  int currentLevel = 1;
+  bool modificationEnabled = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 50,
+      body: GestureDetector(
+        onSecondaryTap: () {
+          setState(() {
+            modificationEnabled = !modificationEnabled;
+          });
+        },
+        child: Row(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 50,
+                ),
+                ...bricks.map(
+                  (row) {
+                    return Row(
+                      children: [
+                        ...row.map(
+                          (col) => BrickWidget(col, (brick) {
+                            if (modificationEnabled) {
+                              setState(() {
+                                bricks[brick.xIndex][brick.yIndex] = Brick(
+                                  currentBrick?.model,
+                                  currentBrick?.powerUp,
+                                  brick.xIndex,
+                                  brick.yIndex,
+                                );
+                              });
+                            }
+                          }, (brick) {
+                            setState(() {
+                              bricks[brick.xIndex][brick.yIndex] = Brick(
+                                currentBrick?.model,
+                                currentBrick?.powerUp,
+                                brick.xIndex,
+                                brick.yIndex,
+                              );
+                            });
+                          }),
+                        )
+                      ],
+                    );
+                  },
+                ),
+                Expanded(child: Container()),
+                ElevatedButton(
+                    onPressed: () {
+                      _showSettingsModal(
+                          context, currentFieldType, currentLevel, (p0, p1) {
+                        setState(() {
+                          currentFieldType = p0;
+                          currentLevel = p1;
+                        });
+                      });
+                    },
+                    child: const Text("..."))
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  children: [
+                    currentBrick != null
+                        ? BrickDetails(currentBrick!, (brick) {
+                            setState(() {
+                              currentBrick = brick;
+                            });
+                          })
+                        : Container(),
+                    Expanded(child: Container()),
+                    Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: ElevatedButton(
+                          child: const Text("Generate code"),
+                          onPressed: () {
+                            LevelCodeGenerator(
+                              bricks,
+                              currentLevel,
+                              currentFieldType,
+                            ).generateCode();
+                          },
+                        ))
+                  ],
+                ),
               ),
-              ...bricks.map(
-                (row) {
-                  return Row(
-                    children: [
-                      ...row.map(
-                        (col) => BrickWidget(col, (brick) {
-                          print("$brick");
-                          setState(() {
-                            bricks[brick.xIndex][brick.yIndex] = Brick(
-                              currentBrick?.model,
-                              currentBrick?.powerUp,
-                              brick.xIndex,
-                              brick.yIndex,
-                            );
-                          });
-                        }),
-                      )
-                    ],
-                  );
-                },
-              )
-            ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSettingsModal(BuildContext context, FieldType currentFiledType,
+      int currentLevel, void Function(FieldType, int) onSettingsPressed) {
+    showModalBottomSheet(
+        context: context,
+        builder: (ctx) =>
+            SettingsModal(currentFiledType, currentLevel, onSettingsPressed));
+  }
+}
+
+class SettingsModal extends StatefulWidget {
+  final FieldType _currentFieldType;
+  final int _currentLevel;
+  final void Function(FieldType, int) _onSettingsPressed;
+  const SettingsModal(
+    this._currentFieldType,
+    this._currentLevel,
+    this._onSettingsPressed, {
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<SettingsModal> createState() => _SettingsModalState();
+}
+
+class _SettingsModalState extends State<SettingsModal> {
+  FieldType currentFieldType = FieldType.blue;
+  late final TextEditingController levelController;
+
+  @override
+  void initState() {
+    super.initState();
+    currentFieldType = widget._currentFieldType;
+    levelController =
+        TextEditingController(text: widget._currentLevel.toString());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Background"),
+                RadioGroup<FieldType>.builder(
+                  groupValue: currentFieldType,
+                  onChanged: (value) => setState(() {
+                    currentFieldType = value!;
+                  }),
+                  items: FieldType.values,
+                  itemBuilder: (item) => RadioButtonBuilder(
+                    item.name,
+                  ),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+              ],
+            ),
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
               child: Column(
-                children: [
-                  // const Text("Background"),
-                  // RadioGroup<FieldType>.builder(
-                  //   groupValue: currentFieldType,
-                  //   onChanged: (value) => setState(() {
-                  //     currentFieldType = value!;
-                  //   }),
-                  //   items: FieldType.values,
-                  //   itemBuilder: (item) => RadioButtonBuilder(
-                  //     item.name,
-                  //   ),
-                  // ),
-                  // const SizedBox(
-                  //   height: 32,
-                  // ),
-                  currentBrick != null
-                      ? BrickDetails(currentBrick!, (brick) {
-                          setState(() {
-                            currentBrick = brick;
-                          });
-                        })
-                      : Container()
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Level number"),
+              TextField(
+                keyboardType: TextInputType.number,
+                controller: levelController,
               ),
-            ),
-          )
+              const SizedBox(height: 50),
+              ElevatedButton(
+                  onPressed: () {
+                    widget._onSettingsPressed(
+                        currentFieldType, int.parse(levelController.text));
+                  },
+                  child: const Text("Apply"))
+            ],
+          ))
         ],
       ),
     );
@@ -109,9 +228,11 @@ class _LevelEditorState extends State<LevelEditor> {
 
 class BrickWidget extends StatelessWidget {
   final Brick _brick;
+  final Function(Brick) _onHover;
   final Function(Brick) _onPressed;
 
-  const BrickWidget(this._brick, this._onPressed, {Key? key}) : super(key: key);
+  const BrickWidget(this._brick, this._onHover, this._onPressed, {Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -160,10 +281,18 @@ class BrickWidget extends StatelessWidget {
               ? const Border(
                   bottom: BorderSide(width: 2), right: BorderSide(width: 2))
               : null),
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {
           _onPressed(_brick);
         },
+        child: Stack(children: [
+          MouseRegion(
+            onEnter: (event) {
+              _onHover(_brick);
+            },
+          ),
+          _brick.powerUp != null ? Text(_brick.powerUp.toString()) : Container()
+        ]),
       ),
     );
   }
