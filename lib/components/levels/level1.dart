@@ -8,7 +8,8 @@ class Level1 extends BaseLevel {
 
   @override
   Future<void> onLoad() async {
-    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) / 15;
+    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) /
+        BaseLevel.numerOfBricEachRow;
     bricks = [
       [
         null,

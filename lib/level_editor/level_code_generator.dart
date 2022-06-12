@@ -29,11 +29,11 @@ import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/power_up.dart';
 
 class Level$_level extends BaseLevel {
-  Level1() : super($_fieldType, $_level);
+  Level$_level() : super($_fieldType, $_level);
 
   @override
   Future<void> onLoad() async {
-    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) / 15;
+    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) / BaseLevel.numerOfBricEachRow;
     bricks = [
       ${_bricksString(_bricks)}
     ];

@@ -1,5 +1,6 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/level_editor/brick_details.dart';
 import 'package:arkanoid/level_editor/level_code_generator.dart';
@@ -32,9 +33,9 @@ class LevelEditor extends StatefulWidget {
 }
 
 class _LevelEditorState extends State<LevelEditor> {
-  final bricks = List<List<Brick>>.generate(15, (index) {
-    return List<Brick>.generate(
-        15, (index2) => Brick(BrickModel.blue, null, index, index2));
+  final bricks = List<List<Brick>>.generate(BaseLevel.numberOfRow, (index) {
+    return List<Brick>.generate(BaseLevel.numerOfBricEachRow,
+        (index2) => Brick(BrickModel.blue, null, index, index2));
   });
 
   FieldType currentFieldType = FieldType.blue;
@@ -118,7 +119,8 @@ class _LevelEditorState extends State<LevelEditor> {
                         : Container(),
                     Expanded(child: Container()),
                     Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.only(
+                            bottom: 24, left: 24, right: 24),
                         child: ElevatedButton(
                           child: const Text("Generate code"),
                           onPressed: () {

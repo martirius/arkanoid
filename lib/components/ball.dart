@@ -95,7 +95,7 @@ class Ball extends SpriteComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (y < gameRef.size.y / 2 + 100 && ballCanMove) {
+    if (y < gameRef.size.y / 1.5 && ballCanMove) {
       calculateBallDirection(1, dt);
     } else {
       //ball goes under starship, life lost

@@ -18,7 +18,7 @@ abstract class BaseLevel extends PositionComponent
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
       background: Background(),
-      margin: const EdgeInsets.only(right: 40, bottom: 100),
+      margin: const EdgeInsets.only(right: 40, bottom: 40),
       size: 50,
       knobRadius: 20);
   final int _roundNumber;
@@ -30,6 +30,8 @@ abstract class BaseLevel extends PositionComponent
   bool _gameStarted = false;
   bool _introFinished = false;
   int _currentScore = 0;
+  static const int numerOfBricEachRow = 13;
+  static const int numberOfRow = 16;
   late final _scoreComponent = TextComponent(
       text: _currentScore.toString(),
       textRenderer: TextPaint(
@@ -58,25 +60,26 @@ abstract class BaseLevel extends PositionComponent
     size = gameRef.size;
     _starship = Starship(_joystick);
     _starship.position = Vector2(
-        (gameRef.size.x / 2) - _starship.size.x / 2, (gameRef.size.y / 1.8));
+        (gameRef.size.x / 2) - _starship.size.x / 2, (gameRef.size.y / 1.6));
     _fireButton = FireButton(
-      Vector2(50, size.y - ((size.y / 1.8)) / 2),
+      Vector2(40, size.y - 40),
     );
+    _fireButton.position.y = size.y - 40 - _fireButton.size.y;
     final ball = Ball();
     ball.position = Vector2((gameRef.size.x / 2) - ball.size.x / 2,
-        (gameRef.size.y / 1.8) - _starship.size.y - 1);
+        (gameRef.size.y / 1.6) - _starship.size.y - 1);
     balls.add(ball);
     final field = Field(fieldType)..position = Vector2(0, 50);
 
     add(field);
-    bricks.forEach(((row) {
+    bricks.forEach(((row) async {
       for (var brick in row) {
         if (brick != null) {
-          add(brick
+          await add(brick
             ..position = Vector2(
                 Field.hitboxSize +
                     (brick.size.x * brick.scale.x) * row.indexOf(brick),
-                100 +
+                70 +
                     brick.size.y * brick.scale.y +
                     (brick.size.y * brick.scale.y) * bricks.indexOf(row)));
         }
@@ -120,7 +123,7 @@ abstract class BaseLevel extends PositionComponent
       if (_gameStarted) {
         final List<Ball> ballsToRemove = [];
         for (var ball in balls) {
-          if (ball.y > size.y / 2 + 100) {
+          if (ball.y > gameRef.size.y / 1.5) {
             ballsToRemove.add(ball);
           }
         }
@@ -176,7 +179,7 @@ abstract class BaseLevel extends PositionComponent
       return block
         ..position = Vector2(
             Field.hitboxSize + (block.size.x * block.scale.x) * index,
-            100 +
+            70 +
                 block.size.y * block.scale.y +
                 (block.size.y * block.scale.y) * rowNum);
     });
@@ -188,4 +191,8 @@ abstract class BaseLevel extends PositionComponent
       _gameStarted = true;
     }
   }
+}
+
+abstract class LevelCompleted {
+  onLevelCompleted(int levelNumber);
 }

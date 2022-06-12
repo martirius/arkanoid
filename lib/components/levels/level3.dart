@@ -1,0 +1,257 @@
+import 'package:arkanoid/components/brick.dart';
+import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/levels/base_level.dart';
+import 'package:arkanoid/components/power_up.dart';
+
+class Level3 extends BaseLevel {
+  Level3() : super(FieldType.electricBlue, 3);
+
+  @override
+  Future<void> onLoad() async {
+    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) /
+        BaseLevel.numerOfBricEachRow;
+    bricks = [
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.green, PowerUp(PowerUpType.slow), brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, PowerUp(PowerUpType.slow), brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, PowerUp(PowerUpType.slow), brickSize),
+        Brick(BrickModel.green, null, brickSize),
+        Brick(BrickModel.green, PowerUp(PowerUpType.cattch), brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.grey, null, brickSize),
+        Brick(BrickModel.grey, null, brickSize),
+        Brick(BrickModel.grey, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, PowerUp(PowerUpType.extend), brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, null, brickSize),
+        Brick(BrickModel.red, PowerUp(PowerUpType.extend), brickSize),
+        Brick(BrickModel.red, null, brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.grey, null, brickSize),
+        Brick(BrickModel.grey, null, brickSize),
+        Brick(BrickModel.grey, null, brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, PowerUp(PowerUpType.slow), brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, PowerUp(PowerUpType.slow), brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize),
+        Brick(BrickModel.pink, null, brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.blue, null, brickSize),
+        Brick(BrickModel.blue, null, brickSize),
+        Brick(BrickModel.blue, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.cattch), brickSize),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.cattch), brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.extend), brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize)
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.gold, null, brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.extend), brickSize),
+        Brick(BrickModel.lightBlue, null, brickSize)
+      ]
+    ];
+    super.onLoad();
+  }
+}
