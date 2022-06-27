@@ -119,8 +119,7 @@ class _LevelEditorState extends State<LevelEditor> {
                         : Container(),
                     Expanded(child: Container()),
                     Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 24, left: 24, right: 24),
+                        padding: const EdgeInsets.only(left: 24, right: 24),
                         child: ElevatedButton(
                           child: const Text("Generate code"),
                           onPressed: () {
