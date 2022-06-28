@@ -16,7 +16,14 @@ enum StarshipState {
   collidingRight
 }
 
-enum StarshipAnimation { normal, appearing, extended, laser, laserTransforming }
+enum StarshipAnimation {
+  normal,
+  appearing,
+  extended,
+  laser,
+  laserTransforming,
+  disappearing
+}
 
 class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     with CollisionCallbacks, HasGameRef<Arkanoid>
@@ -35,100 +42,112 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   static const double startshipWidth = 32;
   static const double startshipHeight = 8;
   PowerUpType? powerUp;
+  bool _isDisappearing = false;
 
-  late final spritesNormal = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
+  late final _spritesNormal = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
         'starship.png',
         srcPosition: Vector2(32.0, 8.0 * i),
         srcSize: Vector2(startshipWidth, startshipHeight),
       ));
-  late final spritesAppearing = [0, 1, 2, 3, 4].map((i) => Sprite.load(
+  late final _spritesAppearing = [0, 1, 2, 3, 4].map((i) => Sprite.load(
         'starship.png',
         srcPosition: Vector2(0.0, 8.0 * i),
         srcSize: Vector2(startshipWidth, startshipHeight),
       ));
-  late final spritesExtended = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
+  late final _spritesExtended = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
         'starship.png',
         srcPosition: Vector2(64.0, 8.0 * i),
         srcSize: Vector2(48, startshipHeight),
       ));
-  late final spritesLaser = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
+  late final _spritesLaser = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
         'starship.png',
         srcPosition: Vector2(144.0, 8.0 * i),
         srcSize: Vector2(32.0, startshipHeight),
       ));
-  late final spriteLaserTransforamation =
+  late final _spriteLaserTransforamation =
       [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => Sprite.load(
             'starship.png',
             srcPosition: Vector2(112.0, 8.0 * i),
             srcSize: Vector2(32.0, startshipHeight),
           ));
+  late final _spriteDisappearing = [0, 1, 2, 3, 4, 5, 6].map((i) => Sprite.load(
+        'starship.png',
+        srcPosition:
+            i < 3 ? Vector2(176.0, 8.0 * i) : Vector2(16.0 + 48 * i, 76),
+        srcSize: i < 3 ? Vector2(32.0, startshipHeight) : Vector2(48, 24),
+      ));
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
     await FlameAudio.audioCache.load('starship_extends.wav');
+
     animations = {
       StarshipAnimation.normal: SpriteAnimation.spriteList(
-          await Future.wait(spritesNormal),
+          await Future.wait(_spritesNormal),
           stepTime: 0.2),
       StarshipAnimation.appearing: SpriteAnimation.spriteList(
-          await Future.wait(spritesAppearing),
+          await Future.wait(_spritesAppearing),
           stepTime: 0.2,
           loop: false),
       StarshipAnimation.extended: SpriteAnimation.spriteList(
-          await Future.wait(spritesExtended),
+          await Future.wait(_spritesExtended),
           stepTime: 0.2,
           loop: true),
       StarshipAnimation.laser: SpriteAnimation.spriteList(
-          await Future.wait(spritesLaser),
+          await Future.wait(_spritesLaser),
           stepTime: 0.2,
           loop: true),
       StarshipAnimation.laserTransforming: SpriteAnimation.spriteList(
-          await Future.wait(spriteLaserTransforamation),
+          await Future.wait(_spriteLaserTransforamation),
           stepTime: 0.1,
+          loop: false),
+      StarshipAnimation.disappearing: SpriteAnimation.spriteList(
+          await Future.wait(_spriteDisappearing),
+          stepTime: 0.2,
           loop: false)
     };
-    current = StarshipAnimation.appearing;
     add(RectangleHitbox());
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    //animation controller
-    if (current == StarshipAnimation.appearing &&
-        animation!.isLastFrame &&
-        animation!.elapsed >= 1) {
-      current = StarshipAnimation.normal;
-    }
+    if (!_isDisappearing) {
+      if (current == StarshipAnimation.appearing &&
+          animation!.isLastFrame &&
+          animation!.elapsed >= 1) {
+        current = StarshipAnimation.normal;
+      }
 
-    if (current == StarshipAnimation.laserTransforming &&
-        animation!.isLastFrame &&
-        animation!.elapsed >= 1) {
-      current = StarshipAnimation.laser;
-    }
+      if (current == StarshipAnimation.laserTransforming &&
+          animation!.isLastFrame &&
+          animation!.elapsed >= 1) {
+        current = StarshipAnimation.laser;
+      }
 
-    if (_joystickComponent.direction == JoystickDirection.left &&
-        _state != StarshipState.collidingLeft) {
-      _state = StarshipState.movingLeft;
-    } else if (_joystickComponent.direction == JoystickDirection.right &&
-        _state != StarshipState.collidingRight) {
-      _state = StarshipState.movingRight;
-    } else {
-      _state = StarshipState.still;
-    }
-    switch (_state) {
-      case StarshipState.movingLeft:
-        x -= starshipSpeed;
-        break;
-      case StarshipState.movingRight:
-        x += starshipSpeed;
-        break;
-      //this case when expaning
-      case StarshipState.collidingRight:
-        x -= starshipSpeed;
-        break;
-      default:
-        break;
+      if (_joystickComponent.direction == JoystickDirection.left &&
+          _state != StarshipState.collidingLeft) {
+        _state = StarshipState.movingLeft;
+      } else if (_joystickComponent.direction == JoystickDirection.right &&
+          _state != StarshipState.collidingRight) {
+        _state = StarshipState.movingRight;
+      } else {
+        _state = StarshipState.still;
+      }
+      switch (_state) {
+        case StarshipState.movingLeft:
+          x -= starshipSpeed;
+          break;
+        case StarshipState.movingRight:
+          x += starshipSpeed;
+          break;
+        //this case when expaning
+        case StarshipState.collidingRight:
+          x -= starshipSpeed;
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -154,16 +173,33 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
           FlameAudio.play('starship_extends.wav');
         } else if (powerUp == PowerUpType.laser) {
           current = StarshipAnimation.laserTransforming;
+          animation?.reset();
         }
       }
     }
   }
 
-  void removePowerUp(PowerUpType newPowerUp) {
+  void removePowerUp(PowerUpType? newPowerUp) {
     if (newPowerUp != PowerUpType.extend) {
       scale.x = 1.5;
       current = StarshipAnimation.normal;
     }
+  }
+
+  void appear() {
+    _isDisappearing = false;
+    current = StarshipAnimation.appearing;
+    animation?.reset();
+  }
+
+  Future<void> destroy() async {
+    _isDisappearing = true;
+    removePowerUp(null);
+    powerUp = null;
+    FlameAudio.play("ball_go_down.wav");
+    current = StarshipAnimation.disappearing;
+    animation?.reset();
+    return Future.delayed(const Duration(seconds: 2));
   }
 
   @override

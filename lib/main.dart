@@ -1,4 +1,9 @@
+import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level1.dart';
+import 'package:arkanoid/components/levels/level2.dart';
+import 'package:arkanoid/components/levels/level3.dart';
+import 'package:arkanoid/components/levels/level4.dart';
+import 'package:arkanoid/components/levels/level5.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/widgets.dart';
@@ -15,10 +20,31 @@ void main() {
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasDraggables, HasTappables {
+  BaseLevel currentLevel = Level1();
+  int currentScore = 0;
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-    add(Level1());
+    add(currentLevel);
+  }
+
+  void levelCompleted(int levelNumber) {
+    remove(currentLevel);
+    switch (levelNumber) {
+      case 1:
+        currentLevel = Level2();
+        break;
+      case 2:
+        currentLevel = Level3();
+        break;
+      case 3:
+        currentLevel = Level4();
+        break;
+      case 4:
+        currentLevel = Level5();
+        break;
+    }
+    add(currentLevel);
   }
 }
 

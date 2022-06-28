@@ -59,16 +59,12 @@ class Level1 extends BaseLevel {
         Brick(BrickModel.silver, null, brickSize),
         Brick(BrickModel.silver, null, brickSize),
         Brick(BrickModel.silver, null, brickSize),
-        Brick(BrickModel.silver, null, brickSize),
-        Brick(BrickModel.silver, null, brickSize)
       ],
       [
         Brick(BrickModel.red, null, brickSize),
         Brick(BrickModel.red, null, brickSize),
         Brick(BrickModel.red, null, brickSize),
         Brick(BrickModel.red, PowerUp(PowerUpType.extend), brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
         Brick(BrickModel.red, null, brickSize),
         Brick(BrickModel.red, null, brickSize),
         Brick(BrickModel.red, null, brickSize),
@@ -93,8 +89,6 @@ class Level1 extends BaseLevel {
         Brick(BrickModel.yellow, PowerUp(PowerUpType.cattch), brickSize),
         Brick(BrickModel.yellow, null, brickSize),
         Brick(BrickModel.yellow, null, brickSize),
-        Brick(BrickModel.yellow, null, brickSize),
-        Brick(BrickModel.yellow, null, brickSize)
       ],
       [
         Brick(BrickModel.blue, null, brickSize),
@@ -110,8 +104,6 @@ class Level1 extends BaseLevel {
         Brick(BrickModel.blue, null, brickSize),
         Brick(BrickModel.blue, null, brickSize),
         Brick(BrickModel.blue, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.blue, null, brickSize),
-        Brick(BrickModel.blue, null, brickSize)
       ],
       [
         Brick(BrickModel.pink, PowerUp(PowerUpType.slow), brickSize),
@@ -121,8 +113,6 @@ class Level1 extends BaseLevel {
         Brick(BrickModel.pink, null, brickSize),
         Brick(BrickModel.pink, null, brickSize),
         Brick(BrickModel.pink, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
         Brick(BrickModel.pink, null, brickSize),
         Brick(BrickModel.pink, null, brickSize),
         Brick(BrickModel.pink, null, brickSize),
@@ -140,8 +130,6 @@ class Level1 extends BaseLevel {
         Brick(BrickModel.green, null, brickSize),
         Brick(BrickModel.green, null, brickSize),
         Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, PowerUp(PowerUpType.extend), brickSize),
         Brick(BrickModel.green, null, brickSize),
         Brick(BrickModel.green, null, brickSize),
         Brick(BrickModel.green, null, brickSize),

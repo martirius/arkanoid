@@ -21,7 +21,7 @@ enum BrickModel {
 }
 
 class Brick extends SpriteAnimationComponent with CollisionCallbacks {
-  late final bool _canBeBroken;
+  late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
   final PowerUp? powerUp;
@@ -29,7 +29,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
   static const int _baseBrickValue = 50;
   Brick(this.model, this.powerUp, double xSize)
       : super(size: Vector2(16, 8), scale: Vector2(xSize / 16, xSize / 16)) {
-    _canBeBroken = model != BrickModel.gold;
+    canBeBroken = model != BrickModel.gold;
     _numberOfHitToBroke = model == BrickModel.silver ? 4 : 1;
     value = model == BrickModel.silver
         ? _baseBrickValue * _numberOfHitToBroke
@@ -108,7 +108,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
     }
     animation?.reset();
     _numberOfTimeHit += 1;
-    if (_numberOfTimeHit >= _numberOfHitToBroke && _canBeBroken) {
+    if (_numberOfTimeHit >= _numberOfHitToBroke && canBeBroken) {
       if (powerUp != null && powerUp!.parent == null) {
         parent?.add(powerUp!..position = position);
       }

@@ -24,6 +24,10 @@ class FireButton extends CircleComponent with Tappable {
   void addInteractable(ButtonInteractable buttonInteractable) {
     _buttonInteractables.add(buttonInteractable);
   }
+
+  void removeInteractable(ButtonInteractable buttonInteractable) {
+    _buttonInteractables.remove(buttonInteractable);
+  }
 }
 
 class Knob extends CircleComponent {

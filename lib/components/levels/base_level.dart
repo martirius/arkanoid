@@ -26,14 +26,15 @@ abstract class BaseLevel extends PositionComponent
   late Starship _starship;
   final List<Ball> balls = [];
   late final List<List<Brick?>> bricks;
+  late final Field _field;
+  late final TextComponent _playerLabel;
   final FieldType fieldType;
   bool _gameStarted = false;
   bool _introFinished = false;
-  int _currentScore = 0;
   static const int numerOfBricEachRow = 13;
   static const int numberOfRow = 16;
   late final _scoreComponent = TextComponent(
-      text: _currentScore.toString(),
+      text: gameRef.currentScore.toString(),
       textRenderer: TextPaint(
           style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
@@ -50,28 +51,53 @@ abstract class BaseLevel extends PositionComponent
               fontFamily: 'Joystix',
               fontSize: 18),
           textDirection: TextDirection.ltr),
-      position: Vector2(gameRef.size.x / 2, gameRef.size.y / 1.8 - 100),
+      position: Vector2(gameRef.size.x / 2, gameRef.size.y / 1.85),
       anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    await FlameAudio.audioCache.load('Game_Start.ogg');
+    await _initializeComponents();
+    await _loadComponents();
+  }
+
+  Future<void> _initializeComponents() async {
     size = gameRef.size;
     _starship = Starship(_joystick);
-    _starship.position = Vector2(
-        (gameRef.size.x / 2) - _starship.size.x / 2, (gameRef.size.y / 1.6));
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
     );
     _fireButton.position.y = size.y - 40 - _fireButton.size.y;
+    _field = Field(fieldType)..position = Vector2(0, 50);
+    _playerLabel = TextComponent(
+        text: '1UP',
+        textRenderer: TextPaint(
+            style: const TextStyle(
+              color: Color.fromARGB(255, 255, 0, 0),
+              fontFamily: 'Joystix',
+              fontSize: 18,
+            ),
+            textDirection: TextDirection.ltr),
+        position: Vector2(50, 10));
+  }
+
+  Future<void> _loadComponents() async {
+    add(_playerLabel);
+    add(_fireButton);
+    add(_joystick);
+    add(_scoreComponent);
+    await _loadGameComponents();
+  }
+
+  Future<void> _loadGameComponents() async {
+    await FlameAudio.audioCache.load('Game_Start.ogg');
+    add(_field);
+    _starship.position = Vector2(
+        (gameRef.size.x / 2) - _starship.size.x / 2, (gameRef.size.y / 1.6));
     final ball = Ball();
     ball.position = Vector2((gameRef.size.x / 2) - ball.size.x / 2,
         (gameRef.size.y / 1.6) - _starship.size.y - 1);
     balls.add(ball);
-    final field = Field(fieldType)..position = Vector2(0, 50);
-
-    add(field);
     bricks.forEach(((row) async {
       for (var brick in row) {
         if (brick != null) {
@@ -85,35 +111,45 @@ abstract class BaseLevel extends PositionComponent
         }
       }
     }));
-    add(_fireButton);
-    add(_joystick);
     add(_roundNumberComponent);
-
-    final player1Label = TextComponent(
-        text: '1UP',
-        textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Color.fromARGB(255, 255, 0, 0),
-              fontFamily: 'Joystix',
-              fontSize: 18,
-            ),
-            textDirection: TextDirection.ltr),
-        position: Vector2(50, 10));
-    add(player1Label);
-    add(_scoreComponent);
 
     FlameAudio.play('Game_Start.ogg');
     // wait for audio to finish to start game
     Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
       add(_starship);
+      _starship.appear();
       addAll(balls);
+      _roundNumberComponent.removeFromParent();
       _fireButton.addInteractable(_starship);
       _fireButton.addInteractable(this);
-      _fireButton.addInteractable(ball);
-      _roundNumberComponent.removeFromParent();
+      _fireButton.addInteractable(balls.first);
       _introFinished = true;
     });
     //score shower component
+  }
+
+  Future<void> _removeGameComponents() async {
+    for (var element in balls) {
+      element.removeFromParent();
+      _fireButton.removeInteractable(element);
+    }
+    _starship.removeFromParent();
+    _field.removeFromParent();
+    _fireButton.removeInteractable(_starship);
+    _fireButton.removeInteractable(this);
+    bricks.forEach(((row) async {
+      for (var brick in row) {
+        if (brick != null) {
+          remove(brick
+            ..position = Vector2(
+                Field.hitboxSize +
+                    (brick.size.x * brick.scale.x) * row.indexOf(brick),
+                70 +
+                    brick.size.y * brick.scale.y +
+                    (brick.size.y * brick.scale.y) * bricks.indexOf(row)));
+        }
+      }
+    }));
   }
 
   @override
@@ -133,7 +169,7 @@ abstract class BaseLevel extends PositionComponent
         }
         if (balls.isEmpty) {
           //all balls are gone, life lost
-          gameRef.pauseEngine();
+          lifeLost();
         }
         final gameBricks = children.whereType<Brick>();
 
@@ -143,8 +179,8 @@ abstract class BaseLevel extends PositionComponent
           for (var brick in row) {
             if (!gameBricks.contains(brick) && brick != null) {
               //brick broken, add score
-              _currentScore += brick.value;
-              _scoreComponent.text = _currentScore.toString();
+              gameRef.currentScore += brick.value;
+              _scoreComponent.text = gameRef.currentScore.toString();
               final rowIdx = bricks.indexOf(row);
               final colIdx = bricks[bricks.indexOf(row)].indexOf(brick);
               brickToRemove = MapEntry(rowIdx, colIdx);
@@ -153,12 +189,14 @@ abstract class BaseLevel extends PositionComponent
         }));
 
         if (brickToRemove != null) {
-          bricks[brickToRemove!.key].removeAt(brickToRemove!.value);
+          bricks[brickToRemove!.key][brickToRemove!.value] = null;
         }
-
-        if (bricks
-            .any((element) => element.any((element) => element != null))) {
+        bool levelCompleted = bricks.every((row) => row.where((brick) {
+              return brick != null ? brick.canBeBroken : false;
+            }).isEmpty);
+        if (levelCompleted) {
           //no more brick, level completed
+          gameRef.levelCompleted(_roundNumber);
         }
       } else {
         balls.first.position.x = _starship.position.x + _starship.size.x / 2;
@@ -185,14 +223,19 @@ abstract class BaseLevel extends PositionComponent
     });
   }
 
+  void lifeLost() async {
+    _introFinished = false;
+    _gameStarted = false;
+    await _starship.destroy();
+    await _removeGameComponents();
+    await Future.delayed(const Duration(milliseconds: 500));
+    await _loadGameComponents();
+  }
+
   @override
   void onButtonPressed() {
     if (_introFinished) {
       _gameStarted = true;
     }
   }
-}
-
-abstract class LevelCompleted {
-  onLevelCompleted(int levelNumber);
 }
