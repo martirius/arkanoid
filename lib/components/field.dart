@@ -17,9 +17,9 @@ enum FieldType {
 
 class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   final FieldType fieldType;
-  Field(this.fieldType);
+  Field(this.fieldType) : super(size: Vector2(224, 240));
 
-  static const double hitboxSize = 15;
+  static const double hitboxSize = 8;
 
   late final _fields = {
     FieldType.blue: extractSprite(0, 0, 224, 240, 'fields.png'),
@@ -36,14 +36,14 @@ class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('fields.png');
-    size = Vector2(gameRef.size.x, (gameRef.size.y / 1.5));
+    scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor);
     sprite = _fields[fieldType];
-    add(RectangleHitbox(size: Vector2(hitboxSize, (gameRef.size.y / 1.5)))
+    add(RectangleHitbox(size: Vector2(hitboxSize, size.y))
       ..collisionType = CollisionType.passive);
-    add(RectangleHitbox(size: Vector2(gameRef.size.x, hitboxSize))
+    add(RectangleHitbox(size: Vector2(hitboxSize, size.y))
+      ..position = Vector2(size.x - hitboxSize, 0)
       ..collisionType = CollisionType.passive);
-    add(RectangleHitbox(
-        size: Vector2(gameRef.size.x - hitboxSize, (gameRef.size.y / 1.5)))
+    add(RectangleHitbox(size: Vector2(size.x, hitboxSize))
       ..collisionType = CollisionType.passive);
   }
 }

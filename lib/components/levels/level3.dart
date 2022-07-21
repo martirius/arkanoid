@@ -8,8 +8,6 @@ class Level3 extends BaseLevel {
 
   @override
   Future<void> onLoad() async {
-    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) /
-        BaseLevel.numerOfBricEachRow;
     bricks = [
       [
         null,
@@ -27,19 +25,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.green, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.green, null, brickSize),
-        Brick(BrickModel.green, PowerUp(PowerUpType.cattch), brickSize)
+        Brick(BrickModel.green, PowerUp(PowerUpType.slow)),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, PowerUp(PowerUpType.slow)),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, PowerUp(PowerUpType.slow)),
+        Brick(BrickModel.green, null),
+        Brick(BrickModel.green, PowerUp(PowerUpType.cattch))
       ],
       [
         null,
@@ -57,19 +55,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.grey, null, brickSize),
-        Brick(BrickModel.grey, null, brickSize),
-        Brick(BrickModel.grey, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize)
+        Brick(BrickModel.grey, null),
+        Brick(BrickModel.grey, null),
+        Brick(BrickModel.grey, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null)
       ],
       [
         null,
@@ -87,19 +85,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, PowerUp(PowerUpType.extend), brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, null, brickSize),
-        Brick(BrickModel.red, PowerUp(PowerUpType.extend), brickSize),
-        Brick(BrickModel.red, null, brickSize)
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, PowerUp(PowerUpType.extend)),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, null),
+        Brick(BrickModel.red, PowerUp(PowerUpType.extend)),
+        Brick(BrickModel.red, null)
       ],
       [
         null,
@@ -117,19 +115,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.grey, null, brickSize),
-        Brick(BrickModel.grey, null, brickSize),
-        Brick(BrickModel.grey, null, brickSize)
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.grey, null),
+        Brick(BrickModel.grey, null),
+        Brick(BrickModel.grey, null)
       ],
       [
         null,
@@ -147,19 +145,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, PowerUp(PowerUpType.slow), brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize),
-        Brick(BrickModel.pink, null, brickSize)
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, PowerUp(PowerUpType.slow)),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, PowerUp(PowerUpType.slow)),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null),
+        Brick(BrickModel.pink, null)
       ],
       [
         null,
@@ -177,19 +175,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.blue, null, brickSize),
-        Brick(BrickModel.blue, null, brickSize),
-        Brick(BrickModel.blue, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize)
+        Brick(BrickModel.blue, null),
+        Brick(BrickModel.blue, null),
+        Brick(BrickModel.blue, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null)
       ],
       [
         null,
@@ -207,19 +205,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.cattch), brickSize),
-        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.cattch), brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.extend), brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize)
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.cattch)),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.cattch)),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.extend)),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, null)
       ],
       [
         null,
@@ -237,19 +235,19 @@ class Level3 extends BaseLevel {
         null
       ],
       [
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.gold, null, brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize),
-        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.extend), brickSize),
-        Brick(BrickModel.lightBlue, null, brickSize)
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.gold, null),
+        Brick(BrickModel.lightBlue, null),
+        Brick(BrickModel.lightBlue, PowerUp(PowerUpType.extend)),
+        Brick(BrickModel.lightBlue, null)
       ]
     ];
     super.onLoad();

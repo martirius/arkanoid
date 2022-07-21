@@ -10,13 +10,13 @@ enum PowerUpType { slow, cattch, laser, extend, disrupt, bonus, player }
 class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   final PowerUpType powerUpType;
 
-  PowerUp(this.powerUpType)
-      : super(size: Vector2(16, 8), scale: Vector2.all(1.5));
+  PowerUp(this.powerUpType) : super(size: Vector2(16, 8));
 
   static const spriteSheetFile = 'powerups.png';
   @override
   Future<void>? onLoad() async {
     super.onLoad();
+    scale *= gameRef.scaleFactor;
     SpriteSheet spriteSheet = SpriteSheet(
         image: await Flame.images.load(spriteSheetFile), srcSize: size);
     final animations = PowerUpType.values.asMap().map((key, value) => MapEntry(

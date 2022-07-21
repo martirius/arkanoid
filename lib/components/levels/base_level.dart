@@ -25,8 +25,8 @@ abstract class BaseLevel extends PositionComponent
   late FireButton _fireButton;
   late Starship _starship;
   final List<Ball> balls = [];
-  late final List<List<Brick?>> bricks;
-  late final Field _field;
+  List<List<Brick?>> bricks = [];
+  late final Field field;
   late final TextComponent _playerLabel;
   final FieldType fieldType;
   bool _gameStarted = false;
@@ -51,7 +51,6 @@ abstract class BaseLevel extends PositionComponent
               fontFamily: 'Joystix',
               fontSize: 18),
           textDirection: TextDirection.ltr),
-      position: Vector2(gameRef.size.x / 2, gameRef.size.y / 1.85),
       anchor: Anchor.center);
 
   @override
@@ -68,7 +67,7 @@ abstract class BaseLevel extends PositionComponent
       Vector2(40, size.y - 40),
     );
     _fireButton.position.y = size.y - 40 - _fireButton.size.y;
-    _field = Field(fieldType)..position = Vector2(0, 50);
+    field = Field(fieldType)..position = Vector2(0, 50);
     _playerLabel = TextComponent(
         text: '1UP',
         textRenderer: TextPaint(
@@ -89,21 +88,14 @@ abstract class BaseLevel extends PositionComponent
     await _loadGameComponents();
   }
 
-  Future<void> _loadGameComponents() async {
-    await FlameAudio.audioCache.load('Game_Start.ogg');
-    add(_field);
-    _starship.position = Vector2(
-        (gameRef.size.x / 2) - _starship.size.x / 2, (gameRef.size.y / 1.6));
-    final ball = Ball();
-    ball.position = Vector2((gameRef.size.x / 2) - ball.size.x / 2,
-        (gameRef.size.y / 1.6) - _starship.size.y - 1);
-    balls.add(ball);
+  Future<void> loadBricks() async {
     bricks.forEach(((row) async {
       for (var brick in row) {
         if (brick != null) {
           await add(brick
+            ..scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor)
             ..position = Vector2(
-                Field.hitboxSize +
+                Field.hitboxSize * field.scale.x +
                     (brick.size.x * brick.scale.x) * row.indexOf(brick),
                 70 +
                     brick.size.y * brick.scale.y +
@@ -111,7 +103,31 @@ abstract class BaseLevel extends PositionComponent
         }
       }
     }));
-    add(_roundNumberComponent);
+  }
+
+  Future<void> _loadGameComponents() async {
+    await FlameAudio.audioCache.load('Game_Start.ogg');
+    await add(field);
+    _starship.position = Vector2((gameRef.size.x / 2) - _starship.size.x / 2,
+        field.size.y * field.scale.y + field.position.y - 30);
+    final ball = Ball();
+    ball.position = Vector2(
+        (gameRef.size.x / 2) - ball.size.x / 2,
+        field.size.y * field.scale.y +
+            field.position.y -
+            30 -
+            _starship.size.y -
+            1);
+    balls.add(ball);
+    if (bricks.isNotEmpty) {
+      await loadBricks();
+    }
+    add(_roundNumberComponent
+      ..priority = 20
+      ..position = Vector2(
+          gameRef.size.x / 2,
+          (field.size.y * field.scale.y + field.position.y) / 2 +
+              (field.size.y * field.scale.y + field.position.y) / 4));
 
     FlameAudio.play('Game_Start.ogg');
     // wait for audio to finish to start game
@@ -134,19 +150,13 @@ abstract class BaseLevel extends PositionComponent
       _fireButton.removeInteractable(element);
     }
     _starship.removeFromParent();
-    _field.removeFromParent();
+    field.removeFromParent();
     _fireButton.removeInteractable(_starship);
     _fireButton.removeInteractable(this);
     bricks.forEach(((row) async {
       for (var brick in row) {
         if (brick != null) {
-          remove(brick
-            ..position = Vector2(
-                Field.hitboxSize +
-                    (brick.size.x * brick.scale.x) * row.indexOf(brick),
-                70 +
-                    brick.size.y * brick.scale.y +
-                    (brick.size.y * brick.scale.y) * bricks.indexOf(row)));
+          brick.removeFromParent();
         }
       }
     }));
@@ -159,7 +169,7 @@ abstract class BaseLevel extends PositionComponent
       if (_gameStarted) {
         final List<Ball> ballsToRemove = [];
         for (var ball in balls) {
-          if (ball.y > gameRef.size.y / 1.5) {
+          if (ball.y > field.size.y * field.scale.y + field.position.y) {
             ballsToRemove.add(ball);
           }
         }
@@ -210,10 +220,9 @@ abstract class BaseLevel extends PositionComponent
     BrickModel brickModel,
     PowerUpType? powerUpType,
   ) {
-    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) / 15;
     return List.generate(15, (index) {
-      final block = Brick(brickModel,
-          powerUpType != null ? PowerUp(powerUpType) : null, brickSize);
+      final block =
+          Brick(brickModel, powerUpType != null ? PowerUp(powerUpType) : null);
       return block
         ..position = Vector2(
             Field.hitboxSize + (block.size.x * block.scale.x) * index,

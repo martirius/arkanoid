@@ -33,7 +33,6 @@ class Level$_level extends BaseLevel {
 
   @override
   Future<void> onLoad() async {
-    final brickSize = (gameRef.size.x - (Field.hitboxSize * 2)) / BaseLevel.numerOfBricEachRow;
     bricks = [
       ${_bricksString(_bricks)}
     ];
@@ -45,7 +44,7 @@ class Level$_level extends BaseLevel {
 
   String _brickString(Brick brick) {
     return brick.model != null
-        ? "Brick(${brick.model},${brick.powerUp != null ? "PowerUp(${brick.powerUp})" : "null"}, brickSize)"
+        ? "Brick(${brick.model},${brick.powerUp != null ? "PowerUp(${brick.powerUp})" : "null"})"
         : "null";
   }
 

@@ -12,9 +12,9 @@ import 'package:flame_audio/flame_audio.dart';
 class Ball extends SpriteComponent
     with CollisionCallbacks, HasGameRef<Arkanoid>
     implements ButtonInteractable {
-  Ball() : super(scale: Vector2.all(2), size: Vector2(5, 4));
+  Ball() : super(size: Vector2(5, 4));
 
-  Vector2 velocity = Vector2(2, -2);
+  Vector2 velocity = Vector2(2.5, -2.5);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
 
@@ -23,6 +23,8 @@ class Ball extends SpriteComponent
     super.onLoad();
     await Flame.images.load('starship.png');
     await FlameAudio.audioCache.load('ball_hit_starship.wav');
+
+    scale *= gameRef.scaleFactor;
 
     sprite = extractSprite(0, 40, 5, 4, 'starship.png');
     add(RectangleHitbox(
@@ -43,33 +45,49 @@ class Ball extends SpriteComponent
       if (_numberOfBrickHit < 90 && _numberOfBrickHit % 15 == 0) {
         velocity *= 1.2;
       }
-      if (middleIntersectionPoint.y.round() <= other.y &&
-          (middleIntersectionPoint.x.round() <= other.x ||
-              middleIntersectionPoint.x.round() >= other.x)) {
+      if (middleIntersectionPoint.y.round() == other.y.round()) {
         //ball is over brick, invert y
+        y = other.y - size.y * scale.y - 1;
         velocity.y *= -1;
       } else {
-        if (middleIntersectionPoint.y.round() >= other.y + other.size.y &&
-            (middleIntersectionPoint.x.round() <=
-                    other.x + other.size.x * other.scale.x ||
-                middleIntersectionPoint.x.round() >=
-                    other.x + other.size.x * other.scale.x)) {
+        if (middleIntersectionPoint.y.round() ==
+            (other.y + (other.size.y * other.scale.y)).round()) {
+          y = other.y + other.size.y * other.scale.y + 1;
           velocity.y *= -1;
           //ball is below brick, inver y
         } else {
           //left or right part of brick, invert x
+          x = x < other.x
+              ? other.x - 1
+              : other.x + other.scale.x * other.size.x + 1;
           velocity.x *= -1;
         }
       }
     } else if (other is Field) {
       //calculate bouncing with Field borders
-      if (x - Field.hitboxSize <= 0 ||
-          x + Field.hitboxSize + (size.x * scale.x) >= gameRef.size.x) {
+      if (x - Field.hitboxSize * gameRef.currentLevel.field.scale.x <= 0 ||
+          x +
+                  Field.hitboxSize * gameRef.currentLevel.field.scale.x +
+                  (size.x * scale.x) +
+                  1 >=
+              gameRef.size.x) {
         velocity.x *= -1;
+        x = x - Field.hitboxSize * gameRef.currentLevel.field.scale.x - 1 > 0
+            ? (gameRef.size.x -
+                    Field.hitboxSize * gameRef.currentLevel.field.scale.x) -
+                (size.x * scale.x) -
+                1
+            : Field.hitboxSize * gameRef.currentLevel.field.scale.x + 1;
         //left wall or right wall
-      } else if (y - Field.hitboxSize - 50 <= 0) {
+      } else if (y -
+              Field.hitboxSize * gameRef.currentLevel.field.scale.x -
+              50 <=
+          0) {
         //top wall
         velocity.y *= -1;
+        y = gameRef.currentLevel.field.position.y +
+            Field.hitboxSize * gameRef.currentLevel.field.scale.y +
+            1;
       }
     } else if (other is Starship && ballCanMove) {
       final starship = other;
@@ -99,7 +117,6 @@ class Ball extends SpriteComponent
       calculateBallDirection(1, dt);
     } else {
       //ball goes under starship, life lost
-
     }
   }
 

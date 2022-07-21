@@ -32,7 +32,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   Starship(this._joystickComponent)
       : super(
             size: Vector2(startshipWidth, startshipHeight),
-            scale: Vector2.all(1.5),
             anchor: Anchor.topLeft);
 
   StarshipState _state = StarshipState.still;
@@ -80,7 +79,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
     await FlameAudio.audioCache.load('starship_extends.wav');
-
+    scale *= gameRef.scaleFactor;
     animations = {
       StarshipAnimation.normal: SpriteAnimation.spriteList(
           await Future.wait(_spritesNormal),
@@ -154,26 +153,28 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
-    if (other is Field) {
-      if (_state == StarshipState.movingLeft) {
-        x += starshipSpeed;
-        _state = StarshipState.collidingLeft;
-      } else if (_state == StarshipState.movingRight) {
-        _state == StarshipState.collidingRight;
-        x -= starshipSpeed;
-      }
-    } else if (other is PowerUp) {
-      other.removeFromParent();
-      if (powerUp != other.powerUpType) {
-        powerUp = other.powerUpType;
-        removePowerUp(powerUp!);
-        if (powerUp == PowerUpType.extend) {
-          current = StarshipAnimation.extended;
-          scale.x = 2.5;
-          FlameAudio.play('starship_extends.wav');
-        } else if (powerUp == PowerUpType.laser) {
-          current = StarshipAnimation.laserTransforming;
-          animation?.reset();
+    if (!_isDisappearing) {
+      if (other is Field) {
+        if (_state == StarshipState.movingLeft) {
+          x += starshipSpeed;
+          _state = StarshipState.collidingLeft;
+        } else if (_state == StarshipState.movingRight) {
+          _state == StarshipState.collidingRight;
+          x -= starshipSpeed;
+        }
+      } else if (other is PowerUp) {
+        other.removeFromParent();
+        if (powerUp != other.powerUpType) {
+          powerUp = other.powerUpType;
+          removePowerUp(powerUp!);
+          if (powerUp == PowerUpType.extend) {
+            current = StarshipAnimation.extended;
+            scale.x *= 1.5;
+            FlameAudio.play('starship_extends.wav');
+          } else if (powerUp == PowerUpType.laser) {
+            current = StarshipAnimation.laserTransforming;
+            animation?.reset();
+          }
         }
       }
     }
@@ -181,7 +182,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
 
   void removePowerUp(PowerUpType? newPowerUp) {
     if (newPowerUp != PowerUpType.extend) {
-      scale.x = 1.5;
+      scale.x = gameRef.scaleFactor;
       current = StarshipAnimation.normal;
     }
   }

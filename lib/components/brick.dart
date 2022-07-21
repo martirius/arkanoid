@@ -27,8 +27,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
   final PowerUp? powerUp;
   late final int value;
   static const int _baseBrickValue = 50;
-  Brick(this.model, this.powerUp, double xSize)
-      : super(size: Vector2(16, 8), scale: Vector2(xSize / 16, xSize / 16)) {
+  Brick(this.model, this.powerUp) : super(size: Vector2(16, 8)) {
     canBeBroken = model != BrickModel.gold;
     _numberOfHitToBroke = model == BrickModel.silver ? 4 : 1;
     value = model == BrickModel.silver
@@ -51,7 +50,6 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
 
   @override
   Future<void>? onLoad() async {
-    super.onLoad();
     await FlameAudio.audioCache.load('ball_hit_block.wav');
     await FlameAudio.audioCache.load('ball_hit_block_unbreakable.wav');
     await Flame.images.load('blocks_tiles.png');
@@ -73,7 +71,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
                 srcPosition: Vector2(16.0 * i, 16),
                 srcSize: Vector2(width, height),
               ))),
-          stepTime: 0.2,
+          stepTime: 0.1,
           loop: false),
       BrickModel.gold: SpriteAnimation.spriteList(
           await Future.wait([0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
@@ -81,11 +79,12 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
                 srcPosition: Vector2(16.0 * i, 24.0),
                 srcSize: Vector2(width, height),
               ))),
-          stepTime: 0.2,
+          stepTime: 0.1,
           loop: false),
     };
     animation = animations[model];
     add(RectangleHitbox()..collisionType = CollisionType.passive);
+    super.onLoad();
   }
 
   Sprite _extraSingleBlockSprite(double x, double y) {

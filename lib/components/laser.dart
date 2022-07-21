@@ -1,13 +1,14 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 enum LaserStatus { normal, destroy }
 
 class Laser extends SpriteAnimationGroupComponent<LaserStatus>
-    with CollisionCallbacks {
-  Laser() : super(size: Vector2(16, 8), scale: Vector2.all(1.5), priority: 10);
+    with CollisionCallbacks, HasGameRef<Arkanoid> {
+  Laser() : super(size: Vector2(16, 8), priority: 10);
 
   late final spritesNormal = [
     Sprite.load(
@@ -27,7 +28,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-
+    scale *= gameRef.scaleFactor;
     animations = {
       LaserStatus.normal: SpriteAnimation.spriteList(
           await Future.wait(spritesNormal),
@@ -38,9 +39,12 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
           stepTime: 0.5,
           loop: false),
     };
-    add(RectangleHitbox(position: Vector2(2, 0), size: Vector2(1, height)));
     add(RectangleHitbox(
-        position: Vector2(size.x * scale.x - 2, 0), size: Vector2(1, height)));
+        position: Vector2(2 * gameRef.scaleFactor, 0),
+        size: Vector2(1, height)));
+    add(RectangleHitbox(
+        position: Vector2(size.x * scale.x - 2 * gameRef.scaleFactor, 0),
+        size: Vector2(1, height)));
 
     current = LaserStatus.normal;
   }
