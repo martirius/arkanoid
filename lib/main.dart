@@ -22,9 +22,14 @@ class Arkanoid extends FlameGame
     with HasCollisionDetection, HasDraggables, HasTappables {
   BaseLevel currentLevel = Level1();
   int currentScore = 0;
+  late double scaleFactor;
   @override
   Future<void>? onLoad() async {
     super.onLoad();
+    // the field in the original game is 224x240
+    double xScale = size.x / 224.0;
+    double yScale = (size.y - 50) / 240.0;
+    scaleFactor = size.x < size.y ? xScale : yScale;
     add(currentLevel);
   }
 
