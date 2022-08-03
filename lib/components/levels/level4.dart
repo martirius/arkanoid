@@ -45,7 +45,7 @@ class Level4 extends BaseLevel {
         Brick(BrickModel.lightBlue, null),
         Brick(BrickModel.green, null),
         Brick(BrickModel.silver, null),
-        Brick(BrickModel.blue, PowerUp(PowerUpType.bonus)),
+        Brick(BrickModel.blue, PowerUp(PowerUpType.break_)),
         null,
         Brick(BrickModel.yellow, null),
         Brick(BrickModel.grey, null),

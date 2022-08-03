@@ -60,9 +60,41 @@ abstract class BaseLevel extends PositionComponent
     await _loadComponents();
   }
 
+  void _onPowerUpTaken(PowerUpType powerUpType) {
+    switch (powerUpType) {
+      case PowerUpType.break_:
+        break;
+      case PowerUpType.slow:
+        for (var ball in balls) {
+          ball.slow();
+        }
+        break;
+      case PowerUpType.disrupt:
+        final mainBall = balls.first;
+        while (balls.length < 3) {
+          final ball = Ball()
+            ..ballCanMove = true
+            ..position = Vector2(
+                mainBall.velocity.x > 0
+                    ? mainBall.position.x + 2
+                    : mainBall.position.x - 2,
+                mainBall.position.y)
+            ..velocity = mainBall.velocity;
+          balls.add(ball);
+          add(ball);
+        }
+        break;
+      case PowerUpType.player:
+        // TODO: Handle this case.
+        break;
+      default:
+        break;
+    }
+  }
+
   Future<void> _initializeComponents() async {
     size = gameRef.size;
-    _starship = Starship(_joystick);
+    _starship = Starship(_joystick, _onPowerUpTaken);
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
     );
@@ -145,6 +177,11 @@ abstract class BaseLevel extends PositionComponent
   }
 
   Future<void> _removeGameComponents() async {
+    for (var element in children) {
+      if (element is PowerUp) {
+        element.removeFromParent();
+      }
+    }
     for (var element in balls) {
       element.removeFromParent();
       _fireButton.removeInteractable(element);
@@ -160,6 +197,14 @@ abstract class BaseLevel extends PositionComponent
         }
       }
     }));
+  }
+
+  @override
+  void onRemove() {
+    for (var child in children) {
+      child.removeFromParent();
+    }
+    super.onRemove();
   }
 
   @override

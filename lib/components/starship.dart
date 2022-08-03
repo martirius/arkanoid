@@ -1,3 +1,4 @@
+import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/laser.dart';
@@ -29,7 +30,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     with CollisionCallbacks, HasGameRef<Arkanoid>
     implements ButtonInteractable {
   final JoystickComponent _joystickComponent;
-  Starship(this._joystickComponent)
+  Starship(this._joystickComponent, this._onPowerUp)
       : super(
             size: Vector2(startshipWidth, startshipHeight),
             anchor: Anchor.topLeft);
@@ -41,7 +42,9 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   static const double startshipWidth = 32;
   static const double startshipHeight = 8;
   PowerUpType? powerUp;
+  final Function(PowerUpType) _onPowerUp;
   bool _isDisappearing = false;
+  final List<Ball> _collidingBalls = [];
 
   late final _spritesNormal = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
         'starship.png',
@@ -136,9 +139,15 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
       switch (_state) {
         case StarshipState.movingLeft:
           x -= starshipSpeed;
+          for (final ball in _collidingBalls) {
+            ball.x -= starshipSpeed;
+          }
           break;
         case StarshipState.movingRight:
           x += starshipSpeed;
+          for (final ball in _collidingBalls) {
+            ball.x += starshipSpeed;
+          }
           break;
         //this case when expaning
         case StarshipState.collidingRight:
@@ -174,8 +183,15 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
           } else if (powerUp == PowerUpType.laser) {
             current = StarshipAnimation.laserTransforming;
             animation?.reset();
+          } else {
+            _onPowerUp(other.powerUpType);
           }
         }
+      } else if (other is Ball &&
+          powerUp == PowerUpType.cattch &&
+          !_collidingBalls.contains(other)) {
+        other.ballCanMove = false;
+        _collidingBalls.add(other);
       }
     }
   }
@@ -194,6 +210,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   }
 
   Future<void> destroy() async {
+    _collidingBalls.clear();
     _isDisappearing = true;
     removePowerUp(null);
     powerUp = null;
@@ -209,6 +226,11 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     if (powerUp == PowerUpType.laser) {
       FlameAudio.play('starship_shoot.wav');
       parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
+    } else if (powerUp == PowerUpType.cattch) {
+      for (final ball in _collidingBalls) {
+        ball.ballCanMove = true;
+      }
+      _collidingBalls.clear();
     }
   }
 }

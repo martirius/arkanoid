@@ -123,7 +123,7 @@ class Level5 extends BaseLevel {
         Brick(BrickModel.silver, null),
         Brick(BrickModel.silver, null),
         Brick(BrickModel.silver, null),
-        Brick(BrickModel.red, PowerUp(PowerUpType.bonus)),
+        Brick(BrickModel.red, PowerUp(PowerUpType.break_)),
         Brick(BrickModel.silver, null),
         Brick(BrickModel.silver, null),
         null,

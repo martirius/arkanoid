@@ -17,7 +17,8 @@ class Ball extends SpriteComponent
   Vector2 velocity = Vector2(2.5, -2.5);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
-
+  static const _numberOfBricksHitToIncreaseVelocity = 15;
+  static const _maxBrickHitToIncreaseVelocity = 90;
   @override
   Future<void>? onLoad() async {
     super.onLoad();
@@ -42,7 +43,8 @@ class Ball extends SpriteComponent
 
     if (other is Brick) {
       _numberOfBrickHit += 1;
-      if (_numberOfBrickHit < 90 && _numberOfBrickHit % 15 == 0) {
+      if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
+          _numberOfBrickHit % _numberOfBricksHitToIncreaseVelocity == 0) {
         velocity *= 1.2;
       }
       if (middleIntersectionPoint.y.round() == other.y.round()) {
@@ -128,5 +130,15 @@ class Ball extends SpriteComponent
   @override
   void onButtonPressed() {
     ballCanMove = true;
+  }
+
+  void slow() {
+    if (_numberOfBrickHit >= _numberOfBricksHitToIncreaseVelocity) {
+      velocity /= ((_numberOfBrickHit > _maxBrickHitToIncreaseVelocity
+                  ? _maxBrickHitToIncreaseVelocity
+                  : _numberOfBrickHit) /
+              _numberOfBricksHitToIncreaseVelocity) *
+          1.2;
+    }
   }
 }

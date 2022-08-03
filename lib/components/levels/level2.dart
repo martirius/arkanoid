@@ -10,7 +10,7 @@ class Level2 extends BaseLevel {
   Future<void> onLoad() async {
     bricks = [
       [
-        Brick(BrickModel.grey, PowerUp(PowerUpType.bonus)),
+        Brick(BrickModel.grey, PowerUp(PowerUpType.break_)),
         null,
         null,
         null,

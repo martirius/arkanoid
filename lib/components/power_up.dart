@@ -4,7 +4,8 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
 
-enum PowerUpType { slow, cattch, laser, extend, disrupt, bonus, player }
+//https://strategywiki.org/wiki/Arkanoid/Gameplay#Power-ups
+enum PowerUpType { slow, cattch, laser, extend, disrupt, break_, player }
 
 // TODO: add effects to each powerup
 class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
@@ -30,7 +31,9 @@ class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   void update(double dt) {
     super.update(dt);
     y += 1;
-    if (y >= gameRef.size.y / 1.8 + 50) {
+    if (y >=
+        gameRef.currentLevel.field.size.y * gameRef.currentLevel.field.scale.y +
+            gameRef.currentLevel.field.position.y) {
       removeFromParent();
     }
   }
