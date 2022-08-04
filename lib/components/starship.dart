@@ -14,7 +14,8 @@ enum StarshipState {
   movingLeft,
   movingRight,
   collidingLeft,
-  collidingRight
+  collidingRight,
+  escaping
 }
 
 enum StarshipAnimation {
@@ -30,10 +31,11 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     with CollisionCallbacks, HasGameRef<Arkanoid>
     implements ButtonInteractable {
   final JoystickComponent _joystickComponent;
-  Starship(this._joystickComponent, this._onPowerUp)
+  Starship(this._joystickComponent, this._onPowerUp, this._onEscape)
       : super(
             size: Vector2(startshipWidth, startshipHeight),
-            anchor: Anchor.topLeft);
+            anchor: Anchor.topLeft,
+            priority: 30);
 
   StarshipState _state = StarshipState.still;
 
@@ -43,8 +45,10 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   static const double startshipHeight = 8;
   PowerUpType? powerUp;
   final Function(PowerUpType) _onPowerUp;
+  final Function _onEscape;
   bool _isDisappearing = false;
   final List<Ball> _collidingBalls = [];
+  bool _canEscape = false;
 
   late final _spritesNormal = [0, 1, 2, 3, 4, 5].map((i) => Sprite.load(
         'starship.png',
@@ -82,6 +86,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
     await FlameAudio.audioCache.load('starship_extends.wav');
+
     scale *= gameRef.scaleFactor;
     animations = {
       StarshipAnimation.normal: SpriteAnimation.spriteList(
@@ -126,15 +131,16 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
           animation!.elapsed >= 1) {
         current = StarshipAnimation.laser;
       }
-
-      if (_joystickComponent.direction == JoystickDirection.left &&
-          _state != StarshipState.collidingLeft) {
-        _state = StarshipState.movingLeft;
-      } else if (_joystickComponent.direction == JoystickDirection.right &&
-          _state != StarshipState.collidingRight) {
-        _state = StarshipState.movingRight;
-      } else {
-        _state = StarshipState.still;
+      if (_state != StarshipState.escaping) {
+        if (_joystickComponent.direction == JoystickDirection.left &&
+            _state != StarshipState.collidingLeft) {
+          _state = StarshipState.movingLeft;
+        } else if (_joystickComponent.direction == JoystickDirection.right &&
+            _state != StarshipState.collidingRight) {
+          _state = StarshipState.movingRight;
+        } else {
+          _state = StarshipState.still;
+        }
       }
       switch (_state) {
         case StarshipState.movingLeft:
@@ -153,6 +159,9 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
         case StarshipState.collidingRight:
           x -= starshipSpeed;
           break;
+        case StarshipState.escaping:
+          x += 0.5;
+          break;
         default:
           break;
       }
@@ -162,14 +171,19 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
-    if (!_isDisappearing) {
+    if (!_isDisappearing && _state != StarshipState.escaping) {
       if (other is Field) {
         if (_state == StarshipState.movingLeft) {
           x += starshipSpeed;
           _state = StarshipState.collidingLeft;
         } else if (_state == StarshipState.movingRight) {
-          _state == StarshipState.collidingRight;
-          x -= starshipSpeed;
+          if (_canEscape) {
+            _state = StarshipState.escaping;
+            _onEscape();
+          } else {
+            _state = StarshipState.collidingRight;
+            x -= starshipSpeed;
+          }
         }
       } else if (other is PowerUp) {
         other.removeFromParent();
@@ -183,6 +197,9 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
           } else if (powerUp == PowerUpType.laser) {
             current = StarshipAnimation.laserTransforming;
             animation?.reset();
+          } else if (powerUp == PowerUpType.break_) {
+            _canEscape = true;
+            _onPowerUp(other.powerUpType);
           } else {
             _onPowerUp(other.powerUpType);
           }

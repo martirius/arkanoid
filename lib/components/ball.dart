@@ -139,6 +139,7 @@ class Ball extends SpriteComponent
                   : _numberOfBrickHit) /
               _numberOfBricksHitToIncreaseVelocity) *
           1.2;
+      _numberOfBrickHit = 0;
     }
   }
 }

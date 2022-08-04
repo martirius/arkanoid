@@ -1,4 +1,5 @@
 import 'package:arkanoid/components/ball.dart';
+import 'package:arkanoid/components/break_animation.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
@@ -31,6 +32,7 @@ abstract class BaseLevel extends PositionComponent
   final FieldType fieldType;
   bool _gameStarted = false;
   bool _introFinished = false;
+  bool _starshipEscaping = false;
   static const int numerOfBricEachRow = 13;
   static const int numberOfRow = 16;
   late final _scoreComponent = TextComponent(
@@ -63,6 +65,10 @@ abstract class BaseLevel extends PositionComponent
   void _onPowerUpTaken(PowerUpType powerUpType) {
     switch (powerUpType) {
       case PowerUpType.break_:
+        add(BreakAnimationComponent(gameRef.scaleFactor)
+          ..anchor = Anchor.bottomRight
+          ..position = Vector2(field.position.x + field.size.x * field.scale.x,
+              field.position.y + field.size.y * field.scale.y));
         break;
       case PowerUpType.slow:
         for (var ball in balls) {
@@ -74,12 +80,10 @@ abstract class BaseLevel extends PositionComponent
         while (balls.length < 3) {
           final ball = Ball()
             ..ballCanMove = true
-            ..position = Vector2(
-                mainBall.velocity.x > 0
-                    ? mainBall.position.x + 2
-                    : mainBall.position.x - 2,
-                mainBall.position.y)
-            ..velocity = mainBall.velocity;
+            ..position = mainBall.position
+            ..velocity = Vector2(
+                mainBall.velocity.x * (balls.length == 2 ? 0.9 : 0.8),
+                mainBall.velocity.y);
           balls.add(ball);
           add(ball);
         }
@@ -92,9 +96,23 @@ abstract class BaseLevel extends PositionComponent
     }
   }
 
+  void _onStarshipEscape() {
+    _starshipEscaping = true;
+    for (var element in balls) {
+      element.ballCanMove = false;
+      element.removeFromParent();
+    }
+
+    FlameAudio.play("wall_portal_took.wav");
+    Future.delayed(const Duration(seconds: 4), () {
+      gameRef.currentScore += 10000;
+      gameRef.levelCompleted(_roundNumber);
+    });
+  }
+
   Future<void> _initializeComponents() async {
     size = gameRef.size;
-    _starship = Starship(_joystick, _onPowerUpTaken);
+    _starship = Starship(_joystick, _onPowerUpTaken, _onStarshipEscape);
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
     );
@@ -178,7 +196,7 @@ abstract class BaseLevel extends PositionComponent
 
   Future<void> _removeGameComponents() async {
     for (var element in children) {
-      if (element is PowerUp) {
+      if (element is PowerUp || element is BreakAnimationComponent) {
         element.removeFromParent();
       }
     }
@@ -222,7 +240,7 @@ abstract class BaseLevel extends PositionComponent
           balls.removeAt(balls.indexOf(element));
           element.removeFromParent();
         }
-        if (balls.isEmpty) {
+        if (balls.isEmpty && !_starshipEscaping) {
           //all balls are gone, life lost
           lifeLost();
         }
