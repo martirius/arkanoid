@@ -22,6 +22,7 @@ class Arkanoid extends FlameGame
     with HasCollisionDetection, HasDraggables, HasTappables {
   BaseLevel currentLevel = Level1();
   int currentScore = 0;
+  int numberOfLives = 3;
   late double scaleFactor;
   @override
   Future<void>? onLoad() async {

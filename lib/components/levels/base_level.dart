@@ -4,6 +4,7 @@ import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/inputs/inputs.dart';
+import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
@@ -27,6 +28,7 @@ abstract class BaseLevel extends PositionComponent
   late Starship _starship;
   final List<Ball> balls = [];
   List<List<Brick?>> bricks = [];
+  late Lives _lives;
   late final Field field;
   late final TextComponent _playerLabel;
   final FieldType fieldType;
@@ -89,7 +91,7 @@ abstract class BaseLevel extends PositionComponent
         }
         break;
       case PowerUpType.player:
-        // TODO: Handle this case.
+        addLife();
         break;
       default:
         break;
@@ -112,6 +114,9 @@ abstract class BaseLevel extends PositionComponent
 
   Future<void> _initializeComponents() async {
     size = gameRef.size;
+    _lives = Lives(gameRef.numberOfLives, gameRef.scaleFactor)
+      ..anchor = Anchor.bottomLeft
+      ..priority = 20;
     _starship = Starship(_joystick, _onPowerUpTaken, _onStarshipEscape);
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
@@ -158,16 +163,23 @@ abstract class BaseLevel extends PositionComponent
   Future<void> _loadGameComponents() async {
     await FlameAudio.audioCache.load('Game_Start.ogg');
     await add(field);
-    _starship.position = Vector2((gameRef.size.x / 2) - _starship.size.x / 2,
-        field.size.y * field.scale.y + field.position.y - 30);
+    _starship.position = Vector2(
+      (gameRef.size.x / 2) - _starship.size.x / 2,
+      field.size.y * field.scale.y + field.position.y - 30,
+    );
+    _lives.position = Vector2(
+      Field.hitboxSize * gameRef.scaleFactor,
+      field.size.y * field.scale.y + field.position.y,
+    );
     final ball = Ball();
     ball.position = Vector2(
-        (gameRef.size.x / 2) - ball.size.x / 2,
-        field.size.y * field.scale.y +
-            field.position.y -
-            30 -
-            _starship.size.y -
-            1);
+      (gameRef.size.x / 2) - ball.size.x / 2,
+      field.size.y * field.scale.y +
+          field.position.y -
+          30 -
+          _starship.size.y -
+          1,
+    );
     balls.add(ball);
     if (bricks.isNotEmpty) {
       await loadBricks();
@@ -185,6 +197,7 @@ abstract class BaseLevel extends PositionComponent
       add(_starship);
       _starship.appear();
       addAll(balls);
+      add(_lives);
       _roundNumberComponent.removeFromParent();
       _fireButton.addInteractable(_starship);
       _fireButton.addInteractable(this);
@@ -204,6 +217,7 @@ abstract class BaseLevel extends PositionComponent
       element.removeFromParent();
       _fireButton.removeInteractable(element);
     }
+    _lives.removeFromParent();
     _starship.removeFromParent();
     field.removeFromParent();
     _fireButton.removeInteractable(_starship);
@@ -296,12 +310,25 @@ abstract class BaseLevel extends PositionComponent
   }
 
   void lifeLost() async {
+    gameRef.numberOfLives -= 1;
+    _lives.removeLife();
     _introFinished = false;
     _gameStarted = false;
     await _starship.destroy();
     await _removeGameComponents();
     await Future.delayed(const Duration(milliseconds: 500));
-    await _loadGameComponents();
+    if (gameRef.numberOfLives > 0) {
+      await _loadGameComponents();
+    } else {
+      // GAME OVER
+      // TODO : handle game over
+    }
+  }
+
+  void addLife() {
+    FlameAudio.play('extra_life.wav');
+    gameRef.numberOfLives += 1;
+    _lives.addLife(true);
   }
 
   @override

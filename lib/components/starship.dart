@@ -39,7 +39,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
 
   StarshipState _state = StarshipState.still;
 
-  static const double starshipSpeed = 4;
+  static const double starshipSpeed = 5;
 
   static const double startshipWidth = 32;
   static const double startshipHeight = 8;

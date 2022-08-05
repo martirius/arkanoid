@@ -39,12 +39,9 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
           stepTime: 0.5,
           loop: false),
     };
+    add(RectangleHitbox(position: Vector2(2, 0), size: Vector2(1, height)));
     add(RectangleHitbox(
-        position: Vector2(2 * gameRef.scaleFactor, 0),
-        size: Vector2(1, height)));
-    add(RectangleHitbox(
-        position: Vector2(size.x * scale.x - 2 * gameRef.scaleFactor, 0),
-        size: Vector2(1, height)));
+        position: Vector2(size.x - 2, 0), size: Vector2(1, height)));
 
     current = LaserStatus.normal;
   }
