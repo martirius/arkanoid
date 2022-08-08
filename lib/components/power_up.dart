@@ -7,7 +7,6 @@ import 'package:flame/sprite.dart';
 //https://strategywiki.org/wiki/Arkanoid/Gameplay#Power-ups
 enum PowerUpType { slow, cattch, laser, extend, disrupt, break_, player }
 
-// TODO: add effects to each powerup
 class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   final PowerUpType powerUpType;
 

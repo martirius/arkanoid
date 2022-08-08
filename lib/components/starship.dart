@@ -187,6 +187,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
         }
       } else if (other is PowerUp) {
         other.removeFromParent();
+        _onPowerUp(other.powerUpType);
         if (powerUp != other.powerUpType) {
           powerUp = other.powerUpType;
           removePowerUp(powerUp!);
@@ -199,9 +200,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
             animation?.reset();
           } else if (powerUp == PowerUpType.break_) {
             _canEscape = true;
-            _onPowerUp(other.powerUpType);
-          } else {
-            _onPowerUp(other.powerUpType);
           }
         }
       } else if (other is Ball &&

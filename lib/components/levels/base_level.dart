@@ -7,6 +7,7 @@ import 'package:arkanoid/components/inputs/inputs.dart';
 import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
+import 'package:arkanoid/components/top_text.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -30,23 +31,25 @@ abstract class BaseLevel extends PositionComponent
   List<List<Brick?>> bricks = [];
   late Lives _lives;
   late final Field field;
-  late final TextComponent _playerLabel;
   final FieldType fieldType;
   bool _gameStarted = false;
   bool _introFinished = false;
   bool _starshipEscaping = false;
   static const int numerOfBricEachRow = 13;
   static const int numberOfRow = 16;
-  late final _scoreComponent = TextComponent(
-      text: gameRef.currentScore.toString(),
-      textRenderer: TextPaint(
-          style: const TextStyle(
-              color: Color.fromARGB(255, 255, 255, 255),
-              fontFamily: 'Joystix',
-              fontSize: 18),
-          textDirection: TextDirection.ltr),
-      position: Vector2(70, 40),
-      anchor: Anchor.center);
+  late final _playerTextComponent = TopText(
+    '1UP',
+    gameRef.currentScore.toString(),
+  )..position = Vector2(50, 10);
+  late final _topScoreComponent = TopText(
+    'HIGH SCORE',
+    gameRef.topScore.toString(),
+  )
+    ..position = Vector2(
+      gameRef.size.x / 2,
+      10,
+    )
+    ..anchor = Anchor.center;
   late final _roundNumberComponent = TextComponent(
       text: "Round $_roundNumber\n Ready",
       textRenderer: TextPaint(
@@ -56,6 +59,19 @@ abstract class BaseLevel extends PositionComponent
               fontSize: 18),
           textDirection: TextDirection.ltr),
       anchor: Anchor.center);
+  late final _gameOverComponent = TextComponent(
+      text: "Game\nOver",
+      textRenderer: TextPaint(
+          style: const TextStyle(
+              color: Color.fromARGB(255, 255, 255, 255),
+              fontFamily: 'Joystix',
+              fontSize: 18),
+          textDirection: TextDirection.ltr),
+      anchor: Anchor.center)
+    ..position = Vector2(
+      (field.x + field.size.x * field.scale.x) / 2,
+      (field.y + field.size.y * field.scale.y) / 2,
+    );
 
   @override
   Future<void> onLoad() async {
@@ -65,6 +81,7 @@ abstract class BaseLevel extends PositionComponent
   }
 
   void _onPowerUpTaken(PowerUpType powerUpType) {
+    addScore(1000);
     switch (powerUpType) {
       case PowerUpType.break_:
         add(BreakAnimationComponent(gameRef.scaleFactor)
@@ -123,23 +140,14 @@ abstract class BaseLevel extends PositionComponent
     );
     _fireButton.position.y = size.y - 40 - _fireButton.size.y;
     field = Field(fieldType)..position = Vector2(0, 50);
-    _playerLabel = TextComponent(
-        text: '1UP',
-        textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Color.fromARGB(255, 255, 0, 0),
-              fontFamily: 'Joystix',
-              fontSize: 18,
-            ),
-            textDirection: TextDirection.ltr),
-        position: Vector2(50, 10));
   }
 
   Future<void> _loadComponents() async {
-    add(_playerLabel);
     add(_fireButton);
     add(_joystick);
-    add(_scoreComponent);
+    add(_playerTextComponent);
+    add(_topScoreComponent);
+    _playerTextComponent.blinkLabel();
     await _loadGameComponents();
   }
 
@@ -266,8 +274,7 @@ abstract class BaseLevel extends PositionComponent
           for (var brick in row) {
             if (!gameBricks.contains(brick) && brick != null) {
               //brick broken, add score
-              gameRef.currentScore += brick.value;
-              _scoreComponent.text = gameRef.currentScore.toString();
+              addScore(brick.value);
               final rowIdx = bricks.indexOf(row);
               final colIdx = bricks[bricks.indexOf(row)].indexOf(brick);
               brickToRemove = MapEntry(rowIdx, colIdx);
@@ -321,7 +328,7 @@ abstract class BaseLevel extends PositionComponent
       await _loadGameComponents();
     } else {
       // GAME OVER
-      // TODO : handle game over
+      _gameOver();
     }
   }
 
@@ -329,6 +336,23 @@ abstract class BaseLevel extends PositionComponent
     FlameAudio.play('extra_life.wav');
     gameRef.numberOfLives += 1;
     _lives.addLife(true);
+  }
+
+  void _gameOver() {
+    add(_gameOverComponent);
+    FlameAudio.play('Game_Over.ogg');
+    Future.delayed(const Duration(seconds: 3), () {
+      gameRef.gameOver();
+    });
+  }
+
+  void addScore(int score) {
+    gameRef.currentScore += score;
+    if (gameRef.currentScore > gameRef.topScore) {
+      gameRef.topScore = gameRef.currentScore;
+      _topScoreComponent.updateMessage(gameRef.currentScore.toString());
+    }
+    _playerTextComponent.updateMessage(gameRef.currentScore.toString());
   }
 
   @override

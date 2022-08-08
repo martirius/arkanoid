@@ -21,6 +21,7 @@ void main() {
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasDraggables, HasTappables {
   BaseLevel currentLevel = Level1();
+  int topScore = 50000;
   int currentScore = 0;
   int numberOfLives = 3;
   late double scaleFactor;
@@ -37,6 +38,9 @@ class Arkanoid extends FlameGame
   void levelCompleted(int levelNumber) {
     remove(currentLevel);
     switch (levelNumber) {
+      case 0:
+        currentLevel = Level1();
+        break;
       case 1:
         currentLevel = Level2();
         break;
@@ -51,6 +55,17 @@ class Arkanoid extends FlameGame
         break;
     }
     add(currentLevel);
+  }
+
+  void gameOver() {
+    if (currentScore >= topScore) {
+      //show name inesrtion component
+    } else {
+      //play again
+      levelCompleted(0);
+    }
+    currentScore = 0;
+    numberOfLives = 3;
   }
 }
 
