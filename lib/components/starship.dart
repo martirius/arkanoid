@@ -39,7 +39,7 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
 
   StarshipState _state = StarshipState.still;
 
-  static const double starshipSpeed = 5;
+  static const double starshipSpeed = 300;
 
   static const double startshipWidth = 32;
   static const double startshipHeight = 8;
@@ -144,26 +144,33 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
       }
       switch (_state) {
         case StarshipState.movingLeft:
-          x -= starshipSpeed;
+          x -= starshipSpeed * dt;
           for (final ball in _collidingBalls) {
-            ball.x -= starshipSpeed;
+            ball.x -= starshipSpeed * dt;
           }
           break;
         case StarshipState.movingRight:
-          x += starshipSpeed;
+          x += starshipSpeed * dt;
           for (final ball in _collidingBalls) {
-            ball.x += starshipSpeed;
+            ball.x += starshipSpeed * dt;
           }
-          break;
-        //this case when expaning
-        case StarshipState.collidingRight:
-          x -= starshipSpeed;
           break;
         case StarshipState.escaping:
           x += 0.5;
           break;
         default:
           break;
+      }
+
+      if (_state != StarshipState.escaping) {
+        position.x = position.x.clamp(
+          gameRef.currentLevel.field.position.x +
+              Field.hitboxSize * gameRef.scaleFactor,
+          gameRef.currentLevel.field.position.x +
+              gameRef.currentLevel.field.size.x * gameRef.scaleFactor -
+              Field.hitboxSize * gameRef.scaleFactor -
+              size.x * scale.x,
+        );
       }
     }
   }
@@ -174,7 +181,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
     if (!_isDisappearing && _state != StarshipState.escaping) {
       if (other is Field) {
         if (_state == StarshipState.movingLeft) {
-          x += starshipSpeed;
           _state = StarshipState.collidingLeft;
         } else if (_state == StarshipState.movingRight) {
           if (_canEscape) {
@@ -182,7 +188,6 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
             _onEscape();
           } else {
             _state = StarshipState.collidingRight;
-            x -= starshipSpeed;
           }
         }
       } else if (other is PowerUp) {
@@ -202,11 +207,14 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
             _canEscape = true;
           }
         }
-      } else if (other is Ball &&
-          powerUp == PowerUpType.cattch &&
-          !_collidingBalls.contains(other)) {
-        other.ballCanMove = false;
-        _collidingBalls.add(other);
+      } else if (other is CompositeHitbox) {
+        if (other.parent is Ball &&
+            powerUp == PowerUpType.cattch &&
+            !_collidingBalls.contains(other.parent as Ball)) {
+          final ball = other.parent as Ball;
+          ball.ballCanMove = false;
+          _collidingBalls.add(ball);
+        }
       }
     }
   }
@@ -237,15 +245,13 @@ class Starship extends SpriteAnimationGroupComponent<StarshipAnimation>
 
   @override
   void onButtonPressed() {
-    print("fire!");
     if (powerUp == PowerUpType.laser) {
       FlameAudio.play('starship_shoot.wav');
       parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
-    } else if (powerUp == PowerUpType.cattch) {
-      for (final ball in _collidingBalls) {
-        ball.ballCanMove = true;
-      }
-      _collidingBalls.clear();
     }
+    for (final ball in _collidingBalls) {
+      ball.ballCanMove = true;
+    }
+    _collidingBalls.clear();
   }
 }

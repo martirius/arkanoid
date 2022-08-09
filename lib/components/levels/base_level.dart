@@ -285,12 +285,12 @@ abstract class BaseLevel extends PositionComponent
         if (brickToRemove != null) {
           bricks[brickToRemove!.key][brickToRemove!.value] = null;
         }
-        bool levelCompleted = bricks.every((row) => row.where((brick) {
+        bool isLevelCompleted = bricks.every((row) => row.where((brick) {
               return brick != null ? brick.canBeBroken : false;
             }).isEmpty);
-        if (levelCompleted) {
+        if (isLevelCompleted) {
           //no more brick, level completed
-          gameRef.levelCompleted(_roundNumber);
+          levelCompleted();
         }
       } else {
         balls.first.position.x = _starship.position.x + _starship.size.x / 2;
@@ -298,22 +298,9 @@ abstract class BaseLevel extends PositionComponent
     }
   }
 
-  /// This method create a row of bricks of the same type with the same power up
-  List<Brick?> createBrickRow(
-    int rowNum,
-    BrickModel brickModel,
-    PowerUpType? powerUpType,
-  ) {
-    return List.generate(15, (index) {
-      final block =
-          Brick(brickModel, powerUpType != null ? PowerUp(powerUpType) : null);
-      return block
-        ..position = Vector2(
-            Field.hitboxSize + (block.size.x * block.scale.x) * index,
-            70 +
-                block.size.y * block.scale.y +
-                (block.size.y * block.scale.y) * rowNum);
-    });
+  void levelCompleted() {
+    _removeGameComponents()
+        .then((value) => gameRef.levelCompleted(_roundNumber));
   }
 
   void lifeLost() async {

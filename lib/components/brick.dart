@@ -1,4 +1,3 @@
-import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -20,7 +19,7 @@ enum BrickModel {
   gold
 }
 
-class Brick extends SpriteAnimationComponent with CollisionCallbacks {
+class Brick extends SpriteAnimationComponent {
   late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
@@ -91,13 +90,7 @@ class Brick extends SpriteAnimationComponent with CollisionCallbacks {
     return extractSprite(x, y, width, height, 'blocks_tiles.png');
   }
 
-  @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    super.onCollision(intersectionPoints, other);
-    _hit(other is Ball);
-  }
-
-  void _hit(bool playAudio) {
+  void hit(bool playAudio) {
     if (playAudio) {
       if (model == BrickModel.silver || model == BrickModel.gold) {
         FlameAudio.play('ball_hit_block_unbreakable.wav');

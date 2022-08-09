@@ -50,6 +50,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (other is Brick) {
+      other.hit(false);
       removeAll(children);
       if (!_brickAlreadyHit) {
         _brickAlreadyHit = true;
