@@ -7,11 +7,11 @@ import 'package:flame/components.dart';
 class Lives extends PositionComponent {
   Lives(this._numberOfLives, this._scaleFactor)
       : super(
-          size: Vector2(
-            _lifeWidth * _scaleFactor * _numberOfLives,
-            _lifeHeight * _numberOfLives,
-          ),
-        );
+            size: Vector2(
+              _lifeWidth * _numberOfLives,
+              _lifeHeight,
+            ),
+            scale: Vector2(_scaleFactor, _scaleFactor));
 
   static const _lifeHeight = 8.0;
   static const _lifeWidth = 16.0;
@@ -33,9 +33,7 @@ class Lives extends PositionComponent {
     final lifeSpriteComponent = SpriteComponent(
       sprite: lifeSprite,
       size: Vector2(_lifeWidth, _lifeHeight),
-      scale: Vector2(_scaleFactor, _scaleFactor),
-      position: Vector2(_lifeWidth * _scaleFactor * _livesComponents.length,
-          _lifeHeight * _scaleFactor),
+      position: Vector2(_lifeWidth * _livesComponents.length, 0),
     );
     if (increaseLife) {
       _numberOfLives += 1;

@@ -17,9 +17,19 @@ enum FieldType {
 
 class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   final FieldType fieldType;
-  Field(this.fieldType) : super(size: Vector2(224, 240));
+  Field(this.fieldType)
+      : super(size: Vector2(224, 240), anchor: Anchor.topCenter);
 
   static const double hitboxSize = 8;
+  double get leftWall =>
+      position.x - size.x * scale.x / 2 + Field.hitboxSize * scale.x;
+  double get rightWall =>
+      position.x -
+      size.x * scale.x / 2 +
+      (size.x * scale.x) -
+      Field.hitboxSize * scale.x;
+  double get topWall => position.y + Field.hitboxSize * scale.x;
+  double get lowWall => position.y + size.y * scale.y;
 
   late final _fields = {
     FieldType.blue: extractSprite(0, 0, 224, 240, 'fields.png'),

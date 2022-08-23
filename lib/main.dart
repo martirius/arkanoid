@@ -6,8 +6,10 @@ import 'package:arkanoid/components/levels/level4.dart';
 import 'package:arkanoid/components/levels/level5.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart';
 import 'package:flame/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +21,11 @@ void main() {
 }
 
 class Arkanoid extends FlameGame
-    with HasCollisionDetection, HasDraggables, HasTappables {
+    with
+        HasCollisionDetection,
+        HasDraggables,
+        HasTappables,
+        HasKeyboardHandlerComponents {
   BaseLevel currentLevel = Level1();
   int topScore = 50000;
   int currentScore = 0;
@@ -66,6 +72,18 @@ class Arkanoid extends FlameGame
     }
     currentScore = 0;
     numberOfLives = 3;
+  }
+
+  @override
+  @mustCallSuper
+  KeyEventResult onKeyEvent(
+    RawKeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    super.onKeyEvent(event, keysPressed);
+
+    // Return handled to prevent macOS noises.
+    return KeyEventResult.handled;
   }
 }
 

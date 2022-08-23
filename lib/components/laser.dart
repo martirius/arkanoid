@@ -24,6 +24,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
       ));
 
   bool _brickAlreadyHit = false;
+  static const _velocity = 150.0;
 
   @override
   Future<void>? onLoad() async {
@@ -73,7 +74,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   void update(double dt) {
     super.update(dt);
     if (!_brickAlreadyHit) {
-      y -= 4;
+      y -= _velocity * dt * gameRef.scaleFactor;
     }
   }
 }

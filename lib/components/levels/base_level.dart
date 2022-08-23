@@ -1,9 +1,11 @@
 import 'package:arkanoid/components/ball.dart';
+import 'package:arkanoid/components/behaviours/action_behaviour.dart';
 import 'package:arkanoid/components/break_animation.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/inputs/action_entity.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
-import 'package:arkanoid/components/inputs/inputs.dart';
+import 'package:arkanoid/components/inputs/fire_button.dart';
 import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
@@ -11,12 +13,22 @@ import 'package:arkanoid/components/top_text.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_behaviors/flame_behaviors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 
-abstract class BaseLevel extends PositionComponent
-    with HasGameRef<Arkanoid>
+abstract class BaseLevel extends Entity
+    with HasGameRef<Arkanoid>, ActionEntity
     implements ButtonInteractable {
-  BaseLevel(this.fieldType, this._roundNumber);
+  BaseLevel(this.fieldType, this._roundNumber)
+      : super(
+          behaviors: [
+            ActionBehaviour(
+              fireKey: LogicalKeyboardKey.space,
+            )
+          ],
+        );
 
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
@@ -40,16 +52,15 @@ abstract class BaseLevel extends PositionComponent
   late final _playerTextComponent = TopText(
     '1UP',
     gameRef.currentScore.toString(),
-  )..position = Vector2(50, 10);
+  )..position =
+      Vector2(field.x - ((field.size.x * gameRef.scaleFactor) / 4), 5);
   late final _topScoreComponent = TopText(
     'HIGH SCORE',
     gameRef.topScore.toString(),
-  )
-    ..position = Vector2(
-      gameRef.size.x / 2,
-      10,
-    )
-    ..anchor = Anchor.center;
+  )..position = Vector2(
+      field.x,
+      5,
+    );
   late final _roundNumberComponent = TextComponent(
       text: "Round $_roundNumber\n Ready",
       textRenderer: TextPaint(
@@ -69,7 +80,7 @@ abstract class BaseLevel extends PositionComponent
           textDirection: TextDirection.ltr),
       anchor: Anchor.center)
     ..position = Vector2(
-      (field.x + field.size.x * field.scale.x) / 2,
+      field.x,
       (field.y + field.size.y * field.scale.y) / 2,
     );
 
@@ -86,7 +97,8 @@ abstract class BaseLevel extends PositionComponent
       case PowerUpType.break_:
         add(BreakAnimationComponent(gameRef.scaleFactor)
           ..anchor = Anchor.bottomRight
-          ..position = Vector2(field.position.x + field.size.x * field.scale.x,
+          ..position = Vector2(
+              field.position.x + (field.size.x * field.scale.x) / 2,
               field.position.y + field.size.y * field.scale.y));
         break;
       case PowerUpType.slow:
@@ -134,12 +146,22 @@ abstract class BaseLevel extends PositionComponent
     _lives = Lives(gameRef.numberOfLives, gameRef.scaleFactor)
       ..anchor = Anchor.bottomLeft
       ..priority = 20;
-    _starship = Starship(_joystick, _onPowerUpTaken, _onStarshipEscape);
+    _starship = (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android)
+        ? Starship.withJoystick(
+            joystickComponent: _joystick,
+            onPowerUp: _onPowerUpTaken,
+            onEscape: _onStarshipEscape,
+          )
+        : Starship.withKeyboard(
+            onPowerUp: _onPowerUpTaken,
+            onEscape: _onStarshipEscape,
+          );
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
     );
     _fireButton.position.y = size.y - 40 - _fireButton.size.y;
-    field = Field(fieldType)..position = Vector2(0, 50);
+    field = Field(fieldType)..position = Vector2(gameRef.size.x / 2, 50);
   }
 
   Future<void> _loadComponents() async {
@@ -158,7 +180,9 @@ abstract class BaseLevel extends PositionComponent
           await add(brick
             ..scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor)
             ..position = Vector2(
-                Field.hitboxSize * field.scale.x +
+                field.x -
+                    ((field.size.x * field.scale.x) / 2) +
+                    Field.hitboxSize * field.scale.x +
                     (brick.size.x * brick.scale.x) * row.indexOf(brick),
                 70 +
                     brick.size.y * brick.scale.y +
@@ -172,20 +196,26 @@ abstract class BaseLevel extends PositionComponent
     await FlameAudio.audioCache.load('Game_Start.ogg');
     await add(field);
     _starship.position = Vector2(
-      (gameRef.size.x / 2) - _starship.size.x / 2,
-      field.size.y * field.scale.y + field.position.y - 30,
+      field.x - _starship.size.x * _starship.scale.x / 2,
+      field.size.y * field.scale.y +
+          field.position.y -
+          _starship.size.y * field.scale.y -
+          30,
     );
     _lives.position = Vector2(
-      Field.hitboxSize * gameRef.scaleFactor,
+      field.x -
+          ((field.size.x * field.scale.x) / 2) +
+          Field.hitboxSize * gameRef.scaleFactor,
       field.size.y * field.scale.y + field.position.y,
     );
     final ball = Ball();
     ball.position = Vector2(
-      (gameRef.size.x / 2) - ball.size.x / 2,
+      field.x - ball.size.x * ball.scale.x / 2,
       field.size.y * field.scale.y +
           field.position.y -
           30 -
-          _starship.size.y -
+          _starship.size.y * field.scale.y -
+          ball.size.y * field.scale.y -
           1,
     );
     balls.add(ball);
@@ -195,9 +225,9 @@ abstract class BaseLevel extends PositionComponent
     add(_roundNumberComponent
       ..priority = 20
       ..position = Vector2(
-          gameRef.size.x / 2,
-          (field.size.y * field.scale.y + field.position.y) / 2 +
-              (field.size.y * field.scale.y + field.position.y) / 4));
+          field.x,
+          (field.size.y * field.scale.y + field.y) / 2 +
+              (field.size.y * field.scale.y + field.y) / 4));
 
     FlameAudio.play('Game_Start.ogg');
     // wait for audio to finish to start game
@@ -207,7 +237,7 @@ abstract class BaseLevel extends PositionComponent
       addAll(balls);
       add(_lives);
       _roundNumberComponent.removeFromParent();
-      _fireButton.addInteractable(_starship);
+      //_fireButton.addInteractable(_starship);
       _fireButton.addInteractable(this);
       _fireButton.addInteractable(balls.first);
       _introFinished = true;
@@ -228,7 +258,7 @@ abstract class BaseLevel extends PositionComponent
     _lives.removeFromParent();
     _starship.removeFromParent();
     field.removeFromParent();
-    _fireButton.removeInteractable(_starship);
+    //_fireButton.removeInteractable(_starship);
     _fireButton.removeInteractable(this);
     bricks.forEach(((row) async {
       for (var brick in row) {
@@ -344,6 +374,13 @@ abstract class BaseLevel extends PositionComponent
 
   @override
   void onButtonPressed() {
+    if (_introFinished) {
+      _gameStarted = true;
+    }
+  }
+
+  @override
+  void onActionPressed() {
     if (_introFinished) {
       _gameStarted = true;
     }

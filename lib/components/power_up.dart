@@ -13,6 +13,8 @@ class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   PowerUp(this.powerUpType) : super(size: Vector2(16, 8));
 
   static const spriteSheetFile = 'powerups.png';
+  static const _velocity = 30.0;
+
   @override
   Future<void>? onLoad() async {
     super.onLoad();
@@ -29,7 +31,7 @@ class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   @override
   void update(double dt) {
     super.update(dt);
-    y += 1;
+    y += _velocity * dt * gameRef.scaleFactor;
     if (y >=
         gameRef.currentLevel.field.size.y * gameRef.currentLevel.field.scale.y +
             gameRef.currentLevel.field.position.y) {

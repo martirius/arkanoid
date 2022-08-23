@@ -1,6 +1,7 @@
 import 'dart:math';
+import 'package:arkanoid/components/behaviours/action_behaviour.dart';
 import 'package:arkanoid/components/brick.dart';
-import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/inputs/action_entity.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
@@ -8,16 +9,35 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_behaviors/flame_behaviors.dart';
+import 'package:flutter/services.dart';
 
-class Ball extends SpriteComponent
-    with CollisionCallbacks, HasGameRef<Arkanoid>
+class Ball extends Entity
+    with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
     implements ButtonInteractable {
-  Ball() : super(size: Vector2(5, 4));
+  Ball()
+      : super(
+            size: Vector2(_ballWidth, _ballHeight),
+            behaviors: [ActionBehaviour(fireKey: LogicalKeyboardKey.space)],
+            children: [
+              CompositeHitbox(children: [
+                RectangleHitbox(
+                    position: Vector2(0.0, _ballHeight / 2),
+                    size: Vector2(_ballWidth + 1, 0.1)),
+                RectangleHitbox(
+                    position: Vector2(_ballWidth / 2, 0),
+                    size: Vector2(0.1, _ballHeight + 1)),
+              ])
+            ],
+            anchor: Anchor.topLeft);
 
-  Vector2 velocity = Vector2(150, -150);
+  Vector2 velocity = Vector2(130, -130);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
   Brick? _previousBrick;
+
+  static const _ballWidth = 5.0;
+  static const _ballHeight = 4.0;
   static const _numberOfBricksHitToIncreaseVelocity = 15;
   static const _maxBrickHitToIncreaseVelocity = 90;
 
@@ -28,14 +48,8 @@ class Ball extends SpriteComponent
     await FlameAudio.audioCache.load('ball_hit_starship.wav');
 
     scale *= gameRef.scaleFactor;
-
-    sprite = extractSprite(0, 40, 5, 4, 'starship.png');
-    add(CompositeHitbox(children: [
-      RectangleHitbox(
-          position: Vector2(0.0, size.y / 2), size: Vector2(size.x + 1, 0.1)),
-      RectangleHitbox(
-          position: Vector2(size.x / 2, 0), size: Vector2(0.1, size.y + 1)),
-    ]));
+    add(SpriteComponent(sprite: extractSprite(0, 40, 5, 4, 'starship.png'))
+      ..size = Vector2(_ballWidth, _ballHeight));
   }
 
   @override
@@ -71,21 +85,6 @@ class Ball extends SpriteComponent
           velocity.x *= -1;
         }
       }
-    } else if (other is Field) {
-      //calculate bouncing with Field borders
-      if (x - Field.hitboxSize * gameRef.currentLevel.field.scale.x <=
-              gameRef.currentLevel.field.position.x ||
-          x +
-                  Field.hitboxSize * gameRef.currentLevel.field.scale.x +
-                  (size.x * scale.x) +
-                  1 >=
-              gameRef.size.x - 1) {
-        velocity.x *= -1;
-        //left wall or right wall
-      } else {
-        //top wall
-        velocity.y *= -1;
-      }
     } else if (other is Starship && ballCanMove) {
       final starship = other;
       //calculate bouncing direction only if startship is lower than ball
@@ -111,20 +110,14 @@ class Ball extends SpriteComponent
   @override
   void update(double dt) {
     position.x = position.x.clamp(
-      gameRef.currentLevel.field.position.x +
-          Field.hitboxSize * gameRef.scaleFactor,
-      gameRef.currentLevel.field.position.x +
-          gameRef.currentLevel.field.size.x * gameRef.scaleFactor -
-          Field.hitboxSize * gameRef.scaleFactor -
-          size.x * gameRef.scaleFactor,
+      gameRef.currentLevel.field.leftWall,
+      gameRef.currentLevel.field.rightWall,
     );
     position.y = position.y.clamp(
-        gameRef.currentLevel.field.position.y +
-            Field.hitboxSize * gameRef.scaleFactor -
-            1,
-        gameRef.currentLevel.field.position.y +
-            gameRef.currentLevel.field.size.y * gameRef.scaleFactor);
-    if (y < gameRef.size.y / 1.5 && ballCanMove) {
+      gameRef.currentLevel.field.topWall,
+      gameRef.currentLevel.field.lowWall,
+    );
+    if (y < gameRef.currentLevel.field.lowWall && ballCanMove) {
       calculateBallDirection(1, dt);
     } else {
       //ball goes under starship, life lost
@@ -132,13 +125,30 @@ class Ball extends SpriteComponent
   }
 
   void calculateBallDirection(double factor, double dt) {
-    x += velocity.x * dt;
-    y += velocity.y * dt;
+    final field = gameRef.currentLevel.field;
+    //calculate bouncing with Field borders
+    if ((x <= field.leftWall || x >= field.rightWall - size.x * scale.x)) {
+      velocity.x *= -1;
+      //left wall or right wall
+    } else if (y <= field.topWall) {
+      //top wall
+      velocity.y *= -1;
+    }
+    x += velocity.x * dt * scale.x;
+    y += velocity.y * dt * scale.y;
   }
 
   @override
   void onButtonPressed() {
     ballCanMove = true;
+  }
+
+  @override
+  void onRemove() {
+    children.forEach((element) {
+      element.removeFromParent();
+    });
+    super.onRemove();
   }
 
   void slow() {
@@ -151,5 +161,10 @@ class Ball extends SpriteComponent
           1.2;
       _numberOfBrickHit = 0;
     }
+  }
+
+  @override
+  void onActionPressed() {
+    onButtonPressed();
   }
 }

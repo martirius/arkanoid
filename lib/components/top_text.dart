@@ -7,7 +7,7 @@ import 'package:flutter/painting.dart';
 /// Label is red and can blink if blinkLabel function is called
 /// Content instead is white and cannot blink
 class TopText extends PositionComponent {
-  TopText(this._label, this._message);
+  TopText(this._label, this._message) : super(anchor: Anchor.topCenter);
 
   final String _label;
   String _message;
