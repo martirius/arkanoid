@@ -93,12 +93,12 @@ class Brick extends SpriteAnimationComponent {
   void hit(bool playAudio) {
     if (playAudio) {
       if (model == BrickModel.silver || model == BrickModel.gold) {
-        FlameAudio.audioCache.play('ball_hit_block_unbreakable.wav');
+        FlameAudio.play('ball_hit_block_unbreakable.wav');
       } else {
-        FlameAudio.audioCache.play('ball_hit_block.wav');
+        FlameAudio.play('ball_hit_block.wav');
       }
     }
-    animation?.reset();
+    animationTicker?.reset();
     _numberOfTimeHit += 1;
     if (_numberOfTimeHit >= _numberOfHitToBroke && canBeBroken) {
       if (powerUp != null && powerUp!.parent == null) {

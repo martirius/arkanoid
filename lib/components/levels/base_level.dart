@@ -18,7 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 
-abstract class BaseLevel extends Entity
+abstract class BaseLevel extends PositionedEntity
     with HasGameRef<Arkanoid>, ActionEntity
     implements ButtonInteractable {
   BaseLevel(this.fieldType, this._roundNumber)
@@ -193,7 +193,6 @@ abstract class BaseLevel extends Entity
   }
 
   Future<void> _loadGameComponents() async {
-    await FlameAudio.audioCache.load('Game_Start.ogg');
     await add(field);
     _starship.position = Vector2(
       field.x - _starship.size.x * _starship.scale.x / 2,
@@ -229,7 +228,7 @@ abstract class BaseLevel extends Entity
           (field.size.y * field.scale.y + field.y) / 2 +
               (field.size.y * field.scale.y + field.y) / 4));
 
-    FlameAudio.play('Game_Start.ogg');
+    FlameAudio.play('Game_Start.mp3');
     // wait for audio to finish to start game
     Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
       add(_starship);
@@ -357,7 +356,7 @@ abstract class BaseLevel extends Entity
 
   void _gameOver() {
     add(_gameOverComponent);
-    FlameAudio.play('Game_Over.ogg');
+    FlameAudio.play('Game_Over.mp3');
     Future.delayed(const Duration(seconds: 3), () {
       gameRef.gameOver();
     });

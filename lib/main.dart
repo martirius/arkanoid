@@ -8,6 +8,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/widgets.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,11 +22,7 @@ void main() {
 }
 
 class Arkanoid extends FlameGame
-    with
-        HasCollisionDetection,
-        HasDraggables,
-        HasTappables,
-        HasKeyboardHandlerComponents {
+    with HasCollisionDetection, HasKeyboardHandlerComponents {
   BaseLevel currentLevel = Level1();
   int topScore = 50000;
   int currentScore = 0;
@@ -34,6 +31,7 @@ class Arkanoid extends FlameGame
   @override
   Future<void>? onLoad() async {
     super.onLoad();
+    await FlameAudio.audioCache.load('Game_Start.mp3');
     // the field in the original game is 224x240
     double xScale = size.x / 224.0;
     double yScale = (size.y - 50) / 240.0;

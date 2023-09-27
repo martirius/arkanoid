@@ -25,7 +25,7 @@ enum StarshipAnimation {
   disappearing
 }
 
-class Starship extends Entity
+class Starship extends PositionedEntity
     with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity {
   Starship._(
     this._onPowerUp,
@@ -150,7 +150,7 @@ class Starship extends Entity
           } else if (powerUp == PowerUpType.laser) {
             _starshipAnimationComponent.current =
                 StarshipAnimation.laserTransforming;
-            _starshipAnimationComponent.animation?.reset();
+            _starshipAnimationComponent.animationTicker?.reset();
           } else if (powerUp == PowerUpType.break_) {
             _canEscape = true;
           }
@@ -177,7 +177,7 @@ class Starship extends Entity
   void appear() {
     _isDisappearing = false;
     _starshipAnimationComponent.current = StarshipAnimation.appearing;
-    _starshipAnimationComponent.animation?.reset();
+    _starshipAnimationComponent.animationTicker?.reset();
   }
 
   Future<void> destroy() async {
@@ -187,7 +187,7 @@ class Starship extends Entity
     powerUp = null;
     FlameAudio.play("ball_go_down.wav");
     _starshipAnimationComponent.current = StarshipAnimation.disappearing;
-    _starshipAnimationComponent.animation?.reset();
+    _starshipAnimationComponent.animationTicker?.reset();
     return Future.delayed(const Duration(seconds: 2));
   }
 
@@ -278,14 +278,14 @@ class StarshipAnimationComponent
   void update(double dt) {
     super.update(dt);
     if (current == StarshipAnimation.appearing &&
-        animation!.isLastFrame &&
-        animation!.elapsed >= 1) {
+        animationTicker!.isLastFrame &&
+        animationTicker!.elapsed >= 1) {
       current = StarshipAnimation.normal;
     }
 
     if (current == StarshipAnimation.laserTransforming &&
-        animation!.isLastFrame &&
-        animation!.elapsed >= 1) {
+        animationTicker!.isLastFrame &&
+        animationTicker!.elapsed >= 1) {
       current = StarshipAnimation.laser;
     }
   }

@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -29,17 +29,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flame: ^1.2.1
-  flame_audio: ^1.0.2
-
-
-
+  flame: ^1.9.1
+  flame_audio: ^2.1.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   group_radio_button: ^1.2.0
-  flame_behaviors: ^0.1.1
+  flame_behaviors: ^0.2.0
+  file: ^7.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 
@@ -27,7 +29,7 @@ class Lives extends PositionComponent {
     }
   }
 
-  Future<void>? addLife(bool increaseLife) {
+  FutureOr<void> addLife(bool increaseLife) {
     final lifeSprite =
         extractSprite(924, 304, _lifeWidth, _lifeHeight, 'fields.png');
     final lifeSpriteComponent = SpriteComponent(

@@ -12,7 +12,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/services.dart';
 
-class Ball extends Entity
+class Ball extends PositionedEntity
     with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
     implements ButtonInteractable {
   Ball()

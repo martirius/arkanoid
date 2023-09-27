@@ -44,7 +44,8 @@ class BreakAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (current == BreakAnimationState.opening && animation!.isLastFrame) {
+    if (current == BreakAnimationState.opening &&
+        animationTicker!.isLastFrame) {
       current = BreakAnimationState.open;
     }
   }
