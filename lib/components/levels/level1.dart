@@ -127,9 +127,9 @@ class Level1 extends BaseLevel {
         Brick(BrickModel.green, null),
         Brick(BrickModel.green, null),
         Brick(BrickModel.green, null),
+        Brick(BrickModel.grey, PowerUp(PowerUpType.break_)),
         Brick(BrickModel.green, null),
-        Brick(BrickModel.green, null),
-        Brick(BrickModel.green, null),
+        Brick(BrickModel.grey, PowerUp(PowerUpType.break_)),
         Brick(BrickModel.green, null),
         Brick(BrickModel.green, PowerUp(PowerUpType.extend))
       ],

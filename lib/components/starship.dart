@@ -78,6 +78,7 @@ class Starship extends PositionedEntity
   bool _isDisappearing = false;
   final List<Ball> _collidingBalls = [];
   bool _canEscape = false;
+  bool _isEscaping = false;
 
   @override
   Future<void>? onLoad() async {
@@ -92,6 +93,9 @@ class Starship extends PositionedEntity
   void update(double dt) {
     super.update(dt);
     if (!_isDisappearing) {
+      if (_isEscaping) {
+        state = StarshipState.escaping;
+      }
       switch (state) {
         case StarshipState.movingLeft:
           x -= starshipSpeed * dt * scale.x;
@@ -108,6 +112,7 @@ class Starship extends PositionedEntity
 
           break;
         case StarshipState.escaping:
+          _isEscaping = true;
           x += 0.5;
           break;
         default:

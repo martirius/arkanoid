@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flutter/material.dart';
 
 enum BreakAnimationState { opening, open }
 
@@ -38,6 +39,10 @@ class BreakAnimationComponent
           stepTime: 0.1,
           loop: true),
     };
+    add(RectangleComponent(
+      position: Vector2(-_width / 2, _height / 2),
+      size: Vector2(_width, 1),
+    )..setColor(Colors.white));
     current = BreakAnimationState.opening;
   }
 
