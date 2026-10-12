@@ -13,7 +13,7 @@ class KeyboardMovingBehavior extends Behavior<Starship> with KeyboardHandler {
   });
 
   @override
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+  bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (keysPressed.contains(leftKey) &&
         parent.state != StarshipState.escaping) {
       parent.state = StarshipState.movingLeft;

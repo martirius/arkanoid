@@ -11,7 +11,7 @@ class ActionBehaviour extends Behavior<ActionEntity> with KeyboardHandler {
   }) : super();
 
   @override
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+  bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (keysPressed.contains(fireKey)) {
       parent.onActionPressed();
     }

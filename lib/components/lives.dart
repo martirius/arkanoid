@@ -7,18 +7,17 @@ import 'package:flame/components.dart';
  * This components prints the number of lives user has 
  */
 class Lives extends PositionComponent {
-  Lives(this._numberOfLives, this._scaleFactor)
+  Lives(this._numberOfLives, double scaleFactor)
       : super(
             size: Vector2(
               _lifeWidth * _numberOfLives,
               _lifeHeight,
             ),
-            scale: Vector2(_scaleFactor, _scaleFactor));
+            scale: Vector2(scaleFactor, scaleFactor));
 
   static const _lifeHeight = 8.0;
   static const _lifeWidth = 16.0;
 
-  final double _scaleFactor;
   int _numberOfLives;
   final List<Component> _livesComponents = [];
 
