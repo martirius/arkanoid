@@ -107,10 +107,9 @@ void main() {
     level.onButtonPressed();
 
     final destroyedBrick = level.bricks.first.first!;
-    destroyedBrick.removeFromParent();
+    destroyedBrick.hit(false);
     game.update(1 / 120);
     expect(destroyedBrick.parent, isNull);
-    level.update(1 / 120);
 
     expect(level.bricks.first.first, isNull);
     final lifeLoss = level.lifeLost();
@@ -146,15 +145,15 @@ void main() {
 
     final firstBrick = level.bricks.first[0]!;
     final secondBrick = level.bricks.first[1]!;
-    firstBrick.removeFromParent();
-    secondBrick.removeFromParent();
+    firstBrick.hit(false);
+    secondBrick.hit(false);
     game.update(1 / 120);
-    level.update(1 / 120);
-    level.update(1 / 120);
 
     expect(level.bricks.first[0], isNull);
     expect(level.bricks.first[1], isNull);
     expect(level.bricks.first[2], isNotNull);
+    expect(game.currentScore, firstBrick.value + secondBrick.value);
+    expect(level.children.whereType<Brick>(), hasLength(1));
   });
 }
 

@@ -34,4 +34,30 @@ void main() {
       );
     }
   });
+
+  test('a brick reports its destruction only once', () {
+    var destructions = 0;
+    final brick = Brick(BrickModel.red, null)
+      ..onDestroyed = () => destructions += 1;
+
+    brick.hit(false);
+    brick.hit(false);
+
+    expect(destructions, 1);
+  });
+
+  test('a silver brick reports destruction after four hits', () {
+    var destructions = 0;
+    final brick = Brick(BrickModel.silver, null)
+      ..onDestroyed = () => destructions += 1;
+
+    for (var hit = 0; hit < 3; hit++) {
+      brick.hit(false);
+    }
+    expect(destructions, 0);
+
+    brick.hit(false);
+    brick.hit(false);
+    expect(destructions, 1);
+  });
 }

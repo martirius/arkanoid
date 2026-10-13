@@ -24,6 +24,7 @@ class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   late final int _numberOfHitToBroke;
   final BrickModel model;
   final PowerUp? powerUp;
+  void Function()? onDestroyed;
   late final int value;
   static const int _baseBrickValue = 50;
   Brick(this.model, this.powerUp) : super(size: Vector2(16, 8)) {
@@ -36,6 +37,7 @@ class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
 
   late final Map<BrickModel, SpriteAnimation> animations;
   int _numberOfTimeHit = 0;
+  bool _isDestroyed = false;
   static final singleSpriteAnimationBricks = [
     BrickModel.grey,
     BrickModel.orange,
@@ -92,6 +94,9 @@ class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   }
 
   void hit(bool playAudio) {
+    if (_isDestroyed) {
+      return;
+    }
     if (playAudio) {
       if (model == BrickModel.silver || model == BrickModel.gold) {
         gameRef.audio.play(GameSound.ballHitBlockUnbreakable);
@@ -102,10 +107,12 @@ class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
     animationTicker?.reset();
     _numberOfTimeHit += 1;
     if (_numberOfTimeHit >= _numberOfHitToBroke && canBeBroken) {
+      _isDestroyed = true;
       if (powerUp != null && powerUp!.parent == null) {
         parent?.add(powerUp!..position = position);
       }
       removeFromParent();
+      onDestroyed?.call();
     }
   }
 }

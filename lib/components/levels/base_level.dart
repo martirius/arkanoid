@@ -172,6 +172,9 @@ abstract class BaseLevel extends PositionedEntity
         final brick = row[columnIndex];
         if (brick != null) {
           await add(brick
+            ..onDestroyed = () {
+              _onBrickDestroyed(rowIndex, columnIndex, brick);
+            }
             ..scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor)
             ..position = Vector2(
                 field.x -
@@ -368,35 +371,28 @@ abstract class BaseLevel extends PositionedEntity
           //all balls are gone, life lost
           lifeLost();
         }
-        final gameBricks = children.whereType<Brick>();
-
-        //put brick as null if it doesn't exist anymore
-        MapEntry<int, int>? brickToRemove;
-        bricks.forEach(((row) {
-          for (var brick in row) {
-            if (!gameBricks.contains(brick) && brick != null) {
-              //brick broken, add score
-              addScore(brick.value);
-              final rowIdx = bricks.indexOf(row);
-              final colIdx = bricks[bricks.indexOf(row)].indexOf(brick);
-              brickToRemove = MapEntry(rowIdx, colIdx);
-            }
-          }
-        }));
-
-        if (brickToRemove != null) {
-          bricks[brickToRemove!.key][brickToRemove!.value] = null;
-        }
-        bool isLevelCompleted = bricks.every((row) => row.where((brick) {
-              return brick != null ? brick.canBeBroken : false;
-            }).isEmpty);
-        if (isLevelCompleted) {
-          //no more brick, level completed
-          levelCompleted();
-        }
       } else {
         balls.first.position.x = _starship.position.x + _starship.size.x / 2;
       }
+    }
+  }
+
+  void _onBrickDestroyed(
+    int rowIndex,
+    int columnIndex,
+    Brick brick,
+  ) {
+    if (bricks[rowIndex][columnIndex] != brick) {
+      return;
+    }
+
+    bricks[rowIndex][columnIndex] = null;
+    addScore(brick.value);
+    final isLevelCompleted = bricks.every((row) => row.every(
+          (brick) => brick == null || !brick.canBeBroken,
+        ));
+    if (isLevelCompleted) {
+      levelCompleted();
     }
   }
 
