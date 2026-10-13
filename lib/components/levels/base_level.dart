@@ -41,6 +41,8 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   RoundPhase _phase = RoundPhase.intro;
   final Map<async.Timer, async.Completer<bool>> _pendingRoundDelays = {};
   bool _removed = false;
+  int _wallBounceCount = 0;
+  int _goldBrickHitCount = 0;
 
   RoundPhase get phase => _phase;
 
@@ -258,7 +260,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   }
 
   Ball _newBall() {
-    final ball = Ball();
+    final ball = Ball(rules: definition.rules);
     ball.position = Vector2(
       field.x - ball.width / 2,
       field.lowWall -
@@ -370,6 +372,31 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
         ));
     if (isLevelCompleted) {
       levelCompleted();
+    }
+  }
+
+  void onBallWallBounce() {
+    _wallBounceCount += 1;
+    if (_wallBounceCount == 40) {
+      _wallBounceCount = 0;
+      _changeAllBallTrajectories();
+    }
+  }
+
+  void onBallBrickImpact(Brick brick) {
+    if (brick.model != BrickModel.gold) {
+      return;
+    }
+    _goldBrickHitCount += 1;
+    if (_goldBrickHitCount == 20) {
+      _goldBrickHitCount = 0;
+      _changeAllBallTrajectories();
+    }
+  }
+
+  void _changeAllBallTrajectories() {
+    for (final ball in balls) {
+      ball.changeTrajectory();
     }
   }
 

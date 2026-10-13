@@ -89,6 +89,7 @@ void main() {
 
     expect(ball.velocity.x, -130);
     expect(ball.x, lessThan(211));
+    expect(ball.speedProgress, 1);
 
     ball.position = Vector2(8, 8);
     ball.velocity = Vector2(-130, -130);
@@ -96,6 +97,7 @@ void main() {
 
     expect(ball.velocity.x, 130);
     expect(ball.velocity.y, 130);
+    expect(ball.speedProgress, 3);
   });
 
   test('lateral entry between brick rows keeps a horizontal bounce', () {
@@ -121,6 +123,7 @@ void main() {
       expect(ball.y, collisionY);
       expect(ball.velocity.x, -300);
       expect(ball.velocity.y, verticalVelocity);
+      expect(ball.speedProgress, 1);
     }
   });
 

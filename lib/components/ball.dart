@@ -1,11 +1,12 @@
-import 'dart:math';
 import 'dart:ui' show Offset, Rect;
 
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
+import 'package:arkanoid/physics/arcade_ball_motion.dart';
 import 'package:arkanoid/physics/ball_collision_resolver.dart';
+import 'package:arkanoid/round_rules.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
@@ -13,23 +14,32 @@ import 'package:flame_behaviors/flame_behaviors.dart';
 
 class Ball extends PositionedEntity
     with CollisionCallbacks, HasGameReference<Arkanoid> {
-  Ball()
-      : super(
-            size: Vector2(_ballWidth, _ballHeight),
-            children: [RectangleHitbox(isSolid: true)],
-            anchor: Anchor.topLeft);
+  Ball({RoundRules? rules})
+      : motion = ArcadeBallMotion(
+          speedStage: (rules ?? RoundRules(1)).initialBallSpeedStage,
+        ),
+        super(
+          size: Vector2(_ballWidth, _ballHeight),
+          children: [RectangleHitbox(isSolid: true)],
+          anchor: Anchor.topLeft,
+        ) {
+    final initialVelocity = motion.velocity;
+    velocity = Vector2(initialVelocity.x, initialVelocity.y);
+  }
 
-  Vector2 velocity = Vector2(130, -130);
+  final ArcadeBallMotion motion;
+  late Vector2 velocity;
   bool ballCanMove = false;
-  int _numberOfBrickHit = 0;
   final Set<Brick> _brickCollisionCandidates = {};
   final Vector2 _previousPosition = Vector2.zero();
   bool _hasPreviousPosition = false;
 
   static const _ballWidth = 5.0;
   static const _ballHeight = 4.0;
-  static const _numberOfBricksHitToIncreaseVelocity = 15;
-  static const _maxBrickHitToIncreaseVelocity = 90;
+
+  int get speedStage => motion.speedStage;
+  int get speedProgress => motion.speedProgress;
+  int get trajectory => motion.trajectory;
 
   @override
   Future<void>? onLoad() async {
@@ -62,19 +72,13 @@ class Ball extends PositionedEntity
       _brickCollisionCandidates.add(other);
     } else if (other is Starship && ballCanMove && velocity.y > 0) {
       final starship = other;
-      final ballSpeed = velocity.length;
       final ballCenterX = x + size.x * scale.x / 2;
       final starshipWidth = starship.width * starship.scale.x;
-      final relativeIntersectX =
-          (starship.x + starshipWidth - ballCenterX) / starshipWidth;
-      var bounceAngle = relativeIntersectX.clamp(0.0, 1.0) * pi;
-      bounceAngle = bounceAngle > pi / 2
-          ? bounceAngle.clamp((pi / 2) + pi / 6, pi - pi / 6)
-          : bounceAngle.clamp(pi / 6, (pi / 2) - pi / 6);
+      final normalizedHitPosition = (ballCenterX - starship.x) / starshipWidth;
 
       y = starship.y - size.y * scale.y - 1;
-      velocity.x = ballSpeed * cos(bounceAngle);
-      velocity.y = ballSpeed * -sin(bounceAngle);
+      motion.bounceFromPaddle(normalizedHitPosition);
+      _applyMotionVelocity();
       game.audio.play(GameSound.ballHitStarship);
     }
   }
@@ -105,9 +109,7 @@ class Ball extends PositionedEntity
       return;
     }
 
-    final brick = resolution.target;
-    brick.hit(true);
-    _numberOfBrickHit += 1;
+    final previousVelocity = velocity.clone();
     position.setValues(
       resolution.ballBounds.left,
       resolution.ballBounds.top,
@@ -116,10 +118,35 @@ class Ball extends PositionedEntity
       resolution.velocity.dx,
       resolution.velocity.dy,
     );
-    if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
-        _numberOfBrickHit % _numberOfBricksHitToIncreaseVelocity == 0) {
-      velocity *= 1.2;
+    _syncTrajectoryAfterReflection(previousVelocity);
+
+    final brick = resolution.target;
+    brick.hit(true);
+    _registerImpact();
+    game.currentLevel.onBallBrickImpact(brick);
+  }
+
+  void _syncTrajectoryAfterReflection(Vector2 previousVelocity) {
+    if (_directionChanged(previousVelocity.x, velocity.x)) {
+      motion.bounceHorizontally();
     }
+    if (_directionChanged(previousVelocity.y, velocity.y)) {
+      motion.bounceVertically();
+    }
+  }
+
+  static bool _directionChanged(double before, double after) =>
+      before != 0 && after != 0 && before.sign != after.sign;
+
+  void _registerImpact() {
+    if (motion.registerImpact()) {
+      _applyMotionVelocity();
+    }
+  }
+
+  void _applyMotionVelocity() {
+    final nextVelocity = motion.velocity;
+    velocity.setValues(nextVelocity.x, nextVelocity.y);
   }
 
   static Rect _bounds(PositionComponent component) {
@@ -152,11 +179,20 @@ class Ball extends PositionedEntity
     //calculate bouncing with Field borders
     if (x <= field.leftWall && velocity.x < 0) {
       velocity.x = velocity.x.abs();
+      motion.bounceHorizontally();
+      _registerImpact();
+      game.currentLevel.onBallWallBounce();
     } else if (x >= field.rightWall - size.x * scale.x && velocity.x > 0) {
       velocity.x = -velocity.x.abs();
+      motion.bounceHorizontally();
+      _registerImpact();
+      game.currentLevel.onBallWallBounce();
     }
     if (y <= field.topWall && velocity.y < 0) {
       velocity.y = velocity.y.abs();
+      motion.bounceVertically();
+      _registerImpact();
+      game.currentLevel.onBallWallBounce();
     }
     _previousPosition.setFrom(position);
     _hasPreviousPosition = true;
@@ -167,14 +203,12 @@ class Ball extends PositionedEntity
   void launch() => ballCanMove = true;
 
   void slow() {
-    if (_numberOfBrickHit >= _numberOfBricksHitToIncreaseVelocity) {
-      velocity /= ((_numberOfBrickHit > _maxBrickHitToIncreaseVelocity
-                      ? _maxBrickHitToIncreaseVelocity
-                      : _numberOfBrickHit) /
-                  _numberOfBricksHitToIncreaseVelocity)
-              .floor() *
-          1.2;
-      _numberOfBrickHit = 0;
-    }
+    motion.slow();
+    _applyMotionVelocity();
+  }
+
+  void changeTrajectory() {
+    motion.changeTrajectory();
+    _applyMotionVelocity();
   }
 }
