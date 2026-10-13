@@ -38,9 +38,13 @@ class GameAudio {
     ).build();
 
     await Future.wait(GameSound.values.map((sound) async {
-      _players[sound] = await Future.wait(
-        List.generate(sound.players, (_) => _createPlayer(sound, audioContext)),
-      );
+      final players = <AudioPlayer>[];
+      // Android SoundPool assigns the shared sound id only after the first
+      // player finishes loading, so players for the same file must be serial.
+      for (var index = 0; index < sound.players; index++) {
+        players.add(await _createPlayer(sound, audioContext));
+      }
+      _players[sound] = players;
       _nextPlayer[sound] = 0;
     }));
   }
