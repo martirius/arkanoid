@@ -141,14 +141,6 @@ class Ball extends PositionedEntity
     ballCanMove = true;
   }
 
-  @override
-  void onRemove() {
-    children.forEach((element) {
-      element.removeFromParent();
-    });
-    super.onRemove();
-  }
-
   void slow() {
     if (_numberOfBrickHit >= _numberOfBricksHitToIncreaseVelocity) {
       velocity /= ((_numberOfBrickHit > _maxBrickHitToIncreaseVelocity

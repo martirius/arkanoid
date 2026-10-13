@@ -329,14 +329,6 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   @override
-  void onRemove() {
-    for (var child in children) {
-      child.removeFromParent();
-    }
-    super.onRemove();
-  }
-
-  @override
   void update(double dt) {
     super.update(dt);
     if (_introFinished) {

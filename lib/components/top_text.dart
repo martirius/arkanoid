@@ -96,9 +96,6 @@ class TopText extends PositionComponent {
   @override
   void onRemove() {
     stopBlinkLabel();
-    for (var element in children) {
-      element.removeFromParent();
-    }
     super.onRemove();
   }
 
