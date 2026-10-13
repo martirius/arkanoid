@@ -47,6 +47,7 @@ abstract class BaseLevel extends PositionedEntity
   bool _gameStarted = false;
   bool _introFinished = false;
   bool _starshipEscaping = false;
+  bool _lifeLossInProgress = false;
   static const int numerOfBricEachRow = 13;
   static const int numberOfRow = 16;
   late final _playerTextComponent = TopText(
@@ -219,11 +220,13 @@ abstract class BaseLevel extends PositionedEntity
           ball.size.y * field.scale.y -
           1,
     );
-    balls.add(ball);
+    balls
+      ..clear()
+      ..add(ball);
     if (bricks.isNotEmpty) {
       await loadBricks();
     }
-    add(_roundNumberComponent
+    await add(_roundNumberComponent
       ..priority = 20
       ..position = Vector2(
           field.x,
@@ -232,42 +235,44 @@ abstract class BaseLevel extends PositionedEntity
 
     FlameAudio.play('Game_Start.mp3');
     // wait for audio to finish to start game
-    Future.delayed(const Duration(seconds: 1, milliseconds: 500), () async {
-      await add(_starship);
-      _starship.appear();
-      await addAll(balls);
-      await add(_lives);
-      _roundNumberComponent.removeFromParent();
-      //_fireButton.addInteractable(_starship);
-      _fireButton.addInteractable(this);
-      _fireButton.addInteractable(balls.first);
-      _introFinished = true;
-    });
+    await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+    await add(_starship);
+    _starship.appear();
+    await add(ball);
+    await add(_lives);
+    _roundNumberComponent.removeFromParent();
+    //_fireButton.addInteractable(_starship);
+    _fireButton.addInteractable(this);
+    _fireButton.addInteractable(ball);
+    _introFinished = true;
+    _gameStarted = true;
+    ball.ballCanMove = true;
     //score shower component
   }
 
   Future<void> _removeGameComponents() async {
-    for (var element in children) {
+    for (final element in children.toList()) {
       if (element is PowerUp || element is BreakAnimationComponent) {
         element.removeFromParent();
       }
     }
-    for (var element in balls) {
+    for (final element in balls) {
       element.removeFromParent();
       _fireButton.removeInteractable(element);
     }
+    balls.clear();
     _lives.removeFromParent();
     _starship.removeFromParent();
     field.removeFromParent();
     //_fireButton.removeInteractable(_starship);
     _fireButton.removeInteractable(this);
-    bricks.forEach(((row) async {
+    for (final row in bricks) {
       for (var brick in row) {
         if (brick != null) {
           brick.removeFromParent();
         }
       }
-    }));
+    }
   }
 
   @override
@@ -293,7 +298,7 @@ abstract class BaseLevel extends PositionedEntity
           balls.removeAt(balls.indexOf(element));
           element.removeFromParent();
         }
-        if (balls.isEmpty && !_starshipEscaping) {
+        if (balls.isEmpty && !_starshipEscaping && !_lifeLossInProgress) {
           //all balls are gone, life lost
           lifeLost();
         }
@@ -334,19 +339,29 @@ abstract class BaseLevel extends PositionedEntity
         .then((value) => gameRef.levelCompleted(_roundNumber));
   }
 
-  void lifeLost() async {
+  Future<void> lifeLost() async {
+    if (_lifeLossInProgress) {
+      return;
+    }
+
+    _lifeLossInProgress = true;
     gameRef.numberOfLives -= 1;
     _lives.removeLife();
     _introFinished = false;
     _gameStarted = false;
-    await _starship.destroy();
-    await _removeGameComponents();
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (gameRef.numberOfLives > 0) {
-      await _loadGameComponents();
-    } else {
-      // GAME OVER
-      _gameOver();
+
+    try {
+      await _starship.destroy();
+      await _removeGameComponents();
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (gameRef.numberOfLives > 0) {
+        await _loadGameComponents();
+      } else {
+        // GAME OVER
+        _gameOver();
+      }
+    } finally {
+      _lifeLossInProgress = false;
     }
   }
 
