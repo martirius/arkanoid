@@ -1,3 +1,5 @@
+import 'dart:async' as async;
+
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/behaviours/action_behaviour.dart';
 import 'package:arkanoid/components/break_animation.dart';
@@ -17,6 +19,16 @@ import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+
+enum RoundPhase {
+  intro,
+  ready,
+  playing,
+  lifeLost,
+  escaping,
+  completed,
+  gameOver,
+}
 
 abstract class BaseLevel extends PositionedEntity
     with HasGameRef<Arkanoid>, ActionEntity
@@ -44,11 +56,12 @@ abstract class BaseLevel extends PositionedEntity
   late Lives _lives;
   late Field field;
   final FieldType fieldType;
-  bool _gameStarted = false;
-  bool _introFinished = false;
-  bool _starshipEscaping = false;
-  bool _lifeLossInProgress = false;
-  bool _levelCompletionInProgress = false;
+  RoundPhase _phase = RoundPhase.intro;
+  final Map<async.Timer, async.Completer<bool>> _pendingRoundDelays = {};
+  bool _removed = false;
+
+  RoundPhase get phase => _phase;
+
   static const int numerOfBricEachRow = 13;
   static const int numberOfRow = 16;
   late final _playerTextComponent = TopText(
@@ -93,6 +106,19 @@ abstract class BaseLevel extends PositionedEntity
     await _loadComponents();
   }
 
+  @override
+  void onRemove() {
+    _removed = true;
+    for (final entry in _pendingRoundDelays.entries.toList()) {
+      entry.key.cancel();
+      if (!entry.value.isCompleted) {
+        entry.value.complete(false);
+      }
+    }
+    _pendingRoundDelays.clear();
+    super.onRemove();
+  }
+
   void _onPowerUpTaken(PowerUpType powerUpType) {
     addScore(1000);
     switch (powerUpType) {
@@ -130,17 +156,27 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   void _onStarshipEscape() {
-    _starshipEscaping = true;
+    if (_phase != RoundPhase.playing) {
+      return;
+    }
+    _phase = RoundPhase.escaping;
     for (var element in balls) {
       element.ballCanMove = false;
       element.removeFromParent();
     }
 
     gameRef.audio.play(GameSound.wallPortalTook);
-    Future.delayed(const Duration(seconds: 4), () {
-      gameRef.currentScore += 10000;
-      gameRef.levelCompleted(_roundNumber);
-    });
+    async.unawaited(_completeEscape());
+  }
+
+  Future<void> _completeEscape() async {
+    final elapsed = await _waitFor(const Duration(seconds: 4));
+    if (!elapsed || !_isCurrentRound || _phase != RoundPhase.escaping) {
+      return;
+    }
+    _phase = RoundPhase.completed;
+    gameRef.currentScore += 10000;
+    gameRef.levelCompleted(_roundNumber);
   }
 
   Future<void> _initializeComponents() async {
@@ -209,7 +245,11 @@ abstract class BaseLevel extends PositionedEntity
 
     gameRef.audio.play(GameSound.gameStart);
     // wait for audio to finish to start game
-    await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+    final elapsed =
+        await _waitFor(const Duration(seconds: 1, milliseconds: 500));
+    if (!elapsed || !_isCurrentRound) {
+      return;
+    }
     await _mountRoundComponents(ball, addLives: true);
     //score shower component
   }
@@ -228,8 +268,7 @@ abstract class BaseLevel extends PositionedEntity
     _roundNumberComponent.removeFromParent();
     _fireButton.addInteractable(_starship);
     _fireButton.addInteractable(ball);
-    _introFinished = true;
-    _gameStarted = false;
+    _phase = RoundPhase.ready;
     ball.ballCanMove = false;
   }
 
@@ -327,7 +366,12 @@ abstract class BaseLevel extends PositionedEntity
         brick?.removeFromParent();
       }
     }
-    await Future.delayed(const Duration(milliseconds: 500));
+    final fieldDelayElapsed = await _waitFor(const Duration(milliseconds: 500));
+    if (!fieldDelayElapsed ||
+        !_isCurrentRound ||
+        _phase != RoundPhase.lifeLost) {
+      return;
+    }
 
     field = _newField();
     _starship = _newStarship();
@@ -341,7 +385,13 @@ abstract class BaseLevel extends PositionedEntity
             (field.size.y * field.scale.y + field.y) / 4,
       ));
     gameRef.audio.play(GameSound.gameStart);
-    await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+    final readyDelayElapsed =
+        await _waitFor(const Duration(seconds: 1, milliseconds: 500));
+    if (!readyDelayElapsed ||
+        !_isCurrentRound ||
+        _phase != RoundPhase.lifeLost) {
+      return;
+    }
 
     _positionStarship();
     final ball = _newBall();
@@ -354,26 +404,23 @@ abstract class BaseLevel extends PositionedEntity
   @override
   void update(double dt) {
     super.update(dt);
-    if (_introFinished) {
-      if (_gameStarted) {
-        final List<Ball> ballsToRemove = [];
-        for (var ball in balls) {
-          if (ball.y > field.size.y * field.scale.y + field.position.y) {
-            ballsToRemove.add(ball);
-          }
+    if (_phase == RoundPhase.playing) {
+      final List<Ball> ballsToRemove = [];
+      for (var ball in balls) {
+        if (ball.y > field.size.y * field.scale.y + field.position.y) {
+          ballsToRemove.add(ball);
         }
-        for (var element in ballsToRemove) {
-          balls.removeAt(balls.indexOf(element));
-          element.removeFromParent();
-          _fireButton.removeInteractable(element);
-        }
-        if (balls.isEmpty && !_starshipEscaping && !_lifeLossInProgress) {
-          //all balls are gone, life lost
-          lifeLost();
-        }
-      } else {
-        balls.first.position.x = _starship.position.x + _starship.size.x / 2;
       }
+      for (var element in ballsToRemove) {
+        balls.removeAt(balls.indexOf(element));
+        element.removeFromParent();
+        _fireButton.removeInteractable(element);
+      }
+      if (balls.isEmpty) {
+        async.unawaited(lifeLost());
+      }
+    } else if (_phase == RoundPhase.ready && balls.isNotEmpty) {
+      balls.first.position.x = _starship.position.x + _starship.size.x / 2;
     }
   }
 
@@ -397,35 +444,37 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   void levelCompleted() {
-    if (_levelCompletionInProgress) {
+    if (_phase != RoundPhase.playing) {
       return;
     }
-    _levelCompletionInProgress = true;
-    _removeGameComponents()
-        .then((value) => gameRef.levelCompleted(_roundNumber));
+    _phase = RoundPhase.completed;
+    async.unawaited(_completeLevel());
+  }
+
+  Future<void> _completeLevel() async {
+    await _removeGameComponents();
+    if (_isCurrentRound && _phase == RoundPhase.completed) {
+      gameRef.levelCompleted(_roundNumber);
+    }
   }
 
   Future<void> lifeLost() async {
-    if (_lifeLossInProgress) {
+    if (_phase != RoundPhase.playing) {
       return;
     }
 
-    _lifeLossInProgress = true;
+    _phase = RoundPhase.lifeLost;
     gameRef.numberOfLives -= 1;
     _lives.removeLife();
-    _introFinished = false;
-    _gameStarted = false;
 
-    try {
-      await _starship.destroy();
-      if (gameRef.numberOfLives > 0) {
-        await _restartAfterLifeLoss();
-      } else {
-        // GAME OVER
-        _gameOver();
-      }
-    } finally {
-      _lifeLossInProgress = false;
+    await _starship.destroy();
+    if (!_isCurrentRound || _phase != RoundPhase.lifeLost) {
+      return;
+    }
+    if (gameRef.numberOfLives > 0) {
+      await _restartAfterLifeLoss();
+    } else {
+      _gameOver();
     }
   }
 
@@ -436,11 +485,17 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   void _gameOver() {
+    _phase = RoundPhase.gameOver;
     add(_gameOverComponent);
     gameRef.audio.play(GameSound.gameOver);
-    Future.delayed(const Duration(seconds: 3), () {
+    async.unawaited(_completeGameOver());
+  }
+
+  Future<void> _completeGameOver() async {
+    final elapsed = await _waitFor(const Duration(seconds: 3));
+    if (elapsed && _isCurrentRound && _phase == RoundPhase.gameOver) {
       gameRef.gameOver();
-    });
+    }
   }
 
   void addScore(int score) {
@@ -454,15 +509,30 @@ abstract class BaseLevel extends PositionedEntity
 
   @override
   void onButtonPressed() {
-    if (_introFinished) {
-      _gameStarted = true;
+    if (_phase == RoundPhase.ready) {
+      _phase = RoundPhase.playing;
     }
   }
 
   @override
   void onActionPressed() {
-    if (_introFinished) {
-      _gameStarted = true;
+    if (_phase == RoundPhase.ready) {
+      _phase = RoundPhase.playing;
     }
+  }
+
+  bool get _isCurrentRound => !_removed && gameRef.currentLevel == this;
+
+  Future<bool> _waitFor(Duration duration) {
+    final completer = async.Completer<bool>();
+    late final async.Timer timer;
+    timer = async.Timer(duration, () {
+      _pendingRoundDelays.remove(timer);
+      if (!completer.isCompleted) {
+        completer.complete(!_removed);
+      }
+    });
+    _pendingRoundDelays[timer] = completer;
+    return completer.future;
   }
 }

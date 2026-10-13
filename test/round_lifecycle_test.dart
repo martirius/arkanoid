@@ -7,6 +7,8 @@ import 'package:arkanoid/components/levels/level2.dart';
 import 'package:arkanoid/components/levels/level3.dart';
 import 'package:arkanoid/components/levels/level4.dart';
 import 'package:arkanoid/components/levels/level5.dart';
+import 'package:arkanoid/components/power_up.dart';
+import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
@@ -93,6 +95,7 @@ void main() {
       (tester) async {
     final level = _TestLevel();
     final game = _TestArkanoid(level);
+    expect(level.phase, RoundPhase.intro);
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -104,7 +107,9 @@ void main() {
       ),
     );
     await _pumpUntilRoundIsReady(tester, level);
+    expect(level.phase, RoundPhase.ready);
     level.onButtonPressed();
+    expect(level.phase, RoundPhase.playing);
 
     final destroyedBrick = level.bricks.first.first!;
     destroyedBrick.hit(false);
@@ -113,6 +118,7 @@ void main() {
 
     expect(level.bricks.first.first, isNull);
     final lifeLoss = level.lifeLost();
+    expect(level.phase, RoundPhase.lifeLost);
     await tester.pump(const Duration(seconds: 2));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
@@ -122,6 +128,7 @@ void main() {
     await lifeLoss;
 
     expect(game.numberOfLives, 2);
+    expect(level.phase, RoundPhase.ready);
     expect(level.bricks.first.first, isNull);
     expect(level.children.whereType<Brick>(), hasLength(2));
   });
@@ -154,6 +161,77 @@ void main() {
     expect(level.bricks.first[2], isNotNull);
     expect(game.currentScore, firstBrick.value + secondBrick.value);
     expect(level.children.whereType<Brick>(), hasLength(1));
+
+    level.bricks.first[2]!.hit(false);
+    expect(level.phase, RoundPhase.completed);
+    await tester.pump();
+    await _pumpUntilRoundIsReady(tester, game.currentLevel);
+  });
+
+  testWidgets('escaping is an explicit round phase', (tester) async {
+    final level = _TestLevel();
+    final game = _TestArkanoid(level);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 224,
+          height: 320,
+          child: GameWidget(game: game),
+        ),
+      ),
+    );
+    await _pumpUntilRoundIsReady(tester, level);
+    level.onButtonPressed();
+
+    final starship = level.children.whereType<Starship>().single;
+    starship.onCollision({Vector2.zero()}, PowerUp(PowerUpType.break_));
+    starship.state = StarshipState.movingRight;
+    starship.onCollision({Vector2.zero()}, level.field);
+
+    expect(level.phase, RoundPhase.escaping);
+    game.remove(level);
+    for (var attempt = 0; attempt < 10 && !level.isRemoved; attempt++) {
+      game.update(1 / 120);
+      await tester.pump();
+    }
+    expect(level.isRemoved, isTrue);
+  });
+
+  testWidgets('removing a round cancels its pending game-over transition',
+      (tester) async {
+    final level = _TestLevel();
+    final game = _TestArkanoid(level)..numberOfLives = 1;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 224,
+          height: 320,
+          child: GameWidget(game: game),
+        ),
+      ),
+    );
+    await _pumpUntilRoundIsReady(tester, level);
+    level.onButtonPressed();
+
+    final lifeLoss = level.lifeLost();
+    expect(level.phase, RoundPhase.lifeLost);
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump();
+    await lifeLoss;
+    expect(level.phase, RoundPhase.gameOver);
+
+    final replacement = _TestLevel();
+    game.currentLevel = replacement;
+    game.remove(level);
+    game.add(replacement);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pump();
+
+    expect(game.currentLevel, same(replacement));
+    expect(game.numberOfLives, 0);
   });
 }
 
