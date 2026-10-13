@@ -1,8 +1,8 @@
 import 'package:arkanoid/main.dart';
+import 'package:arkanoid/game_audio.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-import 'package:flame_audio/flame_audio.dart';
 
 import 'power_up.dart';
 
@@ -19,7 +19,7 @@ enum BrickModel {
   gold
 }
 
-class Brick extends SpriteAnimationComponent {
+class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
@@ -49,8 +49,6 @@ class Brick extends SpriteAnimationComponent {
 
   @override
   Future<void>? onLoad() async {
-    await FlameAudio.audioCache.load('ball_hit_block.wav');
-    await FlameAudio.audioCache.load('ball_hit_block_unbreakable.wav');
     await Flame.images.load('blocks_tiles.png');
     Map<BrickModel, SpriteAnimation> breakableAnimation = {};
     for (BrickModel b in singleSpriteAnimationBricks) {
@@ -93,9 +91,9 @@ class Brick extends SpriteAnimationComponent {
   void hit(bool playAudio) {
     if (playAudio) {
       if (model == BrickModel.silver || model == BrickModel.gold) {
-        FlameAudio.play('ball_hit_block_unbreakable.wav');
+        gameRef.audio.play(GameSound.ballHitBlockUnbreakable);
       } else {
-        FlameAudio.play('ball_hit_block.wav');
+        gameRef.audio.play(GameSound.ballHitBlock);
       }
     }
     animationTicker?.reset();

@@ -10,9 +10,9 @@ import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/components/top_text.dart';
+import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
@@ -135,7 +135,7 @@ abstract class BaseLevel extends PositionedEntity
       element.removeFromParent();
     }
 
-    FlameAudio.play("wall_portal_took.wav");
+    gameRef.audio.play(GameSound.wallPortalTook);
     Future.delayed(const Duration(seconds: 4), () {
       gameRef.currentScore += 10000;
       gameRef.levelCompleted(_roundNumber);
@@ -203,7 +203,7 @@ abstract class BaseLevel extends PositionedEntity
           (field.size.y * field.scale.y + field.y) / 2 +
               (field.size.y * field.scale.y + field.y) / 4));
 
-    FlameAudio.play('Game_Start.mp3');
+    gameRef.audio.play(GameSound.gameStart);
     // wait for audio to finish to start game
     await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
     await _mountRoundComponents(ball, addLives: true);
@@ -335,7 +335,7 @@ abstract class BaseLevel extends PositionedEntity
         (field.size.y * field.scale.y + field.y) / 2 +
             (field.size.y * field.scale.y + field.y) / 4,
       ));
-    FlameAudio.play('Game_Start.mp3');
+    gameRef.audio.play(GameSound.gameStart);
     await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
 
     _positionStarship();
@@ -428,14 +428,14 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   void addLife() {
-    FlameAudio.play('extra_life.wav');
+    gameRef.audio.play(GameSound.extraLife);
     gameRef.numberOfLives += 1;
     _lives.addLife(true);
   }
 
   void _gameOver() {
     add(_gameOverComponent);
-    FlameAudio.play('Game_Over.mp3');
+    gameRef.audio.play(GameSound.gameOver);
     Future.delayed(const Duration(seconds: 3), () {
       gameRef.gameOver();
     });

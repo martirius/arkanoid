@@ -6,11 +6,11 @@ import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/action_entity.dart';
 import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/power_up.dart';
+import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/services.dart';
 
@@ -84,8 +84,6 @@ class Starship extends PositionedEntity
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
-    await FlameAudio.audioCache.load('starship_extends.wav');
-
     scale *= gameRef.scaleFactor;
     await add(_starshipAnimationComponent);
   }
@@ -152,7 +150,7 @@ class Starship extends PositionedEntity
           if (powerUp == PowerUpType.extend) {
             _starshipAnimationComponent.current = StarshipAnimation.extended;
             scale.x *= 1.5;
-            FlameAudio.play('starship_extends.wav');
+            gameRef.audio.play(GameSound.starshipExtends);
           } else if (powerUp == PowerUpType.laser) {
             _starshipAnimationComponent.current =
                 StarshipAnimation.laserTransforming;
@@ -191,7 +189,7 @@ class Starship extends PositionedEntity
     _isDisappearing = true;
     removePowerUp(null);
     powerUp = null;
-    FlameAudio.play("ball_go_down.wav");
+    gameRef.audio.play(GameSound.ballGoDown);
     _starshipAnimationComponent.current = StarshipAnimation.disappearing;
     _starshipAnimationComponent.animationTicker?.reset();
     return Future.delayed(const Duration(seconds: 2));
@@ -200,7 +198,7 @@ class Starship extends PositionedEntity
   @override
   void onActionPressed() {
     if (powerUp == PowerUpType.laser) {
-      FlameAudio.play('starship_shoot.wav');
+      gameRef.audio.play(GameSound.starshipShoot);
       parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
     }
     for (final ball in _collidingBalls) {

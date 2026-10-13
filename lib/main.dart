@@ -1,14 +1,16 @@
+import 'dart:async';
+
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level1.dart';
 import 'package:arkanoid/components/levels/level2.dart';
 import 'package:arkanoid/components/levels/level3.dart';
 import 'package:arkanoid/components/levels/level4.dart';
 import 'package:arkanoid/components/levels/level5.dart';
+import 'package:arkanoid/game_audio.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/widgets.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -23,6 +25,7 @@ void main() {
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
+  final GameAudio audio = GameAudio();
   BaseLevel currentLevel = Level1();
   int topScore = 50000;
   int currentScore = 0;
@@ -31,12 +34,18 @@ class Arkanoid extends FlameGame
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-    await FlameAudio.audioCache.load('Game_Start.mp3');
+    await audio.load();
     // the field in the original game is 224x240
     double xScale = size.x / 224.0;
     double yScale = (size.y - 50) / 240.0;
     scaleFactor = size.x < size.y ? xScale : yScale;
     add(currentLevel);
+  }
+
+  @override
+  void onRemove() {
+    unawaited(audio.dispose());
+    super.onRemove();
   }
 
   void levelCompleted(int levelNumber) {

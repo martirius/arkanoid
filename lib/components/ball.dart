@@ -4,11 +4,11 @@ import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/inputs/action_entity.dart';
 import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/starship.dart';
+import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/services.dart';
 
@@ -45,8 +45,6 @@ class Ball extends PositionedEntity
   Future<void>? onLoad() async {
     super.onLoad();
     await Flame.images.load('starship.png');
-    await FlameAudio.audioCache.load('ball_hit_starship.wav');
-
     scale *= gameRef.scaleFactor;
     add(SpriteComponent(sprite: extractSprite(0, 40, 5, 4, 'starship.png'))
       ..size = Vector2(_ballWidth, _ballHeight));
@@ -89,7 +87,7 @@ class Ball extends PositionedEntity
       final starship = other;
       //calculate bouncing direction only if startship is lower than ball
       if (y + size.y <= starship.y) {
-        FlameAudio.play('ball_hit_starship.wav');
+        gameRef.audio.play(GameSound.ballHitStarship);
         final relativeIntersectX =
             (starship.x + (starship.width * starship.scale.x)) -
                 (middleIntersectionPoint.x);
