@@ -6,6 +6,7 @@ import 'package:arkanoid/components/gameplay_viewport.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/game_audio.dart';
+import 'package:arkanoid/game_session.dart';
 import 'package:flame/camera.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
@@ -25,7 +26,9 @@ void main() {
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
-  Arkanoid() : super(camera: _createCamera()) {
+  Arkanoid({GameSession? session})
+      : session = session ?? GameSession(),
+        super(camera: _createCamera()) {
     hud = GameHud(
       onMove: (direction) => currentLevel.setMovementDirection(direction),
       onAction: () => currentLevel.performAction(),
@@ -38,11 +41,13 @@ class Arkanoid extends FlameGame
   static const int _maxPhysicsSteps = 8;
 
   final GameAudio audio = GameAudio();
+  final GameSession session;
   late final GameHud hud;
   BaseLevel currentLevel = BaseLevel(levelCatalog.first);
-  int topScore = 50000;
-  int currentScore = 0;
-  int numberOfLives = 3;
+
+  int get topScore => session.highScore;
+  int get currentScore => session.score;
+  int get numberOfLives => session.lives;
 
   @override
   Future<void>? onLoad() async {
@@ -85,13 +90,14 @@ class Arkanoid extends FlameGame
     if (currentLevel.parent != null) {
       currentLevel.removeFromParent();
     }
-    currentLevel = BaseLevel(levelCatalog[levelNumber % levelCatalog.length]);
+    final definition = levelCatalog[levelNumber % levelCatalog.length];
+    session.currentRound = definition.roundNumber;
+    currentLevel = BaseLevel(definition);
     world.add(currentLevel);
   }
 
   void gameOver() {
-    currentScore = 0;
-    numberOfLives = 3;
+    session.reset();
     hud.updateScores(score: currentScore, topScore: topScore);
     levelCompleted(0);
   }

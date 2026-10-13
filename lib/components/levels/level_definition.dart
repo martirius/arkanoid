@@ -1,6 +1,7 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/power_up.dart';
+import 'package:arkanoid/round_rules.dart';
 
 class BrickSpec {
   const BrickSpec(this.model, {this.powerUp});
@@ -8,9 +9,10 @@ class BrickSpec {
   final BrickModel model;
   final PowerUpType? powerUp;
 
-  Brick createBrick() => Brick(
+  Brick createBrick(RoundRules rules) => Brick(
         model,
         powerUp == null ? null : PowerUp(powerUp!),
+        rules: rules,
       );
 }
 
@@ -19,17 +21,20 @@ class LevelDefinition {
     required this.roundNumber,
     required this.fieldType,
     required List<List<BrickSpec?>> rows,
-  }) : rows = _validateAndFreeze(rows);
+  })  : rules = RoundRules(roundNumber),
+        rows = _validateAndFreeze(rows);
 
   static const rowCount = 16;
   static const columnCount = 13;
 
   final int roundNumber;
+  final RoundRules rules;
   final FieldType fieldType;
   final List<List<BrickSpec?>> rows;
 
   List<List<Brick?>> createBricks() => [
-        for (final row in rows) [for (final spec in row) spec?.createBrick()],
+        for (final row in rows)
+          [for (final spec in row) spec?.createBrick(rules)],
       ];
 
   static List<List<BrickSpec?>> _validateAndFreeze(

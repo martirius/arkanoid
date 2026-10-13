@@ -143,7 +143,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
       return;
     }
     _phase = RoundPhase.completed;
-    game.currentScore += 10000;
+    addScore(10000);
     game.levelCompleted(definition.roundNumber);
   }
 
@@ -394,7 +394,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
     }
 
     _phase = RoundPhase.lifeLost;
-    game.numberOfLives -= 1;
+    game.session.loseLife();
     _lives.removeLife();
 
     await _starship.destroy();
@@ -409,8 +409,8 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   }
 
   void addLife() {
+    game.session.addLife();
     game.audio.play(GameSound.extraLife);
-    game.numberOfLives += 1;
     _lives.addLife(true);
   }
 
@@ -429,9 +429,10 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   }
 
   void addScore(int score) {
-    game.currentScore += score;
-    if (game.currentScore > game.topScore) {
-      game.topScore = game.currentScore;
+    final awardedLives = game.session.addScore(score);
+    for (var index = 0; index < awardedLives; index++) {
+      game.audio.play(GameSound.extraLife);
+      _lives.addLife(true);
     }
     game.hud.updateScores(
       score: game.currentScore,

@@ -1,4 +1,5 @@
 import 'package:arkanoid/components/brick.dart';
+import 'package:arkanoid/round_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
       BrickModel.blue: 100,
       BrickModel.pink: 110,
       BrickModel.yellow: 120,
-      BrickModel.silver: 200,
+      BrickModel.silver: 400,
       BrickModel.gold: 40,
     };
 
@@ -46,10 +47,32 @@ void main() {
     expect(destructions, 1);
   });
 
-  test('a silver brick reports destruction after four hits', () {
+  test('silver brick rules grow every eight rounds', () {
+    const expectedRules = {
+      1: (hits: 2, points: 400),
+      8: (hits: 2, points: 400),
+      9: (hits: 3, points: 600),
+      16: (hits: 3, points: 600),
+      17: (hits: 4, points: 800),
+      24: (hits: 4, points: 800),
+      25: (hits: 5, points: 1000),
+      32: (hits: 5, points: 1000),
+    };
+
+    for (final entry in expectedRules.entries) {
+      final rules = RoundRules(entry.key);
+      expect(rules.silverBrickHits, entry.value.hits);
+      expect(rules.silverBrickPoints, entry.value.points);
+    }
+  });
+
+  test('a round 17 silver brick reports destruction after four hits', () {
     var destructions = 0;
-    final brick = Brick(BrickModel.silver, null)
-      ..onDestroyed = () => destructions += 1;
+    final brick = Brick(
+      BrickModel.silver,
+      null,
+      rules: RoundRules(17),
+    )..onDestroyed = () => destructions += 1;
 
     for (var hit = 0; hit < 3; hit++) {
       brick.hit(false);

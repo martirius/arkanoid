@@ -1,5 +1,6 @@
 import 'package:arkanoid/main.dart';
 import 'package:arkanoid/game_audio.dart';
+import 'package:arkanoid/round_rules.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
@@ -27,13 +28,18 @@ class Brick extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
   void Function()? onDestroyed;
   late final int value;
   static const int _baseBrickValue = 50;
-  Brick(this.model, this.powerUp) : super(size: Vector2(16, 8)) {
+  Brick(this.model, this.powerUp, {RoundRules? rules})
+      : rules = rules ?? RoundRules(1),
+        super(size: Vector2(16, 8)) {
     canBeBroken = model != BrickModel.gold;
-    _numberOfHitToBroke = model == BrickModel.silver ? 4 : 1;
+    _numberOfHitToBroke =
+        model == BrickModel.silver ? this.rules.silverBrickHits : 1;
     value = model == BrickModel.silver
-        ? _baseBrickValue * _numberOfHitToBroke
+        ? this.rules.silverBrickPoints
         : _baseBrickValue + 10 * singleSpriteAnimationBricks.indexOf(model);
   }
+
+  final RoundRules rules;
 
   late final Map<BrickModel, SpriteAnimation> animations;
   int _numberOfTimeHit = 0;

@@ -6,6 +6,7 @@ import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
+import 'package:arkanoid/game_session.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
@@ -13,7 +14,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _TestArkanoid extends Arkanoid {
-  _TestArkanoid(BaseLevel level) {
+  _TestArkanoid(BaseLevel level, {GameSession? session})
+      : super(session: session) {
     currentLevel = level;
   }
 
@@ -85,9 +87,9 @@ void main() {
   });
 
   test('level progression preserves the current session', () {
-    final game = Arkanoid()
-      ..currentScore = 12340
-      ..numberOfLives = 2;
+    final game = Arkanoid(
+      session: GameSession(score: 12340, lives: 2),
+    );
 
     game.levelCompleted(1);
 
@@ -238,7 +240,10 @@ void main() {
   testWidgets('removing a round cancels its pending game-over transition',
       (tester) async {
     final level = _testLevel();
-    final game = _TestArkanoid(level)..numberOfLives = 1;
+    final game = _TestArkanoid(
+      level,
+      session: GameSession(lives: 1),
+    );
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,

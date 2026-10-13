@@ -2,13 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
+import 'package:arkanoid/game_session.dart';
 import 'package:arkanoid/main.dart';
 
 void main() {
   test('a game over always resets the session and starts level one', () {
-    final game = Arkanoid()
-      ..currentScore = 50000
-      ..numberOfLives = 0;
+    final game = Arkanoid(
+      session: GameSession(score: 50000, lives: 0),
+    );
 
     game.gameOver();
 
