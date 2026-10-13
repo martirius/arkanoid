@@ -233,7 +233,42 @@ void main() {
     expect(reversedPosition.y, closeTo(normalPosition.y, 0.0001));
   });
 
-  test('only one brick is hit during the same contact cluster', () {
+  test('adjacent brick is resolved on the next high-speed physics step', () {
+    final game = Arkanoid()..scaleFactor = 1;
+    game.currentLevel.field = Field(FieldType.blue)
+      ..position = Vector2(112, 0)
+      ..scale = Vector2.all(1);
+    final ball = Ball()
+      ..game = game
+      ..ballCanMove = true
+      ..position = Vector2(10.95, 66.0941667)
+      ..velocity = Vector2(396, 228.7);
+    final leftBrick = _TestBrick()..position = Vector2(0, 70);
+    final rightBrick = _TestBrick()..position = Vector2(16, 70);
+    final intersectionPoints = {Vector2.zero()};
+    ball.onMount();
+
+    ball.update(1 / 120);
+    for (final brick in [leftBrick, rightBrick]) {
+      ball.onCollisionStart(intersectionPoints, brick);
+      ball.onCollision(intersectionPoints, brick);
+    }
+    game.collisionDetection.run();
+
+    expect(leftBrick.hits + rightBrick.hits, 1);
+    expect(ball.x, closeTo(17, 0.0001));
+    expect(ball.y, closeTo(68, 0.0001));
+
+    ball.update(1 / 120);
+    ball.onCollision(intersectionPoints, rightBrick);
+    game.collisionDetection.run();
+
+    expect(rightBrick.hits, 1);
+    expect(ball.y, closeTo(65, 0.0001));
+    expect(ball.velocity.y, lessThan(0));
+  });
+
+  test('only one brick is hit during each collision step', () {
     final game = Arkanoid();
     final ball = Ball()
       ..game = game
@@ -253,18 +288,8 @@ void main() {
     expect(firstBrick.hits, 1);
     expect(secondBrick.hits, 0);
 
-    ball.onCollisionEnd(firstBrick);
     ball.onCollision(intersectionPoints, secondBrick);
     game.collisionDetection.run();
-    expect(secondBrick.hits, 0);
-
-    ball.onCollisionEnd(secondBrick);
-    ball.position = Vector2(14, 8);
-    ball.velocity = Vector2(0, 130);
-    ball.onCollisionStart(intersectionPoints, secondBrick);
-    ball.onCollision(intersectionPoints, secondBrick);
-    game.collisionDetection.run();
-
     expect(secondBrick.hits, 1);
   });
 }

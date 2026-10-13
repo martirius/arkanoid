@@ -29,7 +29,6 @@ class Ball extends PositionedEntity
   Vector2 velocity = Vector2(130, -130);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
-  Brick? _activeBrickCollision;
   final Set<Brick> _brickCollisionCandidates = {};
   final Vector2 _previousPosition = Vector2.zero();
   bool _hasPreviousPosition = false;
@@ -68,9 +67,7 @@ class Ball extends PositionedEntity
     super.onCollision(intersectionPoints, other);
 
     if (other is Brick) {
-      if (_activeBrickCollision == null) {
-        _brickCollisionCandidates.add(other);
-      }
+      _brickCollisionCandidates.add(other);
     } else if (other is Starship && ballCanMove && velocity.y > 0) {
       final starship = other;
       final ballSpeed = velocity.length;
@@ -91,8 +88,7 @@ class Ball extends PositionedEntity
   }
 
   void _resolveBrickCollision() {
-    if (_activeBrickCollision != null || _brickCollisionCandidates.isEmpty) {
-      _brickCollisionCandidates.clear();
+    if (_brickCollisionCandidates.isEmpty) {
       return;
     }
 
@@ -115,7 +111,6 @@ class Ball extends PositionedEntity
       });
     final brick = candidates.first;
     _brickCollisionCandidates.clear();
-    _activeBrickCollision = brick;
     brick.hit(true);
     _numberOfBrickHit += 1;
     if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
@@ -123,14 +118,6 @@ class Ball extends PositionedEntity
       velocity *= 1.2;
     }
     _bounceOff(brick);
-  }
-
-  @override
-  void onCollisionEnd(PositionComponent other) {
-    super.onCollisionEnd(other);
-    if (other is Brick && !activeCollisions.any((item) => item is Brick)) {
-      _activeBrickCollision = null;
-    }
   }
 
   void _bounceOff(PositionComponent other) {
