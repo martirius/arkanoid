@@ -4,6 +4,7 @@ import 'package:arkanoid/components/behaviours/joystick_moving_behavior.dart';
 import 'package:arkanoid/components/behaviours/keyboard_moving_behavior.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/action_entity.dart';
+import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/game_audio.dart';
@@ -26,7 +27,8 @@ enum StarshipAnimation {
 }
 
 class Starship extends PositionedEntity
-    with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity {
+    with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
+    implements ButtonInteractable {
   Starship._(
     this._onPowerUp,
     this._onEscape, {
@@ -205,6 +207,11 @@ class Starship extends PositionedEntity
       ball.ballCanMove = true;
     }
     _collidingBalls.clear();
+  }
+
+  @override
+  void onButtonPressed() {
+    onActionPressed();
   }
 }
 

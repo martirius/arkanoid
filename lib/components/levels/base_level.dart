@@ -222,7 +222,7 @@ abstract class BaseLevel extends PositionedEntity
       _fireButton.addInteractable(this);
     }
     _roundNumberComponent.removeFromParent();
-    //_fireButton.addInteractable(_starship);
+    _fireButton.addInteractable(_starship);
     _fireButton.addInteractable(ball);
     _introFinished = true;
     _gameStarted = false;
@@ -262,7 +262,7 @@ abstract class BaseLevel extends PositionedEntity
     _lives.removeFromParent();
     _starship.removeFromParent();
     field.removeFromParent();
-    //_fireButton.removeInteractable(_starship);
+    _fireButton.removeInteractable(_starship);
     _fireButton.removeInteractable(this);
     for (final row in bricks) {
       for (var brick in row) {
@@ -317,6 +317,7 @@ abstract class BaseLevel extends PositionedEntity
     final previousStarship = _starship;
     previousField.removeFromParent();
     previousStarship.removeFromParent();
+    _fireButton.removeInteractable(previousStarship);
     for (final row in bricks) {
       for (final brick in row) {
         brick?.removeFromParent();
