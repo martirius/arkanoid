@@ -2,11 +2,8 @@ import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
-import 'package:arkanoid/components/levels/level1.dart';
-import 'package:arkanoid/components/levels/level2.dart';
-import 'package:arkanoid/components/levels/level3.dart';
-import 'package:arkanoid/components/levels/level4.dart';
-import 'package:arkanoid/components/levels/level5.dart';
+import 'package:arkanoid/components/levels/level_catalog.dart';
+import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
@@ -26,21 +23,30 @@ class _TestArkanoid extends Arkanoid {
   }
 }
 
-class _TestLevel extends BaseLevel {
-  _TestLevel() : super(FieldType.blue, 1);
+final _testDefinition = LevelDefinition(
+  roundNumber: 1,
+  fieldType: FieldType.blue,
+  rows: [
+    const [
+      BrickSpec(BrickModel.red),
+      BrickSpec(BrickModel.blue),
+      BrickSpec(BrickModel.green),
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    for (var row = 1; row < LevelDefinition.rowCount; row++) emptyBrickRow,
+  ],
+);
 
-  @override
-  Future<void> onLoad() async {
-    bricks = [
-      [
-        Brick(BrickModel.red, null),
-        Brick(BrickModel.blue, null),
-        Brick(BrickModel.green, null),
-      ],
-    ];
-    await super.onLoad();
-  }
-}
+BaseLevel _testLevel() => BaseLevel(_testDefinition);
 
 void main() {
   test('the ball stays ready until the player acts', () {
@@ -66,17 +72,17 @@ void main() {
     final game = Arkanoid();
 
     game.levelCompleted(0);
-    expect(game.currentLevel, isA<Level1>());
+    expect(game.currentLevel.definition, same(levelCatalog[0]));
     game.levelCompleted(1);
-    expect(game.currentLevel, isA<Level2>());
+    expect(game.currentLevel.definition, same(levelCatalog[1]));
     game.levelCompleted(2);
-    expect(game.currentLevel, isA<Level3>());
+    expect(game.currentLevel.definition, same(levelCatalog[2]));
     game.levelCompleted(3);
-    expect(game.currentLevel, isA<Level4>());
+    expect(game.currentLevel.definition, same(levelCatalog[3]));
     game.levelCompleted(4);
-    expect(game.currentLevel, isA<Level5>());
+    expect(game.currentLevel.definition, same(levelCatalog[4]));
     game.levelCompleted(5);
-    expect(game.currentLevel, isA<Level1>());
+    expect(game.currentLevel.definition, same(levelCatalog[0]));
   });
 
   test('level progression preserves the current session', () {
@@ -86,14 +92,14 @@ void main() {
 
     game.levelCompleted(1);
 
-    expect(game.currentLevel, isA<Level2>());
+    expect(game.currentLevel.definition, same(levelCatalog[1]));
     expect(game.currentScore, 12340);
     expect(game.numberOfLives, 2);
   });
 
   testWidgets('a life loss preserves bricks destroyed in the current round',
       (tester) async {
-    final level = _TestLevel();
+    final level = _testLevel();
     final game = _TestArkanoid(level);
     expect(level.phase, RoundPhase.intro);
     await tester.pumpWidget(
@@ -136,7 +142,7 @@ void main() {
 
   testWidgets('multiple brick removals are reconciled by the round',
       (tester) async {
-    final level = _TestLevel();
+    final level = _testLevel();
     final game = _TestArkanoid(level);
     await tester.pumpWidget(
       Directionality(
@@ -170,7 +176,7 @@ void main() {
   });
 
   testWidgets('escaping is an explicit round phase', (tester) async {
-    final level = _TestLevel();
+    final level = _testLevel();
     final game = _TestArkanoid(level);
     await tester.pumpWidget(
       Directionality(
@@ -201,7 +207,7 @@ void main() {
 
   testWidgets('removing a round cancels its pending game-over transition',
       (tester) async {
-    final level = _TestLevel();
+    final level = _testLevel();
     final game = _TestArkanoid(level)..numberOfLives = 1;
     await tester.pumpWidget(
       Directionality(
@@ -223,7 +229,7 @@ void main() {
     await lifeLoss;
     expect(level.phase, RoundPhase.gameOver);
 
-    final replacement = _TestLevel();
+    final replacement = _testLevel();
     game.currentLevel = replacement;
     game.remove(level);
     game.add(replacement);

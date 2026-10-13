@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:arkanoid/components/levels/level1.dart';
-import 'package:arkanoid/components/levels/level5.dart';
+import 'package:arkanoid/components/levels/base_level.dart';
+import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/main.dart';
 
 void main() {
@@ -14,14 +14,14 @@ void main() {
 
     expect(game.currentScore, 0);
     expect(game.numberOfLives, 3);
-    expect(game.currentLevel, isA<Level1>());
+    expect(game.currentLevel.definition, same(levelCatalog.first));
   });
 
   test('completing level five loops back to a fresh level one', () {
-    final game = Arkanoid()..currentLevel = Level5();
+    final game = Arkanoid()..currentLevel = BaseLevel(levelCatalog.last);
 
     game.levelCompleted(5);
 
-    expect(game.currentLevel, isA<Level1>());
+    expect(game.currentLevel.definition, same(levelCatalog.first));
   });
 }

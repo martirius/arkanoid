@@ -1,6 +1,6 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/levels/base_level.dart';
+import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/level_editor/brick_details.dart';
 import 'package:arkanoid/level_editor/level_code_generator.dart';
@@ -33,8 +33,8 @@ class LevelEditor extends StatefulWidget {
 }
 
 class _LevelEditorState extends State<LevelEditor> {
-  final bricks = List<List<Brick>>.generate(BaseLevel.numberOfRow, (index) {
-    return List<Brick>.generate(BaseLevel.numerOfBricEachRow,
+  final bricks = List<List<Brick>>.generate(LevelDefinition.rowCount, (index) {
+    return List<Brick>.generate(LevelDefinition.columnCount,
         (index2) => Brick(BrickModel.blue, null, index, index2));
   });
 
@@ -275,7 +275,8 @@ class BrickWidget extends StatelessWidget {
     }
     return Container(
       height: 20,
-      width: (MediaQuery.of(context).size.width - 300) / 15,
+      width: (MediaQuery.of(context).size.width - 300) /
+          LevelDefinition.columnCount,
       decoration: BoxDecoration(
           color: color,
           border: _brick.model != null

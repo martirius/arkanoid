@@ -2,11 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:arkanoid/components/levels/base_level.dart';
-import 'package:arkanoid/components/levels/level1.dart';
-import 'package:arkanoid/components/levels/level2.dart';
-import 'package:arkanoid/components/levels/level3.dart';
-import 'package:arkanoid/components/levels/level4.dart';
-import 'package:arkanoid/components/levels/level5.dart';
+import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
@@ -30,7 +26,7 @@ class Arkanoid extends FlameGame
   static const int _maxPhysicsSteps = 8;
 
   final GameAudio audio = GameAudio();
-  BaseLevel currentLevel = Level1();
+  BaseLevel currentLevel = BaseLevel(levelCatalog.first);
   int topScore = 50000;
   int currentScore = 0;
   int numberOfLives = 3;
@@ -79,26 +75,7 @@ class Arkanoid extends FlameGame
     if (currentLevel.parent != null) {
       remove(currentLevel);
     }
-    switch (levelNumber) {
-      case 0:
-        currentLevel = Level1();
-        break;
-      case 1:
-        currentLevel = Level2();
-        break;
-      case 2:
-        currentLevel = Level3();
-        break;
-      case 3:
-        currentLevel = Level4();
-        break;
-      case 4:
-        currentLevel = Level5();
-        break;
-      case 5:
-        currentLevel = Level1();
-        break;
-    }
+    currentLevel = BaseLevel(levelCatalog[levelNumber % levelCatalog.length]);
     add(currentLevel);
   }
 

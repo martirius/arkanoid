@@ -6,6 +6,7 @@ import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/fire_button.dart';
 import 'package:arkanoid/components/inputs/input_controller.dart';
+import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
@@ -26,8 +27,8 @@ enum RoundPhase {
   gameOver,
 }
 
-abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
-  BaseLevel(this.fieldType, this._roundNumber);
+class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
+  BaseLevel(this.definition) : fieldType = definition.fieldType;
 
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
@@ -35,7 +36,7 @@ abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       margin: const EdgeInsets.only(right: 40, bottom: 40),
       size: 50,
       knobRadius: 20);
-  final int _roundNumber;
+  final LevelDefinition definition;
   late FireButton _fireButton;
   late InputController _inputController;
   late Starship _starship;
@@ -50,8 +51,6 @@ abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   RoundPhase get phase => _phase;
 
-  static const int numerOfBricEachRow = 13;
-  static const int numberOfRow = 16;
   late final _playerTextComponent = TopText(
     '1UP',
     gameRef.currentScore.toString(),
@@ -65,7 +64,7 @@ abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       5,
     );
   late final _roundNumberComponent = TextComponent(
-      text: "Round $_roundNumber\n Ready",
+      text: "Round ${definition.roundNumber}\n Ready",
       textRenderer: TextPaint(
           style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
@@ -89,6 +88,7 @@ abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   @override
   Future<void> onLoad() async {
+    bricks = definition.createBricks();
     await super.onLoad();
     await _initializeComponents();
     await _loadComponents();
@@ -164,7 +164,7 @@ abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     }
     _phase = RoundPhase.completed;
     gameRef.currentScore += 10000;
-    gameRef.levelCompleted(_roundNumber);
+    gameRef.levelCompleted(definition.roundNumber);
   }
 
   Future<void> _initializeComponents() async {
@@ -434,7 +434,7 @@ abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
   Future<void> _completeLevel() async {
     await _removeGameComponents();
     if (_isCurrentRound && _phase == RoundPhase.completed) {
-      gameRef.levelCompleted(_roundNumber);
+      gameRef.levelCompleted(definition.roundNumber);
     }
   }
 

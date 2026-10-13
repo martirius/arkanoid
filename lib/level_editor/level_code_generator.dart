@@ -25,33 +25,29 @@ class LevelCodeGenerator {
     _saveTextFile("""
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/levels/base_level.dart';
+import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/power_up.dart';
 
-class Level$_level extends BaseLevel {
-  Level$_level() : super($_fieldType, $_level);
-
-  @override
-  Future<void> onLoad() async {
-    bricks = [
-      ${_bricksString(_bricks)}
-    ];
-   super.onLoad();
-  }
-}
+final level$_level = LevelDefinition(
+  roundNumber: $_level,
+  fieldType: $_fieldType,
+  rows: [
+    ${_bricksString(_bricks)}
+  ],
+);
 """, "level$_level.dart");
   }
 
   String _brickString(Brick brick) {
     return brick.model != null
-        ? "Brick(${brick.model},${brick.powerUp != null ? "PowerUp(${brick.powerUp})" : "null"})"
+        ? "BrickSpec(${brick.model}${brick.powerUp != null ? ", powerUp: ${brick.powerUp}" : ""})"
         : "null";
   }
 
   String _bricksString(List<List<Brick>> bricks) {
     return _bricks
         .map((row) =>
-            "[ ${row.map((brick) => _brickString(brick)).join(",\n")} ]")
+            "const [ ${row.map((brick) => _brickString(brick)).join(",\n")} ]")
         .join(",\n");
   }
 }
