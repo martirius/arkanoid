@@ -42,7 +42,7 @@ abstract class BaseLevel extends PositionedEntity
   final List<Ball> balls = [];
   List<List<Brick?>> bricks = [];
   late Lives _lives;
-  late final Field field;
+  late Field field;
   final FieldType fieldType;
   bool _gameStarted = false;
   bool _introFinished = false;
@@ -147,22 +147,12 @@ abstract class BaseLevel extends PositionedEntity
     _lives = Lives(gameRef.numberOfLives, gameRef.scaleFactor)
       ..anchor = Anchor.bottomLeft
       ..priority = 20;
-    _starship = (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android)
-        ? Starship.withJoystick(
-            joystickComponent: _joystick,
-            onPowerUp: _onPowerUpTaken,
-            onEscape: _onStarshipEscape,
-          )
-        : Starship.withKeyboard(
-            onPowerUp: _onPowerUpTaken,
-            onEscape: _onStarshipEscape,
-          );
+    _starship = _newStarship();
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
     );
     _fireButton.position.y = size.y - 40 - _fireButton.size.y;
-    field = Field(fieldType)..position = Vector2(gameRef.size.x / 2, 50);
+    field = _newField();
   }
 
   Future<void> _loadComponents() async {
@@ -197,19 +187,8 @@ abstract class BaseLevel extends PositionedEntity
 
   Future<void> _loadGameComponents() async {
     await add(field);
-    _starship.position = Vector2(
-      field.x - _starship.size.x * gameRef.scaleFactor / 2,
-      field.size.y * field.scale.y +
-          field.position.y -
-          _starship.size.y * field.scale.y -
-          30,
-    );
-    _lives.position = Vector2(
-      field.x -
-          ((field.size.x * field.scale.x) / 2) +
-          Field.hitboxSize * gameRef.scaleFactor,
-      field.size.y * field.scale.y + field.position.y,
-    );
+    _positionStarship();
+    _positionLives();
     final ball = _newBall();
     balls
       ..clear()
@@ -227,18 +206,46 @@ abstract class BaseLevel extends PositionedEntity
     FlameAudio.play('Game_Start.mp3');
     // wait for audio to finish to start game
     await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+    await _mountRoundComponents(ball, addLives: true);
+    //score shower component
+  }
+
+  Future<void> _mountRoundComponents(
+    Ball ball, {
+    required bool addLives,
+  }) async {
     await add(_starship);
     _starship.appear();
     await add(ball);
-    await add(_lives);
+    if (addLives) {
+      await add(_lives);
+      _fireButton.addInteractable(this);
+    }
     _roundNumberComponent.removeFromParent();
     //_fireButton.addInteractable(_starship);
-    _fireButton.addInteractable(this);
     _fireButton.addInteractable(ball);
     _introFinished = true;
     _gameStarted = true;
     ball.ballCanMove = true;
-    //score shower component
+  }
+
+  void _positionStarship() {
+    _starship.position = Vector2(
+      field.x - _starship.size.x * gameRef.scaleFactor / 2,
+      field.size.y * field.scale.y +
+          field.position.y -
+          _starship.size.y * field.scale.y -
+          30,
+    );
+  }
+
+  void _positionLives() {
+    _lives.position = Vector2(
+      field.x -
+          ((field.size.x * field.scale.x) / 2) +
+          Field.hitboxSize * gameRef.scaleFactor,
+      field.size.y * field.scale.y + field.position.y,
+    );
   }
 
   Future<void> _removeGameComponents() async {
@@ -280,6 +287,22 @@ abstract class BaseLevel extends PositionedEntity
     return ball;
   }
 
+  Field _newField() => Field(fieldType)
+    ..priority = -10
+    ..position = Vector2(gameRef.size.x / 2, 50);
+
+  Starship _newStarship() => (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android)
+      ? Starship.withJoystick(
+          joystickComponent: _joystick,
+          onPowerUp: _onPowerUpTaken,
+          onEscape: _onStarshipEscape,
+        )
+      : Starship.withKeyboard(
+          onPowerUp: _onPowerUpTaken,
+          onEscape: _onStarshipEscape,
+        );
+
   void _removeTemporaryComponents() {
     for (final component in children.toList()) {
       if (component is PowerUp || component is BreakAnimationComponent) {
@@ -290,16 +313,19 @@ abstract class BaseLevel extends PositionedEntity
 
   Future<void> _restartAfterLifeLoss() async {
     _removeTemporaryComponents();
+    final previousField = field;
+    final previousStarship = _starship;
+    previousField.removeFromParent();
+    previousStarship.removeFromParent();
     await Future.delayed(const Duration(milliseconds: 500));
 
+    field = _newField();
+    _starship = _newStarship();
+    await add(field);
+    _positionStarship();
     final ball = _newBall();
     balls.add(ball);
-    await add(ball);
-    _fireButton.addInteractable(ball);
-    _starship.appear();
-    _introFinished = true;
-    _gameStarted = true;
-    ball.ballCanMove = true;
+    await _mountRoundComponents(ball, addLives: false);
   }
 
   @override
