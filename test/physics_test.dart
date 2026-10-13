@@ -99,6 +99,54 @@ void main() {
     expect(ball.velocity.y, 130);
   });
 
+  test('lateral entry between brick rows keeps a horizontal bounce', () {
+    for (final verticalVelocity in [120.0, -120.0]) {
+      final game = Arkanoid()..scaleFactor = 1;
+      game.currentLevel.field = Field(FieldType.blue)
+        ..position = Vector2(112, 0)
+        ..scale = Vector2.all(1);
+      final ball = Ball()
+        ..game = game
+        ..ballCanMove = true
+        ..position = Vector2(11, verticalVelocity > 0 ? 83 : 85)
+        ..velocity = Vector2(300, verticalVelocity);
+      final brick = _TestBrick()..position = Vector2(16, 86);
+
+      ball.update(1 / 120);
+      final collisionY = ball.y;
+      ball.onCollisionStart({Vector2.zero()}, brick);
+      ball.onCollision({Vector2.zero()}, brick);
+
+      expect(ball.x, 10);
+      expect(ball.y, collisionY);
+      expect(ball.velocity.x, -300);
+      expect(ball.velocity.y, verticalVelocity);
+    }
+  });
+
+  test('vertical entry between brick columns keeps a vertical bounce', () {
+    final game = Arkanoid()..scaleFactor = 1;
+    game.currentLevel.field = Field(FieldType.blue)
+      ..position = Vector2(112, 0)
+      ..scale = Vector2.all(1);
+    final ball = Ball()
+      ..game = game
+      ..ballCanMove = true
+      ..position = Vector2(14, 86)
+      ..velocity = Vector2(120, -240);
+    final brick = _TestBrick()..position = Vector2(16, 78);
+
+    ball.update(1 / 120);
+    final collisionX = ball.x;
+    ball.onCollisionStart({Vector2.zero()}, brick);
+    ball.onCollision({Vector2.zero()}, brick);
+
+    expect(ball.x, collisionX);
+    expect(ball.y, 87);
+    expect(ball.velocity.x, 120);
+    expect(ball.velocity.y, 240);
+  });
+
   test('only one brick is hit during the same contact cluster', () {
     final ball = Ball()
       ..position = Vector2(14, 8)

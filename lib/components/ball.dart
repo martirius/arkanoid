@@ -14,6 +14,8 @@ import 'package:flutter/services.dart';
 
 enum BallCollisionAxis { horizontal, vertical }
 
+enum _BallCollisionSide { left, right, top, bottom }
+
 class Ball extends PositionedEntity
     with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
     implements ButtonInteractable {
@@ -28,6 +30,8 @@ class Ball extends PositionedEntity
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
   Brick? _activeBrickCollision;
+  final Vector2 _previousPosition = Vector2.zero();
+  bool _hasPreviousPosition = false;
 
   static const _ballWidth = 5.0;
   static const _ballHeight = 4.0;
@@ -89,21 +93,89 @@ class Ball extends PositionedEntity
   void _bounceOff(PositionComponent other) {
     final ballBounds = _scaledBounds(this);
     final otherBounds = _scaledBounds(other);
-    if (collisionAxis(ballBounds, otherBounds) == BallCollisionAxis.vertical) {
-      if (velocity.y > 0) {
+    switch (_collisionSide(ballBounds, otherBounds)) {
+      case _BallCollisionSide.top:
         y = otherBounds.top - ballBounds.height - 1;
         velocity.y = -velocity.y.abs();
-      } else {
+        break;
+      case _BallCollisionSide.bottom:
         y = otherBounds.bottom + 1;
         velocity.y = velocity.y.abs();
-      }
-    } else if (velocity.x > 0) {
-      x = otherBounds.left - ballBounds.width - 1;
-      velocity.x = -velocity.x.abs();
-    } else {
-      x = otherBounds.right + 1;
-      velocity.x = velocity.x.abs();
+        break;
+      case _BallCollisionSide.left:
+        x = otherBounds.left - ballBounds.width - 1;
+        velocity.x = -velocity.x.abs();
+        break;
+      case _BallCollisionSide.right:
+        x = otherBounds.right + 1;
+        velocity.x = velocity.x.abs();
+        break;
     }
+  }
+
+  _BallCollisionSide _collisionSide(Rect ball, Rect obstacle) {
+    if (!_hasPreviousPosition) {
+      return _sideFromAxis(collisionAxis(ball, obstacle));
+    }
+
+    final previousBall = Rect.fromLTWH(
+      _previousPosition.x,
+      _previousPosition.y,
+      ball.width,
+      ball.height,
+    );
+    const tolerance = 0.0001;
+    final fromLeft =
+        velocity.x > 0 && previousBall.right <= obstacle.left + tolerance;
+    final fromRight =
+        velocity.x < 0 && previousBall.left >= obstacle.right - tolerance;
+    final fromAbove =
+        velocity.y > 0 && previousBall.bottom <= obstacle.top + tolerance;
+    final fromBelow =
+        velocity.y < 0 && previousBall.top >= obstacle.bottom - tolerance;
+    final horizontalApproach = fromLeft || fromRight;
+    final verticalApproach = fromAbove || fromBelow;
+
+    BallCollisionAxis axis;
+    if (horizontalApproach && verticalApproach) {
+      final horizontalDistance = fromLeft
+          ? obstacle.left - previousBall.right
+          : previousBall.left - obstacle.right;
+      final verticalDistance = fromAbove
+          ? obstacle.top - previousBall.bottom
+          : previousBall.top - obstacle.bottom;
+      final horizontalMovement = (ball.left - previousBall.left).abs();
+      final verticalMovement = (ball.top - previousBall.top).abs();
+      final horizontalEntry = horizontalDistance / horizontalMovement;
+      final verticalEntry = verticalDistance / verticalMovement;
+      axis = horizontalEntry > verticalEntry
+          ? BallCollisionAxis.horizontal
+          : BallCollisionAxis.vertical;
+    } else if (horizontalApproach) {
+      axis = BallCollisionAxis.horizontal;
+    } else if (verticalApproach) {
+      axis = BallCollisionAxis.vertical;
+    } else {
+      axis = collisionAxis(ball, obstacle);
+    }
+
+    if (axis == BallCollisionAxis.horizontal) {
+      return fromLeft || (!fromRight && velocity.x > 0)
+          ? _BallCollisionSide.left
+          : _BallCollisionSide.right;
+    }
+    return fromAbove || (!fromBelow && velocity.y > 0)
+        ? _BallCollisionSide.top
+        : _BallCollisionSide.bottom;
+  }
+
+  _BallCollisionSide _sideFromAxis(BallCollisionAxis axis) {
+    if (axis == BallCollisionAxis.horizontal) {
+      return velocity.x > 0
+          ? _BallCollisionSide.left
+          : _BallCollisionSide.right;
+    }
+    return velocity.y > 0 ? _BallCollisionSide.top : _BallCollisionSide.bottom;
   }
 
   static BallCollisionAxis collisionAxis(Rect ball, Rect obstacle) {
@@ -156,6 +228,8 @@ class Ball extends PositionedEntity
     if (y <= field.topWall && velocity.y < 0) {
       velocity.y = velocity.y.abs();
     }
+    _previousPosition.setFrom(position);
+    _hasPreviousPosition = true;
     x += velocity.x * dt * scale.x;
     y += velocity.y * dt * scale.y;
   }
