@@ -36,7 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   group_radio_button: ^1.2.0
-  flame_behaviors: ^0.2.0
+  flame_behaviors: ^1.4.0
   file: ^7.0.0
 
 dev_dependencies:

@@ -4,7 +4,7 @@ import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/level_editor/brick_details.dart';
 import 'package:arkanoid/level_editor/level_code_generator.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide RadioGroup;
 import 'package:group_radio_button/group_radio_button.dart';
 import 'dart:html';
 

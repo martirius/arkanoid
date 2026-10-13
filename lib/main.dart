@@ -75,7 +75,7 @@ class Arkanoid extends FlameGame
   @override
   @mustCallSuper
   KeyEventResult onKeyEvent(
-    RawKeyEvent event,
+    KeyEvent event,
     Set<LogicalKeyboardKey> keysPressed,
   ) {
     super.onKeyEvent(event, keysPressed);
