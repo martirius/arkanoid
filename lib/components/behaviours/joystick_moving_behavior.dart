@@ -9,14 +9,12 @@ class JoystickMovingBehavior extends Behavior<Starship> {
 
   @override
   void update(double dt) {
-    if (parent.state != StarshipState.escaping) {
-      if (joystickComponent.direction == JoystickDirection.left) {
-        parent.state = StarshipState.movingLeft;
-      } else if (joystickComponent.direction == JoystickDirection.right) {
-        parent.state = StarshipState.movingRight;
-      } else {
-        parent.state = StarshipState.still;
-      }
+    if (joystickComponent.direction == JoystickDirection.left) {
+      parent.setJoystickDirection(-1);
+    } else if (joystickComponent.direction == JoystickDirection.right) {
+      parent.setJoystickDirection(1);
+    } else {
+      parent.setJoystickDirection(0);
     }
     super.update(dt);
   }

@@ -32,10 +32,17 @@ class Starship extends PositionedEntity
   Starship._(
     this._onPowerUp,
     this._onEscape, {
-    required Behavior movingBehavior,
+    JoystickComponent? joystickComponent,
   }) : super(
             behaviors: [
-              movingBehavior,
+              KeyboardMovingBehavior(
+                leftKey: LogicalKeyboardKey.arrowLeft,
+                rightKey: LogicalKeyboardKey.arrowRight,
+              ),
+              if (joystickComponent != null)
+                JoystickMovingBehavior(
+                  joystickComponent: joystickComponent,
+                ),
               ActionBehaviour(fireKey: LogicalKeyboardKey.space)
             ],
             size: Vector2(starshipWidth, starshipHeight),
@@ -50,9 +57,7 @@ class Starship extends PositionedEntity
   }) : this._(
           onPowerUp,
           onEscape,
-          movingBehavior: JoystickMovingBehavior(
-            joystickComponent: joystickComponent,
-          ),
+          joystickComponent: joystickComponent,
         );
 
   Starship.withKeyboard(
@@ -60,10 +65,6 @@ class Starship extends PositionedEntity
       : this._(
           onPowerUp,
           onEscape,
-          movingBehavior: KeyboardMovingBehavior(
-            leftKey: LogicalKeyboardKey.arrowLeft,
-            rightKey: LogicalKeyboardKey.arrowRight,
-          ),
         );
 
   StarshipState state = StarshipState.still;
@@ -82,6 +83,8 @@ class Starship extends PositionedEntity
   final List<Ball> _collidingBalls = [];
   bool _canEscape = false;
   bool _isEscaping = false;
+  int _keyboardDirection = 0;
+  int _joystickDirection = 0;
 
   @override
   Future<void>? onLoad() async {
@@ -94,8 +97,15 @@ class Starship extends PositionedEntity
   void update(double dt) {
     super.update(dt);
     if (!_isDisappearing) {
-      if (_isEscaping) {
+      if (_isEscaping || state == StarshipState.escaping) {
+        _isEscaping = true;
         state = StarshipState.escaping;
+      } else {
+        state = movementDirection < 0
+            ? StarshipState.movingLeft
+            : movementDirection > 0
+                ? StarshipState.movingRight
+                : StarshipState.still;
       }
       switch (state) {
         case StarshipState.movingLeft:
@@ -132,6 +142,17 @@ class Starship extends PositionedEntity
         );
       }
     }
+  }
+
+  int get movementDirection =>
+      _keyboardDirection != 0 ? _keyboardDirection : _joystickDirection;
+
+  void setKeyboardDirection(int direction) {
+    _keyboardDirection = direction;
+  }
+
+  void setJoystickDirection(int direction) {
+    _joystickDirection = direction;
   }
 
   @override
