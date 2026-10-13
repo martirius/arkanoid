@@ -40,7 +40,9 @@ class Arkanoid extends FlameGame
   }
 
   void levelCompleted(int levelNumber) {
-    remove(currentLevel);
+    if (currentLevel.parent != null) {
+      remove(currentLevel);
+    }
     switch (levelNumber) {
       case 0:
         currentLevel = Level1();
@@ -57,19 +59,17 @@ class Arkanoid extends FlameGame
       case 4:
         currentLevel = Level5();
         break;
+      case 5:
+        currentLevel = Level1();
+        break;
     }
     add(currentLevel);
   }
 
   void gameOver() {
-    if (currentScore >= topScore) {
-      //show name inesrtion component
-    } else {
-      //play again
-      levelCompleted(0);
-    }
     currentScore = 0;
     numberOfLives = 3;
+    levelCompleted(0);
   }
 
   @override

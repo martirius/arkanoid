@@ -115,12 +115,10 @@ class Ball extends PositionedEntity
     );
     position.y = position.y.clamp(
       gameRef.currentLevel.field.topWall,
-      gameRef.currentLevel.field.lowWall,
+      double.infinity,
     );
     if (y < gameRef.currentLevel.field.lowWall && ballCanMove) {
       calculateBallDirection(1, dt);
-    } else {
-      //ball goes under starship, life lost
     }
   }
 

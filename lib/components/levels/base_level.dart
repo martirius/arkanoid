@@ -174,8 +174,10 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   Future<void> loadBricks() async {
-    bricks.forEach(((row) async {
-      for (var brick in row) {
+    for (var rowIndex = 0; rowIndex < bricks.length; rowIndex++) {
+      final row = bricks[rowIndex];
+      for (var columnIndex = 0; columnIndex < row.length; columnIndex++) {
+        final brick = row[columnIndex];
         if (brick != null) {
           await add(brick
             ..scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor)
@@ -183,13 +185,13 @@ abstract class BaseLevel extends PositionedEntity
                 field.x -
                     ((field.size.x * field.scale.x) / 2) +
                     Field.hitboxSize * field.scale.x +
-                    (brick.size.x * brick.scale.x) * row.indexOf(brick),
+                    (brick.size.x * brick.scale.x) * columnIndex,
                 70 +
                     brick.size.y * brick.scale.y +
-                    (brick.size.y * brick.scale.y) * bricks.indexOf(row)));
+                    (brick.size.y * brick.scale.y) * rowIndex));
         }
       }
-    }));
+    }
   }
 
   Future<void> _loadGameComponents() async {
@@ -230,11 +232,11 @@ abstract class BaseLevel extends PositionedEntity
 
     FlameAudio.play('Game_Start.mp3');
     // wait for audio to finish to start game
-    Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
-      add(_starship);
+    Future.delayed(const Duration(seconds: 1, milliseconds: 500), () async {
+      await add(_starship);
       _starship.appear();
-      addAll(balls);
-      add(_lives);
+      await addAll(balls);
+      await add(_lives);
       _roundNumberComponent.removeFromParent();
       //_fireButton.addInteractable(_starship);
       _fireButton.addInteractable(this);

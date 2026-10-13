@@ -69,6 +69,7 @@ class Starship extends PositionedEntity
       StarshipAnimationComponent(starshipWidth, starshipHeight);
 
   static const double starshipSpeed = 200;
+  static const double _escapeSpeed = 30;
 
   static const double starshipWidth = 32;
   static const double starshipHeight = 8;
@@ -86,7 +87,7 @@ class Starship extends PositionedEntity
     await FlameAudio.audioCache.load('starship_extends.wav');
 
     scale *= gameRef.scaleFactor;
-    add(_starshipAnimationComponent);
+    await add(_starshipAnimationComponent);
   }
 
   @override
@@ -113,7 +114,7 @@ class Starship extends PositionedEntity
           break;
         case StarshipState.escaping:
           _isEscaping = true;
-          x += 0.5;
+          x += _escapeSpeed * dt * scale.x;
           break;
         default:
           break;
