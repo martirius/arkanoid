@@ -71,7 +71,7 @@ class Starship extends PositionedEntity
   final StarshipAnimationComponent _starshipAnimationComponent =
       StarshipAnimationComponent(starshipWidth, starshipHeight);
 
-  static const double starshipSpeed = 200;
+  static const double starshipSpeed = 250;
   static const double _escapeSpeed = 30;
 
   static const double starshipWidth = 32;

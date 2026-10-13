@@ -23,6 +23,24 @@ void main() {
     expect(starship.movementDirection, 1);
   });
 
+  test('starship moves at the configured horizontal speed', () {
+    final game = Arkanoid()..scaleFactor = 1;
+    game.currentLevel.field = Field(FieldType.blue)
+      ..position = Vector2(112, 0)
+      ..scale = Vector2.all(1);
+    final starship = Starship.withKeyboard(
+      onPowerUp: (_) {},
+      onEscape: () {},
+    )
+      ..game = game
+      ..position = Vector2(100, 200);
+
+    starship.setKeyboardDirection(1);
+    starship.update(0.1);
+
+    expect(starship.x, 125);
+  });
+
   test('caught ball follows only the starship effective movement', () {
     final game = Arkanoid()..scaleFactor = 1;
     game.currentLevel.field = Field(FieldType.blue)
