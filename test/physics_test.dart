@@ -193,6 +193,46 @@ void main() {
     }
   });
 
+  test('brick seam collision uses the nearest separation', () {
+    Vector2 resolveCollision({required bool reverseOrder}) {
+      final game = Arkanoid()..scaleFactor = 1;
+      game.currentLevel.field = Field(FieldType.blue)
+        ..position = Vector2(112, 0)
+        ..scale = Vector2.all(1);
+      final ball = Ball()
+        ..game = game
+        ..ballCanMove = true
+        ..position = Vector2(46.0636295, 29.265307)
+        ..velocity = Vector2(232.35984, 81.83923);
+      final bricks = [
+        _TestBrick()..position = Vector2(32, 24),
+        _TestBrick()..position = Vector2(48, 24),
+        _TestBrick()..position = Vector2(32, 32),
+        _TestBrick()..position = Vector2(48, 32),
+      ];
+      final collisionOrder = reverseOrder ? bricks.reversed : bricks;
+      ball.onMount();
+
+      ball.update(1 / 120);
+      final collisionPosition = ball.position.clone();
+      for (final brick in collisionOrder) {
+        ball.onCollisionStart({Vector2.zero()}, brick);
+        ball.onCollision({Vector2.zero()}, brick);
+      }
+      game.collisionDetection.run();
+
+      expect(bricks.fold(0, (hits, brick) => hits + brick.hits), 1);
+      expect(ball.position.distanceTo(collisionPosition), lessThan(6));
+      return ball.position.clone();
+    }
+
+    final normalPosition = resolveCollision(reverseOrder: false);
+    final reversedPosition = resolveCollision(reverseOrder: true);
+
+    expect(reversedPosition.x, closeTo(normalPosition.x, 0.0001));
+    expect(reversedPosition.y, closeTo(normalPosition.y, 0.0001));
+  });
+
   test('only one brick is hit during the same contact cluster', () {
     final game = Arkanoid();
     final ball = Ball()

@@ -98,10 +98,17 @@ class Ball extends PositionedEntity
 
     final candidates = _brickCollisionCandidates.toList()
       ..sort((first, second) {
-        final firstTime = _collisionImpact(first).time;
-        final secondTime = _collisionImpact(second).time;
-        if ((firstTime - secondTime).abs() > 0.0001) {
-          return firstTime.compareTo(secondTime);
+        final firstImpact = _collisionImpact(first);
+        final secondImpact = _collisionImpact(second);
+        if ((firstImpact.time - secondImpact.time).abs() > 0.0001) {
+          return firstImpact.time.compareTo(secondImpact.time);
+        }
+        if (firstImpact.isAmbiguous != secondImpact.isAmbiguous) {
+          return firstImpact.isAmbiguous ? 1 : -1;
+        }
+        if (firstImpact.isAmbiguous) {
+          return _separationDistance(first)
+              .compareTo(_separationDistance(second));
         }
         return _contactsAfterBounce(first)
             .compareTo(_contactsAfterBounce(second));
@@ -149,13 +156,17 @@ class Ball extends PositionedEntity
     }
   }
 
-  ({double time, _BallCollisionSide side}) _collisionImpact(
+  ({double time, _BallCollisionSide side, bool isAmbiguous}) _collisionImpact(
     PositionComponent other,
   ) {
     final ball = _scaledBounds(this);
     final obstacle = _scaledBounds(other);
     if (!_hasPreviousPosition) {
-      return (time: 0, side: _sideFromAxis(collisionAxis(ball, obstacle)));
+      return (
+        time: 0,
+        side: _nearestSide(ball, obstacle),
+        isAmbiguous: true,
+      );
     }
 
     final previousBall = Rect.fromLTWH(
@@ -187,7 +198,8 @@ class Ball extends PositionedEntity
         (horizontalEntry - verticalEntry).abs() <= 0.0001) {
       return (
         time: entryTime == double.negativeInfinity ? 0 : entryTime,
-        side: _sideFromAxis(collisionAxis(ball, obstacle)),
+        side: _nearestSide(ball, obstacle),
+        isAmbiguous: true,
       );
     }
 
@@ -197,6 +209,7 @@ class Ball extends PositionedEntity
         side: horizontalMovement > 0
             ? _BallCollisionSide.left
             : _BallCollisionSide.right,
+        isAmbiguous: false,
       );
     }
     return (
@@ -204,6 +217,7 @@ class Ball extends PositionedEntity
       side: verticalMovement > 0
           ? _BallCollisionSide.top
           : _BallCollisionSide.bottom,
+      isAmbiguous: false,
     );
   }
 
@@ -226,6 +240,12 @@ class Ball extends PositionedEntity
           : double.infinity;
     }
     return double.negativeInfinity;
+  }
+
+  double _separationDistance(Brick brick) {
+    final ball = _scaledBounds(this);
+    final resolved = _resolvedBounds(brick);
+    return (resolved.left - ball.left).abs() + (resolved.top - ball.top).abs();
   }
 
   int _contactsAfterBounce(Brick brick) {
@@ -268,13 +288,28 @@ class Ball extends PositionedEntity
     };
   }
 
-  _BallCollisionSide _sideFromAxis(BallCollisionAxis axis) {
+  _BallCollisionSide _nearestSide(Rect ball, Rect obstacle) {
+    final axis = collisionAxis(ball, obstacle);
     if (axis == BallCollisionAxis.horizontal) {
-      return velocity.x > 0
+      final centerDifference = ball.center.dx - obstacle.center.dx;
+      if (centerDifference.abs() <= 0.0001) {
+        return velocity.x > 0
+            ? _BallCollisionSide.left
+            : _BallCollisionSide.right;
+      }
+      return centerDifference < 0
           ? _BallCollisionSide.left
           : _BallCollisionSide.right;
     }
-    return velocity.y > 0 ? _BallCollisionSide.top : _BallCollisionSide.bottom;
+    final centerDifference = ball.center.dy - obstacle.center.dy;
+    if (centerDifference.abs() <= 0.0001) {
+      return velocity.y > 0
+          ? _BallCollisionSide.top
+          : _BallCollisionSide.bottom;
+    }
+    return centerDifference < 0
+        ? _BallCollisionSide.top
+        : _BallCollisionSide.bottom;
   }
 
   static BallCollisionAxis collisionAxis(Rect ball, Rect obstacle) {
