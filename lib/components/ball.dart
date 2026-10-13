@@ -131,15 +131,16 @@ class Ball extends PositionedEntity
 
   @override
   void update(double dt) {
+    final field = gameRef.currentLevel.field;
     position.x = position.x.clamp(
-      gameRef.currentLevel.field.leftWall,
-      gameRef.currentLevel.field.rightWall,
+      field.leftWall,
+      field.rightWall - size.x * scale.x,
     );
     position.y = position.y.clamp(
-      gameRef.currentLevel.field.topWall,
+      field.topWall,
       double.infinity,
     );
-    if (y < gameRef.currentLevel.field.lowWall && ballCanMove) {
+    if (y < field.lowWall && ballCanMove) {
       calculateBallDirection(dt);
     }
   }
@@ -147,12 +148,13 @@ class Ball extends PositionedEntity
   void calculateBallDirection(double dt) {
     final field = gameRef.currentLevel.field;
     //calculate bouncing with Field borders
-    if ((x <= field.leftWall || x >= field.rightWall - size.x * scale.x)) {
-      velocity.x *= -1;
-      //left wall or right wall
-    } else if (y <= field.topWall) {
-      //top wall
-      velocity.y *= -1;
+    if (x <= field.leftWall && velocity.x < 0) {
+      velocity.x = velocity.x.abs();
+    } else if (x >= field.rightWall - size.x * scale.x && velocity.x > 0) {
+      velocity.x = -velocity.x.abs();
+    }
+    if (y <= field.topWall && velocity.y < 0) {
+      velocity.y = velocity.y.abs();
     }
     x += velocity.x * dt * scale.x;
     y += velocity.y * dt * scale.y;

@@ -97,6 +97,7 @@ class Starship extends PositionedEntity
   void update(double dt) {
     super.update(dt);
     if (!_isDisappearing) {
+      final previousX = x;
       if (_isEscaping || state == StarshipState.escaping) {
         _isEscaping = true;
         state = StarshipState.escaping;
@@ -110,17 +111,9 @@ class Starship extends PositionedEntity
       switch (state) {
         case StarshipState.movingLeft:
           x -= starshipSpeed * dt * scale.x;
-          for (final ball in _collidingBalls) {
-            ball.x -= starshipSpeed * dt * scale.x;
-          }
-
           break;
         case StarshipState.movingRight:
           x += starshipSpeed * dt * scale.x;
-          for (final ball in _collidingBalls) {
-            ball.x += starshipSpeed * dt * scale.x;
-          }
-
           break;
         case StarshipState.escaping:
           _isEscaping = true;
@@ -140,6 +133,10 @@ class Starship extends PositionedEntity
               Field.hitboxSize * gameRef.scaleFactor -
               size.x * scale.x,
         );
+        final movement = x - previousX;
+        for (final ball in _collidingBalls) {
+          ball.x += movement;
+        }
       }
     }
   }

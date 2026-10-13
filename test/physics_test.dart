@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
+import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,6 +66,37 @@ void main() {
       ),
       BallCollisionAxis.horizontal,
     );
+  });
+
+  test('ball only bounces when moving towards a field wall', () {
+    final game = Arkanoid()..scaleFactor = 1;
+    game.currentLevel.field = Field(FieldType.blue)
+      ..position = Vector2(112, 0)
+      ..scale = Vector2.all(1);
+    final ball = Ball()
+      ..game = game
+      ..ballCanMove = true
+      ..position = Vector2(216, 100)
+      ..velocity = Vector2(-130, 0);
+
+    ball.update(1 / 120);
+
+    expect(ball.velocity.x, -130);
+    expect(ball.x, lessThan(211));
+
+    ball.position = Vector2(211, 100);
+    ball.velocity = Vector2(130, 0);
+    ball.update(1 / 120);
+
+    expect(ball.velocity.x, -130);
+    expect(ball.x, lessThan(211));
+
+    ball.position = Vector2(8, 8);
+    ball.velocity = Vector2(-130, -130);
+    ball.update(1 / 120);
+
+    expect(ball.velocity.x, 130);
+    expect(ball.velocity.y, 130);
   });
 
   test('only one brick is hit during the same contact cluster', () {
