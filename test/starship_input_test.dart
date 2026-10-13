@@ -79,10 +79,8 @@ void main() {
   });
 
   test('starship moves at the configured horizontal speed', () {
-    final game = Arkanoid()..scaleFactor = 1;
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(112, 0)
-      ..scale = Vector2.all(1);
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final starship = Starship(
       onPowerUp: (_) {},
       onEscape: () {},
@@ -97,10 +95,8 @@ void main() {
   });
 
   test('caught ball follows only the starship effective movement', () {
-    final game = Arkanoid()..scaleFactor = 1;
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(112, 0)
-      ..scale = Vector2.all(1);
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final starship = Starship(
       onPowerUp: (_) {},
       onEscape: () {},

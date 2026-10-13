@@ -18,7 +18,6 @@ class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-    scale *= gameRef.scaleFactor;
     SpriteSheet spriteSheet = SpriteSheet(
         image: await Flame.images.load(spriteSheetFile), srcSize: size);
     final animations = PowerUpType.values.asMap().map((key, value) => MapEntry(
@@ -31,10 +30,8 @@ class PowerUp extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
   @override
   void update(double dt) {
     super.update(dt);
-    y += _velocity * dt * gameRef.scaleFactor;
-    if (y >=
-        gameRef.currentLevel.field.size.y * gameRef.currentLevel.field.scale.y +
-            gameRef.currentLevel.field.position.y) {
+    y += _velocity * dt;
+    if (y >= gameRef.currentLevel.field.lowWall) {
       removeFromParent();
     }
   }

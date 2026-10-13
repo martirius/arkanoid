@@ -55,7 +55,6 @@ class Starship extends PositionedEntity
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('starship.png');
-    scale *= gameRef.scaleFactor;
     await add(_starshipAnimationComponent);
   }
 
@@ -76,14 +75,14 @@ class Starship extends PositionedEntity
       }
       switch (state) {
         case StarshipState.movingLeft:
-          x -= starshipSpeed * dt * scale.x;
+          x -= starshipSpeed * dt;
           break;
         case StarshipState.movingRight:
-          x += starshipSpeed * dt * scale.x;
+          x += starshipSpeed * dt;
           break;
         case StarshipState.escaping:
           _isEscaping = true;
-          x += _escapeSpeed * dt * scale.x;
+          x += _escapeSpeed * dt;
           break;
         default:
           break;
@@ -91,13 +90,8 @@ class Starship extends PositionedEntity
 
       if (state != StarshipState.escaping) {
         position.x = position.x.clamp(
-          gameRef.currentLevel.field.position.x -
-              (gameRef.currentLevel.field.size.x * gameRef.scaleFactor / 2) +
-              Field.hitboxSize * gameRef.scaleFactor,
-          gameRef.currentLevel.field.position.x +
-              (gameRef.currentLevel.field.size.x * gameRef.scaleFactor / 2) -
-              Field.hitboxSize * gameRef.scaleFactor -
-              size.x * scale.x,
+          gameRef.currentLevel.field.leftWall,
+          gameRef.currentLevel.field.rightWall - width * scale.x,
         );
         final movement = x - previousX;
         for (final ball in _collidingBalls) {
@@ -148,7 +142,7 @@ class Starship extends PositionedEntity
 
   void removePowerUp(PowerUpType? newPowerUp) {
     if (newPowerUp != PowerUpType.extend) {
-      scale.x = gameRef.scaleFactor;
+      scale.x = 1;
       _starshipAnimationComponent.current = StarshipAnimation.normal;
     }
   }

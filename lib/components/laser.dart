@@ -29,7 +29,6 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   @override
   Future<void>? onLoad() async {
     super.onLoad();
-    scale *= gameRef.scaleFactor;
     animations = {
       LaserStatus.normal: SpriteAnimation.spriteList(
           await Future.wait(spritesNormal),
@@ -74,7 +73,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   void update(double dt) {
     super.update(dt);
     if (!_brickAlreadyHit) {
-      y -= _velocity * dt * gameRef.scaleFactor;
+      y -= _velocity * dt;
     }
   }
 }

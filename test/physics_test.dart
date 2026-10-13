@@ -69,10 +69,8 @@ void main() {
   });
 
   test('ball only bounces when moving towards a field wall', () {
-    final game = Arkanoid()..scaleFactor = 1;
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(112, 0)
-      ..scale = Vector2.all(1);
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..ballCanMove = true
@@ -101,10 +99,9 @@ void main() {
 
   test('lateral entry between brick rows keeps a horizontal bounce', () {
     for (final verticalVelocity in [120.0, -120.0]) {
-      final game = Arkanoid()..scaleFactor = 1;
+      final game = Arkanoid();
       game.currentLevel.field = Field(FieldType.blue)
-        ..position = Vector2(112, 0)
-        ..scale = Vector2.all(1);
+        ..position = Vector2(112, 0);
       final ball = Ball()
         ..game = game
         ..ballCanMove = true
@@ -127,10 +124,8 @@ void main() {
   });
 
   test('vertical entry between brick columns keeps a vertical bounce', () {
-    final game = Arkanoid()..scaleFactor = 1;
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(112, 0)
-      ..scale = Vector2.all(1);
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..ballCanMove = true
@@ -158,10 +153,9 @@ void main() {
     ];
     for (final scenario in scenarios) {
       for (final reverseOrder in [false, true]) {
-        final game = Arkanoid()..scaleFactor = 1;
+        final game = Arkanoid();
         game.currentLevel.field = Field(FieldType.blue)
-          ..position = Vector2(112, 0)
-          ..scale = Vector2.all(1);
+          ..position = Vector2(112, 0);
         final ball = Ball()
           ..game = game
           ..ballCanMove = true
@@ -195,10 +189,9 @@ void main() {
 
   test('brick seam collision uses the nearest separation', () {
     Vector2 resolveCollision({required bool reverseOrder}) {
-      final game = Arkanoid()..scaleFactor = 1;
+      final game = Arkanoid();
       game.currentLevel.field = Field(FieldType.blue)
-        ..position = Vector2(112, 0)
-        ..scale = Vector2.all(1);
+        ..position = Vector2(112, 0);
       final ball = Ball()
         ..game = game
         ..ballCanMove = true
@@ -234,10 +227,8 @@ void main() {
   });
 
   test('adjacent brick is resolved on the next high-speed physics step', () {
-    final game = Arkanoid()..scaleFactor = 1;
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(112, 0)
-      ..scale = Vector2.all(1);
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..ballCanMove = true

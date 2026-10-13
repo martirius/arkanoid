@@ -6,12 +6,10 @@ enum BreakAnimationState { opening, open }
 
 class BreakAnimationComponent
     extends SpriteAnimationGroupComponent<BreakAnimationState> {
-  BreakAnimationComponent(this._scaleFactor)
-      : super(size: Vector2(_width, _height));
+  BreakAnimationComponent() : super(size: Vector2(_width, _height));
 
   static const double _height = 40;
   static const double _width = 8;
-  final double _scaleFactor;
 
   late final _spritesOpening = [0, 1, 2].map((i) => Sprite.load(
         'fields.png',
@@ -28,7 +26,6 @@ class BreakAnimationComponent
   Future<void>? onLoad() async {
     super.onLoad();
     await Flame.images.load('fields.png');
-    scale *= _scaleFactor;
     animations = {
       BreakAnimationState.opening: SpriteAnimation.spriteList(
           await Future.wait(_spritesOpening),

@@ -38,7 +38,6 @@ class Ball extends PositionedEntity
   Future<void>? onLoad() async {
     super.onLoad();
     await Flame.images.load('starship.png');
-    scale *= gameRef.scaleFactor;
     add(SpriteComponent(sprite: extractSprite(0, 40, 5, 4, 'starship.png'))
       ..size = Vector2(_ballWidth, _ballHeight));
   }
@@ -347,8 +346,8 @@ class Ball extends PositionedEntity
     }
     _previousPosition.setFrom(position);
     _hasPreviousPosition = true;
-    x += velocity.x * dt * scale.x;
-    y += velocity.y * dt * scale.y;
+    x += velocity.x * dt;
+    y += velocity.y * dt;
   }
 
   void launch() => ballCanMove = true;

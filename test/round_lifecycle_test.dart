@@ -19,8 +19,8 @@ class _TestArkanoid extends Arkanoid {
 
   @override
   Future<void> onLoad() async {
-    scaleFactor = 1;
-    add(currentLevel);
+    add(hud);
+    world.add(currentLevel);
   }
 }
 
@@ -51,10 +51,8 @@ BaseLevel _testLevel() => BaseLevel(_testDefinition);
 
 void main() {
   test('the ball stays ready until the player acts', () {
-    final game = Arkanoid()..scaleFactor = 1;
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(112, 0)
-      ..scale = Vector2.all(1);
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..position = Vector2(100, 100)
@@ -115,6 +113,8 @@ void main() {
     );
     await _pumpUntilRoundIsReady(tester, level);
     expect(level.phase, RoundPhase.ready);
+    final starship = level.children.whereType<Starship>().single;
+    expect(starship.y, level.field.lowWall - starship.height - 12);
     level.performAction();
     expect(level.phase, RoundPhase.playing);
     expect(level.balls.single.ballCanMove, isTrue);
@@ -188,7 +188,7 @@ void main() {
                 nextLevel.children.whereType<TextComponent>().any(
                       (component) =>
                           component.isMounted &&
-                          component.text == 'ROUND 2\nREADY',
+                          _isRoundReadyText(component, 2),
                     ));
         attempt++) {
       await tester.pump(const Duration(milliseconds: 16));
@@ -199,8 +199,8 @@ void main() {
       nextLevel.children
           .whereType<TextComponent>()
           .where((component) => component.isMounted)
-          .map((component) => component.text),
-      contains('ROUND 2\nREADY'),
+          .where((component) => _isRoundReadyText(component, 2)),
+      isNotEmpty,
     );
     await _pumpUntilRoundIsReady(tester, nextLevel);
   });
@@ -227,7 +227,7 @@ void main() {
     starship.onCollision({Vector2.zero()}, level.field);
 
     expect(level.phase, RoundPhase.escaping);
-    game.remove(level);
+    level.removeFromParent();
     for (var attempt = 0; attempt < 10 && !level.isRemoved; attempt++) {
       game.update(1 / 120);
       await tester.pump();
@@ -261,8 +261,8 @@ void main() {
 
     final replacement = _testLevel();
     game.currentLevel = replacement;
-    game.remove(level);
-    game.add(replacement);
+    level.removeFromParent();
+    game.world.add(replacement);
     await tester.pump();
     await tester.pump(const Duration(seconds: 4));
     await tester.pump();
@@ -270,6 +270,12 @@ void main() {
     expect(game.currentLevel, same(replacement));
     expect(game.numberOfLives, 0);
   });
+}
+
+bool _isRoundReadyText(TextComponent component, int roundNumber) {
+  final normalized =
+      component.text.split('\n').map((line) => line.trim()).join('\n');
+  return normalized == 'ROUND $roundNumber\nREADY';
 }
 
 Future<void> _pumpUntilRoundIsReady(

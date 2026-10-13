@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:arkanoid/components/game_hud.dart';
+import 'package:arkanoid/components/gameplay_viewport.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/game_audio.dart';
+import 'package:flame/camera.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -22,24 +25,31 @@ void main() {
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
+  Arkanoid() : super(camera: _createCamera()) {
+    hud = GameHud(
+      onMove: (direction) => currentLevel.setMovementDirection(direction),
+      onAction: () => currentLevel.performAction(),
+      score: currentScore,
+      topScore: topScore,
+    );
+  }
+
   static const double _physicsStep = 1 / 120;
   static const int _maxPhysicsSteps = 8;
 
   final GameAudio audio = GameAudio();
+  late final GameHud hud;
   BaseLevel currentLevel = BaseLevel(levelCatalog.first);
   int topScore = 50000;
   int currentScore = 0;
   int numberOfLives = 3;
-  late double scaleFactor;
+
   @override
   Future<void>? onLoad() async {
     super.onLoad();
     await audio.load();
-    // the field in the original game is 224x240
-    double xScale = size.x / 224.0;
-    double yScale = (size.y - 50) / 240.0;
-    scaleFactor = size.x < size.y ? xScale : yScale;
-    add(currentLevel);
+    add(hud);
+    world.add(currentLevel);
   }
 
   static int physicsStepsFor(double dt) {
@@ -73,15 +83,16 @@ class Arkanoid extends FlameGame
 
   void levelCompleted(int levelNumber) {
     if (currentLevel.parent != null) {
-      remove(currentLevel);
+      currentLevel.removeFromParent();
     }
     currentLevel = BaseLevel(levelCatalog[levelNumber % levelCatalog.length]);
-    add(currentLevel);
+    world.add(currentLevel);
   }
 
   void gameOver() {
     currentScore = 0;
     numberOfLives = 3;
+    hud.updateScores(score: currentScore, topScore: topScore);
     levelCompleted(0);
   }
 
@@ -96,6 +107,12 @@ class Arkanoid extends FlameGame
     // Return handled to prevent macOS noises.
     return KeyEventResult.handled;
   }
+}
+
+CameraComponent _createCamera() {
+  final camera = CameraComponent(viewport: GameplayViewport())..priority = 0;
+  camera.viewfinder.anchor = Anchor.topLeft;
+  return camera;
 }
 
 Sprite extractSprite(

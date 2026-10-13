@@ -21,15 +21,11 @@ class Field extends SpriteComponent with HasGameRef<Arkanoid> {
       : super(size: Vector2(224, 240), anchor: Anchor.topCenter);
 
   static const double hitboxSize = 8;
-  double get leftWall =>
-      position.x - size.x * scale.x / 2 + Field.hitboxSize * scale.x;
-  double get rightWall =>
-      position.x -
-      size.x * scale.x / 2 +
-      (size.x * scale.x) -
-      Field.hitboxSize * scale.x;
-  double get topWall => position.y + Field.hitboxSize * scale.x;
-  double get lowWall => position.y + size.y * scale.y;
+  double get left => position.x - width / 2;
+  double get leftWall => left + Field.hitboxSize;
+  double get rightWall => left + width - Field.hitboxSize;
+  double get topWall => position.y + Field.hitboxSize;
+  double get lowWall => position.y + height;
 
   late final _fields = {
     FieldType.blue: extractSprite(0, 0, 224, 240, 'fields.png'),
@@ -46,7 +42,6 @@ class Field extends SpriteComponent with HasGameRef<Arkanoid> {
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('fields.png');
-    scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor);
     sprite = _fields[fieldType];
     add(RectangleHitbox(size: Vector2(hitboxSize, size.y))
       ..collisionType = CollisionType.passive);

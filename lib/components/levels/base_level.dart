@@ -4,13 +4,10 @@ import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/break_animation.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/inputs/fire_button.dart';
-import 'package:arkanoid/components/inputs/input_controller.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
-import 'package:arkanoid/components/top_text.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
@@ -31,16 +28,10 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
   BaseLevel(this.definition) : fieldType = definition.fieldType;
 
   static const _roundReadyDuration = Duration(seconds: 2);
+  static const _worldMessageFontSize = 10.0;
+  static const _starshipBottomMargin = 12.0;
 
-  final JoystickComponent _joystick = JoystickComponent(
-      knob: Knob(),
-      background: Background(),
-      margin: const EdgeInsets.only(right: 40, bottom: 40),
-      size: 50,
-      knobRadius: 20);
   final LevelDefinition definition;
-  late FireButton _fireButton;
-  late InputController _inputController;
   late Starship _starship;
   final List<Ball> balls = [];
   List<List<Brick?>> bricks = [];
@@ -53,25 +44,13 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   RoundPhase get phase => _phase;
 
-  late final _playerTextComponent = TopText(
-    '1UP',
-    gameRef.currentScore.toString(),
-  )..position =
-      Vector2(field.x - ((field.size.x * gameRef.scaleFactor) / 4), 5);
-  late final _topScoreComponent = TopText(
-    'HIGH SCORE',
-    gameRef.topScore.toString(),
-  )..position = Vector2(
-      field.x,
-      5,
-    );
   late final _roundNumberComponent = TextComponent(
       text: "ROUND ${definition.roundNumber}\nREADY",
       textRenderer: TextPaint(
           style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
               fontFamily: 'Joystix',
-              fontSize: 18),
+              fontSize: _worldMessageFontSize),
           textDirection: TextDirection.ltr),
       anchor: Anchor.center);
   late final _gameOverComponent = TextComponent(
@@ -80,12 +59,12 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
           style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
               fontFamily: 'Joystix',
-              fontSize: 18),
+              fontSize: _worldMessageFontSize),
           textDirection: TextDirection.ltr),
       anchor: Anchor.center)
     ..position = Vector2(
       field.x,
-      (field.y + field.size.y * field.scale.y) / 2,
+      field.y + field.height / 2,
     );
 
   @override
@@ -113,11 +92,10 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     addScore(1000);
     switch (powerUpType) {
       case PowerUpType.break_:
-        add(BreakAnimationComponent(gameRef.scaleFactor)
+        add(BreakAnimationComponent()
           ..anchor = Anchor.bottomRight
-          ..position = Vector2(
-              field.position.x + (field.size.x * field.scale.x) / 2,
-              field.position.y + field.size.y * field.scale.y));
+          ..position =
+              Vector2(field.position.x + field.width / 2, field.lowWall));
         break;
       case PowerUpType.slow:
         for (var ball in balls) {
@@ -171,30 +149,14 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   Future<void> _initializeComponents() async {
     size = gameRef.size;
-    _lives = Lives(gameRef.numberOfLives, gameRef.scaleFactor)
+    _lives = Lives(gameRef.numberOfLives)
       ..anchor = Anchor.bottomLeft
       ..priority = 20;
     _starship = _newStarship();
-    _inputController = InputController(
-      joystick: _joystick,
-      onMove: (direction) => _starship.setMovementDirection(direction),
-      onAction: performAction,
-    );
-    _fireButton = FireButton(
-      Vector2(40, size.y - 40),
-      onPressed: _inputController.pressAction,
-    );
-    _fireButton.position.y = size.y - 40 - _fireButton.size.y;
     field = _newField();
   }
 
   Future<void> _loadComponents() async {
-    add(_fireButton);
-    add(_joystick);
-    add(_inputController);
-    add(_playerTextComponent);
-    add(_topScoreComponent);
-    _playerTextComponent.blinkLabel();
     await _loadGameComponents();
   }
 
@@ -208,15 +170,9 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
             ..onDestroyed = () {
               _onBrickDestroyed(rowIndex, columnIndex, brick);
             }
-            ..scale = Vector2(gameRef.scaleFactor, gameRef.scaleFactor)
             ..position = Vector2(
-                field.x -
-                    ((field.size.x * field.scale.x) / 2) +
-                    Field.hitboxSize * field.scale.x +
-                    (brick.size.x * brick.scale.x) * columnIndex,
-                70 +
-                    brick.size.y * brick.scale.y +
-                    (brick.size.y * brick.scale.y) * rowIndex));
+                field.left + Field.hitboxSize + brick.width * columnIndex,
+                field.y + 20 + brick.height + brick.height * rowIndex));
         }
       }
     }
@@ -235,10 +191,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     }
     await add(_roundNumberComponent
       ..priority = 100
-      ..position = Vector2(
-          field.x,
-          (field.size.y * field.scale.y + field.y) / 2 +
-              (field.size.y * field.scale.y + field.y) / 4));
+      ..position = Vector2(field.x, field.y + field.height * 0.75));
 
     gameRef.audio.play(GameSound.gameStart);
     async.unawaited(_completeRoundIntro(ball));
@@ -270,20 +223,15 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   void _positionStarship() {
     _starship.position = Vector2(
-      field.x - _starship.size.x * gameRef.scaleFactor / 2,
-      field.size.y * field.scale.y +
-          field.position.y -
-          _starship.size.y * field.scale.y -
-          30,
+      field.x - _starship.width / 2,
+      field.lowWall - _starship.height - _starshipBottomMargin,
     );
   }
 
   void _positionLives() {
     _lives.position = Vector2(
-      field.x -
-          ((field.size.x * field.scale.x) / 2) +
-          Field.hitboxSize * gameRef.scaleFactor,
-      field.size.y * field.scale.y + field.position.y,
+      field.left + Field.hitboxSize,
+      field.lowWall,
     );
   }
 
@@ -312,12 +260,11 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
   Ball _newBall() {
     final ball = Ball();
     ball.position = Vector2(
-      field.x - ball.size.x * gameRef.scaleFactor / 2,
-      field.size.y * field.scale.y +
-          field.position.y -
-          30 -
-          _starship.size.y * field.scale.y -
-          ball.size.y * gameRef.scaleFactor -
+      field.x - ball.width / 2,
+      field.lowWall -
+          _starshipBottomMargin -
+          _starship.height -
+          ball.height -
           1,
     );
     return ball;
@@ -325,7 +272,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   Field _newField() => Field(fieldType)
     ..priority = -10
-    ..position = Vector2(gameRef.size.x / 2, 50);
+    ..position = Vector2(gameRef.size.x / 2, 0);
 
   Starship _newStarship() => Starship(
         onPowerUp: _onPowerUpTaken,
@@ -366,8 +313,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       ..text = 'PLAYER 1\nREADY'
       ..position = Vector2(
         field.x,
-        (field.size.y * field.scale.y + field.y) / 2 +
-            (field.size.y * field.scale.y + field.y) / 4,
+        field.y + field.height * 0.75,
       ));
     gameRef.audio.play(GameSound.gameStart);
     final readyDelayElapsed =
@@ -392,7 +338,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     if (_phase == RoundPhase.playing) {
       final List<Ball> ballsToRemove = [];
       for (var ball in balls) {
-        if (ball.y > field.size.y * field.scale.y + field.position.y) {
+        if (ball.y > field.lowWall) {
           ballsToRemove.add(ball);
         }
       }
@@ -486,9 +432,15 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     gameRef.currentScore += score;
     if (gameRef.currentScore > gameRef.topScore) {
       gameRef.topScore = gameRef.currentScore;
-      _topScoreComponent.updateMessage(gameRef.currentScore.toString());
     }
-    _playerTextComponent.updateMessage(gameRef.currentScore.toString());
+    gameRef.hud.updateScores(
+      score: gameRef.currentScore,
+      topScore: gameRef.topScore,
+    );
+  }
+
+  void setMovementDirection(int direction) {
+    _starship.setMovementDirection(direction);
   }
 
   void performAction() {
