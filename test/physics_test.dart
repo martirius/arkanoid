@@ -4,6 +4,7 @@ import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/main.dart';
+import 'package:arkanoid/physics/ball_collision_resolver.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -53,14 +54,14 @@ void main() {
     const obstacle = Rect.fromLTWH(10, 10, 20, 10);
 
     expect(
-      Ball.collisionAxis(
+      BallCollisionResolver.collisionAxis(
         const Rect.fromLTWH(15, 7, 5, 5),
         obstacle,
       ),
       BallCollisionAxis.vertical,
     );
     expect(
-      Ball.collisionAxis(
+      BallCollisionResolver.collisionAxis(
         const Rect.fromLTWH(7, 12, 5, 5),
         obstacle,
       ),
