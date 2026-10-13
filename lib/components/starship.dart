@@ -21,7 +21,7 @@ enum StarshipAnimation {
 }
 
 class Starship extends PositionedEntity
-    with CollisionCallbacks, HasGameRef<Arkanoid> {
+    with CollisionCallbacks, HasGameReference<Arkanoid> {
   Starship({
     required void Function(PowerUpType) onPowerUp,
     required void Function() onEscape,
@@ -90,8 +90,8 @@ class Starship extends PositionedEntity
 
       if (state != StarshipState.escaping) {
         position.x = position.x.clamp(
-          gameRef.currentLevel.field.leftWall,
-          gameRef.currentLevel.field.rightWall - width * scale.x,
+          game.currentLevel.field.leftWall,
+          game.currentLevel.field.rightWall - width * scale.x,
         );
         final movement = x - previousX;
         for (final ball in _collidingBalls) {
@@ -121,7 +121,7 @@ class Starship extends PositionedEntity
           if (powerUp == PowerUpType.extend) {
             _starshipAnimationComponent.current = StarshipAnimation.extended;
             scale.x *= 1.5;
-            gameRef.audio.play(GameSound.starshipExtends);
+            game.audio.play(GameSound.starshipExtends);
           } else if (powerUp == PowerUpType.laser) {
             _starshipAnimationComponent.current =
                 StarshipAnimation.laserTransforming;
@@ -158,7 +158,7 @@ class Starship extends PositionedEntity
     _isDisappearing = true;
     removePowerUp(null);
     powerUp = null;
-    gameRef.audio.play(GameSound.ballGoDown);
+    game.audio.play(GameSound.ballGoDown);
     _starshipAnimationComponent.current = StarshipAnimation.disappearing;
     _starshipAnimationComponent.animationTicker?.reset();
     return Future.delayed(const Duration(seconds: 2));
@@ -166,7 +166,7 @@ class Starship extends PositionedEntity
 
   void performAction() {
     if (powerUp == PowerUpType.laser) {
-      gameRef.audio.play(GameSound.starshipShoot);
+      game.audio.play(GameSound.starshipShoot);
       parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
     }
     for (final ball in _collidingBalls) {

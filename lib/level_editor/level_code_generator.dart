@@ -1,9 +1,8 @@
 import 'dart:convert' show utf8;
 
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' show AnchorElement;
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/level_editor/level_editor.dart';
+import 'package:web/web.dart' as web;
 
 class LevelCodeGenerator {
   final List<List<Brick>> _bricks;
@@ -11,7 +10,7 @@ class LevelCodeGenerator {
   final FieldType _fieldType;
 
   void _saveTextFile(String text, String filename) {
-    AnchorElement()
+    web.HTMLAnchorElement()
       ..href =
           '${Uri.dataFromString(text, mimeType: 'text/plain', encoding: utf8)}'
       ..download = filename

@@ -38,6 +38,7 @@ dependencies:
   group_radio_button: ^1.2.0
   flame_behaviors: ^1.4.0
   file: ^7.0.0
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

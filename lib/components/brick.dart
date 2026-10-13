@@ -19,7 +19,7 @@ enum BrickModel {
   gold
 }
 
-class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
+class Brick extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
   late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
@@ -99,9 +99,9 @@ class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
     }
     if (playAudio) {
       if (model == BrickModel.silver || model == BrickModel.gold) {
-        gameRef.audio.play(GameSound.ballHitBlockUnbreakable);
+        game.audio.play(GameSound.ballHitBlockUnbreakable);
       } else {
-        gameRef.audio.play(GameSound.ballHitBlock);
+        game.audio.play(GameSound.ballHitBlock);
       }
     }
     animationTicker?.reset();

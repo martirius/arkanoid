@@ -24,7 +24,7 @@ enum RoundPhase {
   gameOver,
 }
 
-class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
+class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   BaseLevel(this.definition) : fieldType = definition.fieldType;
 
   static const _roundReadyDuration = Duration(seconds: 2);
@@ -133,7 +133,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       element.removeFromParent();
     }
 
-    gameRef.audio.play(GameSound.wallPortalTook);
+    game.audio.play(GameSound.wallPortalTook);
     async.unawaited(_completeEscape());
   }
 
@@ -143,13 +143,13 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       return;
     }
     _phase = RoundPhase.completed;
-    gameRef.currentScore += 10000;
-    gameRef.levelCompleted(definition.roundNumber);
+    game.currentScore += 10000;
+    game.levelCompleted(definition.roundNumber);
   }
 
   Future<void> _initializeComponents() async {
-    size = gameRef.size;
-    _lives = Lives(gameRef.numberOfLives)
+    size = game.size;
+    _lives = Lives(game.numberOfLives)
       ..anchor = Anchor.bottomLeft
       ..priority = 20;
     _starship = _newStarship();
@@ -193,7 +193,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       ..priority = 100
       ..position = Vector2(field.x, field.y + field.height * 0.75));
 
-    gameRef.audio.play(GameSound.gameStart);
+    game.audio.play(GameSound.gameStart);
     async.unawaited(_completeRoundIntro(ball));
     // Let onLoad finish so Flame can mount and render the READY screen.
   }
@@ -272,7 +272,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
   Field _newField() => Field(fieldType)
     ..priority = -10
-    ..position = Vector2(gameRef.size.x / 2, 0);
+    ..position = Vector2(game.size.x / 2, 0);
 
   Starship _newStarship() => Starship(
         onPowerUp: _onPowerUpTaken,
@@ -315,7 +315,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
         field.x,
         field.y + field.height * 0.75,
       ));
-    gameRef.audio.play(GameSound.gameStart);
+    game.audio.play(GameSound.gameStart);
     final readyDelayElapsed =
         await _waitFor(const Duration(seconds: 1, milliseconds: 500));
     if (!readyDelayElapsed ||
@@ -384,7 +384,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
   Future<void> _completeLevel() async {
     await _removeGameComponents();
     if (_isCurrentRound && _phase == RoundPhase.completed) {
-      gameRef.levelCompleted(definition.roundNumber);
+      game.levelCompleted(definition.roundNumber);
     }
   }
 
@@ -394,14 +394,14 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     }
 
     _phase = RoundPhase.lifeLost;
-    gameRef.numberOfLives -= 1;
+    game.numberOfLives -= 1;
     _lives.removeLife();
 
     await _starship.destroy();
     if (!_isCurrentRound || _phase != RoundPhase.lifeLost) {
       return;
     }
-    if (gameRef.numberOfLives > 0) {
+    if (game.numberOfLives > 0) {
       await _restartAfterLifeLoss();
     } else {
       _gameOver();
@@ -409,33 +409,33 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
   }
 
   void addLife() {
-    gameRef.audio.play(GameSound.extraLife);
-    gameRef.numberOfLives += 1;
+    game.audio.play(GameSound.extraLife);
+    game.numberOfLives += 1;
     _lives.addLife(true);
   }
 
   void _gameOver() {
     _phase = RoundPhase.gameOver;
     add(_gameOverComponent);
-    gameRef.audio.play(GameSound.gameOver);
+    game.audio.play(GameSound.gameOver);
     async.unawaited(_completeGameOver());
   }
 
   Future<void> _completeGameOver() async {
     final elapsed = await _waitFor(const Duration(seconds: 3));
     if (elapsed && _isCurrentRound && _phase == RoundPhase.gameOver) {
-      gameRef.gameOver();
+      game.gameOver();
     }
   }
 
   void addScore(int score) {
-    gameRef.currentScore += score;
-    if (gameRef.currentScore > gameRef.topScore) {
-      gameRef.topScore = gameRef.currentScore;
+    game.currentScore += score;
+    if (game.currentScore > game.topScore) {
+      game.topScore = game.currentScore;
     }
-    gameRef.hud.updateScores(
-      score: gameRef.currentScore,
-      topScore: gameRef.topScore,
+    game.hud.updateScores(
+      score: game.currentScore,
+      topScore: game.topScore,
     );
   }
 
@@ -454,7 +454,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
     }
   }
 
-  bool get _isCurrentRound => !_removed && gameRef.currentLevel == this;
+  bool get _isCurrentRound => !_removed && game.currentLevel == this;
 
   Future<bool> _waitFor(Duration duration) {
     final completer = async.Completer<bool>();

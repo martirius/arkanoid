@@ -7,7 +7,7 @@ import 'package:flame/components.dart';
 enum LaserStatus { normal, destroy }
 
 class Laser extends SpriteAnimationGroupComponent<LaserStatus>
-    with CollisionCallbacks, HasGameRef<Arkanoid> {
+    with CollisionCallbacks, HasGameReference<Arkanoid> {
   Laser() : super(size: Vector2(16, 8), priority: 10);
 
   late final spritesNormal = [

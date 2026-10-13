@@ -12,7 +12,7 @@ import 'package:flame/flame.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 
 class Ball extends PositionedEntity
-    with CollisionCallbacks, HasGameRef<Arkanoid> {
+    with CollisionCallbacks, HasGameReference<Arkanoid> {
   Ball()
       : super(
             size: Vector2(_ballWidth, _ballHeight),
@@ -42,13 +42,13 @@ class Ball extends PositionedEntity
   @override
   void onMount() {
     super.onMount();
-    gameRef.collisionDetection.collisionsCompletedNotifier
+    game.collisionDetection.collisionsCompletedNotifier
         .addListener(_resolveBrickCollision);
   }
 
   @override
   void onRemove() {
-    gameRef.collisionDetection.collisionsCompletedNotifier
+    game.collisionDetection.collisionsCompletedNotifier
         .removeListener(_resolveBrickCollision);
     _brickCollisionCandidates.clear();
     super.onRemove();
@@ -75,7 +75,7 @@ class Ball extends PositionedEntity
       y = starship.y - size.y * scale.y - 1;
       velocity.x = ballSpeed * cos(bounceAngle);
       velocity.y = ballSpeed * -sin(bounceAngle);
-      gameRef.audio.play(GameSound.ballHitStarship);
+      game.audio.play(GameSound.ballHitStarship);
     }
   }
 
@@ -133,7 +133,7 @@ class Ball extends PositionedEntity
 
   @override
   void update(double dt) {
-    final field = gameRef.currentLevel.field;
+    final field = game.currentLevel.field;
     position.x = position.x.clamp(
       field.leftWall,
       field.rightWall - size.x * scale.x,
@@ -148,7 +148,7 @@ class Ball extends PositionedEntity
   }
 
   void calculateBallDirection(double dt) {
-    final field = gameRef.currentLevel.field;
+    final field = game.currentLevel.field;
     //calculate bouncing with Field borders
     if (x <= field.leftWall && velocity.x < 0) {
       velocity.x = velocity.x.abs();

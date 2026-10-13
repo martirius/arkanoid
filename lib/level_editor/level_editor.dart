@@ -1,3 +1,5 @@
+import 'dart:js_interop';
+
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
@@ -6,11 +8,13 @@ import 'package:arkanoid/level_editor/brick_details.dart';
 import 'package:arkanoid/level_editor/level_code_generator.dart';
 import 'package:flutter/material.dart' hide RadioGroup;
 import 'package:group_radio_button/group_radio_button.dart';
-import 'dart:html';
+import 'package:web/web.dart' as web;
 
 void main(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
-  window.document.onContextMenu.listen((evt) => evt.preventDefault());
+  web.document.oncontextmenu = ((web.Event event) {
+    event.preventDefault();
+  }).toJS;
   runApp(const LevelEditorApp());
 }
 

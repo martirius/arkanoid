@@ -15,7 +15,7 @@ enum FieldType {
   boss
 }
 
-class Field extends SpriteComponent with HasGameRef<Arkanoid> {
+class Field extends SpriteComponent with HasGameReference<Arkanoid> {
   final FieldType fieldType;
   Field(this.fieldType)
       : super(size: Vector2(224, 240), anchor: Anchor.topCenter);
