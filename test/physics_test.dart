@@ -111,11 +111,13 @@ void main() {
         ..position = Vector2(11, verticalVelocity > 0 ? 83 : 85)
         ..velocity = Vector2(300, verticalVelocity);
       final brick = _TestBrick()..position = Vector2(16, 86);
+      ball.onMount();
 
       ball.update(1 / 120);
       final collisionY = ball.y;
       ball.onCollisionStart({Vector2.zero()}, brick);
       ball.onCollision({Vector2.zero()}, brick);
+      game.collisionDetection.run();
 
       expect(ball.x, 10);
       expect(ball.y, collisionY);
@@ -135,11 +137,13 @@ void main() {
       ..position = Vector2(14, 86)
       ..velocity = Vector2(120, -240);
     final brick = _TestBrick()..position = Vector2(16, 78);
+    ball.onMount();
 
     ball.update(1 / 120);
     final collisionX = ball.x;
     ball.onCollisionStart({Vector2.zero()}, brick);
     ball.onCollision({Vector2.zero()}, brick);
+    game.collisionDetection.run();
 
     expect(ball.x, collisionX);
     expect(ball.y, 87);
@@ -147,24 +151,71 @@ void main() {
     expect(ball.velocity.y, 240);
   });
 
+  test('earliest brick impact wins regardless of callback order', () {
+    final scenarios = [
+      (y: 87.0, vx: -240.0, vy: -360.0, expectedX: 15.0),
+      (y: 88.0, vx: -180.0, vy: -360.0, expectedX: 15.5),
+    ];
+    for (final scenario in scenarios) {
+      for (final reverseOrder in [false, true]) {
+        final game = Arkanoid()..scaleFactor = 1;
+        game.currentLevel.field = Field(FieldType.blue)
+          ..position = Vector2(112, 0)
+          ..scale = Vector2.all(1);
+        final ball = Ball()
+          ..game = game
+          ..ballCanMove = true
+          ..position = Vector2(17, scenario.y)
+          ..velocity = Vector2(scenario.vx, scenario.vy);
+        final leftBrick = _TestBrick()..position = Vector2(0, 78);
+        final rightBrick = _TestBrick()..position = Vector2(16, 78);
+        final bricks =
+            reverseOrder ? [rightBrick, leftBrick] : [leftBrick, rightBrick];
+        ball.onMount();
+
+        ball.update(1 / 120);
+        for (final brick in bricks) {
+          ball.onCollisionStart({Vector2.zero()}, brick);
+          ball.onCollision({Vector2.zero()}, brick);
+        }
+        expect(leftBrick.hits, 0);
+        expect(rightBrick.hits, 0);
+
+        game.collisionDetection.run();
+
+        expect(leftBrick.hits, 0);
+        expect(rightBrick.hits, 1);
+        expect(ball.x, scenario.expectedX);
+        expect(ball.y, 87);
+        expect(ball.velocity.x, scenario.vx);
+        expect(ball.velocity.y, 360);
+      }
+    }
+  });
+
   test('only one brick is hit during the same contact cluster', () {
+    final game = Arkanoid();
     final ball = Ball()
+      ..game = game
       ..position = Vector2(14, 8)
       ..velocity = Vector2(0, 130);
     final firstBrick = _TestBrick()..position = Vector2(0, 10);
     final secondBrick = _TestBrick()..position = Vector2(16, 10);
     final intersectionPoints = {Vector2.zero()};
+    ball.onMount();
 
     ball.onCollisionStart(intersectionPoints, firstBrick);
     ball.onCollision(intersectionPoints, firstBrick);
     ball.onCollisionStart(intersectionPoints, secondBrick);
     ball.onCollision(intersectionPoints, secondBrick);
+    game.collisionDetection.run();
 
     expect(firstBrick.hits, 1);
     expect(secondBrick.hits, 0);
 
     ball.onCollisionEnd(firstBrick);
     ball.onCollision(intersectionPoints, secondBrick);
+    game.collisionDetection.run();
     expect(secondBrick.hits, 0);
 
     ball.onCollisionEnd(secondBrick);
@@ -172,6 +223,7 @@ void main() {
     ball.velocity = Vector2(0, 130);
     ball.onCollisionStart(intersectionPoints, secondBrick);
     ball.onCollision(intersectionPoints, secondBrick);
+    game.collisionDetection.run();
 
     expect(secondBrick.hits, 1);
   });

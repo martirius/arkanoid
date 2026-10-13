@@ -30,6 +30,7 @@ class Ball extends PositionedEntity
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
   Brick? _activeBrickCollision;
+  final Set<Brick> _brickCollisionCandidates = {};
   final Vector2 _previousPosition = Vector2.zero();
   bool _hasPreviousPosition = false;
 
@@ -48,21 +49,28 @@ class Ball extends PositionedEntity
   }
 
   @override
+  void onMount() {
+    super.onMount();
+    gameRef.collisionDetection.collisionsCompletedNotifier
+        .addListener(_resolveBrickCollision);
+  }
+
+  @override
+  void onRemove() {
+    gameRef.collisionDetection.collisionsCompletedNotifier
+        .removeListener(_resolveBrickCollision);
+    _brickCollisionCandidates.clear();
+    super.onRemove();
+  }
+
+  @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
 
     if (other is Brick) {
-      if (_activeBrickCollision != null) {
-        return;
+      if (_activeBrickCollision == null) {
+        _brickCollisionCandidates.add(other);
       }
-      _activeBrickCollision = other;
-      other.hit(true);
-      _numberOfBrickHit += 1;
-      if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
-          _numberOfBrickHit % _numberOfBricksHitToIncreaseVelocity == 0) {
-        velocity *= 1.2;
-      }
-      _bounceOff(other);
     } else if (other is Starship && ballCanMove && velocity.y > 0) {
       final starship = other;
       final ballSpeed = velocity.length;
@@ -82,6 +90,34 @@ class Ball extends PositionedEntity
     }
   }
 
+  void _resolveBrickCollision() {
+    if (_activeBrickCollision != null || _brickCollisionCandidates.isEmpty) {
+      _brickCollisionCandidates.clear();
+      return;
+    }
+
+    final candidates = _brickCollisionCandidates.toList()
+      ..sort((first, second) {
+        final firstTime = _collisionImpact(first).time;
+        final secondTime = _collisionImpact(second).time;
+        if ((firstTime - secondTime).abs() > 0.0001) {
+          return firstTime.compareTo(secondTime);
+        }
+        return _contactsAfterBounce(first)
+            .compareTo(_contactsAfterBounce(second));
+      });
+    final brick = candidates.first;
+    _brickCollisionCandidates.clear();
+    _activeBrickCollision = brick;
+    brick.hit(true);
+    _numberOfBrickHit += 1;
+    if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
+        _numberOfBrickHit % _numberOfBricksHitToIncreaseVelocity == 0) {
+      velocity *= 1.2;
+    }
+    _bounceOff(brick);
+  }
+
   @override
   void onCollisionEnd(PositionComponent other) {
     super.onCollisionEnd(other);
@@ -93,7 +129,7 @@ class Ball extends PositionedEntity
   void _bounceOff(PositionComponent other) {
     final ballBounds = _scaledBounds(this);
     final otherBounds = _scaledBounds(other);
-    switch (_collisionSide(ballBounds, otherBounds)) {
+    switch (_collisionImpact(other).side) {
       case _BallCollisionSide.top:
         y = otherBounds.top - ballBounds.height - 1;
         velocity.y = -velocity.y.abs();
@@ -113,9 +149,13 @@ class Ball extends PositionedEntity
     }
   }
 
-  _BallCollisionSide _collisionSide(Rect ball, Rect obstacle) {
+  ({double time, _BallCollisionSide side}) _collisionImpact(
+    PositionComponent other,
+  ) {
+    final ball = _scaledBounds(this);
+    final obstacle = _scaledBounds(other);
     if (!_hasPreviousPosition) {
-      return _sideFromAxis(collisionAxis(ball, obstacle));
+      return (time: 0, side: _sideFromAxis(collisionAxis(ball, obstacle)));
     }
 
     final previousBall = Rect.fromLTWH(
@@ -124,49 +164,108 @@ class Ball extends PositionedEntity
       ball.width,
       ball.height,
     );
+    final horizontalMovement = ball.left - previousBall.left;
+    final verticalMovement = ball.top - previousBall.top;
+    final horizontalEntry = _axisEntryTime(
+      previousBall.left,
+      previousBall.right,
+      obstacle.left,
+      obstacle.right,
+      horizontalMovement,
+    );
+    final verticalEntry = _axisEntryTime(
+      previousBall.top,
+      previousBall.bottom,
+      obstacle.top,
+      obstacle.bottom,
+      verticalMovement,
+    );
+    final entryTime = max(horizontalEntry, verticalEntry);
+
+    if (entryTime == double.negativeInfinity ||
+        entryTime == double.infinity ||
+        (horizontalEntry - verticalEntry).abs() <= 0.0001) {
+      return (
+        time: entryTime == double.negativeInfinity ? 0 : entryTime,
+        side: _sideFromAxis(collisionAxis(ball, obstacle)),
+      );
+    }
+
+    if (horizontalEntry > verticalEntry) {
+      return (
+        time: entryTime,
+        side: horizontalMovement > 0
+            ? _BallCollisionSide.left
+            : _BallCollisionSide.right,
+      );
+    }
+    return (
+      time: entryTime,
+      side: verticalMovement > 0
+          ? _BallCollisionSide.top
+          : _BallCollisionSide.bottom,
+    );
+  }
+
+  static double _axisEntryTime(
+    double previousMin,
+    double previousMax,
+    double obstacleMin,
+    double obstacleMax,
+    double movement,
+  ) {
     const tolerance = 0.0001;
-    final fromLeft =
-        velocity.x > 0 && previousBall.right <= obstacle.left + tolerance;
-    final fromRight =
-        velocity.x < 0 && previousBall.left >= obstacle.right - tolerance;
-    final fromAbove =
-        velocity.y > 0 && previousBall.bottom <= obstacle.top + tolerance;
-    final fromBelow =
-        velocity.y < 0 && previousBall.top >= obstacle.bottom - tolerance;
-    final horizontalApproach = fromLeft || fromRight;
-    final verticalApproach = fromAbove || fromBelow;
-
-    BallCollisionAxis axis;
-    if (horizontalApproach && verticalApproach) {
-      final horizontalDistance = fromLeft
-          ? obstacle.left - previousBall.right
-          : previousBall.left - obstacle.right;
-      final verticalDistance = fromAbove
-          ? obstacle.top - previousBall.bottom
-          : previousBall.top - obstacle.bottom;
-      final horizontalMovement = (ball.left - previousBall.left).abs();
-      final verticalMovement = (ball.top - previousBall.top).abs();
-      final horizontalEntry = horizontalDistance / horizontalMovement;
-      final verticalEntry = verticalDistance / verticalMovement;
-      axis = horizontalEntry > verticalEntry
-          ? BallCollisionAxis.horizontal
-          : BallCollisionAxis.vertical;
-    } else if (horizontalApproach) {
-      axis = BallCollisionAxis.horizontal;
-    } else if (verticalApproach) {
-      axis = BallCollisionAxis.vertical;
-    } else {
-      axis = collisionAxis(ball, obstacle);
+    if (previousMax <= obstacleMin + tolerance) {
+      return movement > 0
+          ? max(0, obstacleMin - previousMax) / movement
+          : double.infinity;
     }
-
-    if (axis == BallCollisionAxis.horizontal) {
-      return fromLeft || (!fromRight && velocity.x > 0)
-          ? _BallCollisionSide.left
-          : _BallCollisionSide.right;
+    if (previousMin >= obstacleMax - tolerance) {
+      return movement < 0
+          ? max(0, previousMin - obstacleMax) / -movement
+          : double.infinity;
     }
-    return fromAbove || (!fromBelow && velocity.y > 0)
-        ? _BallCollisionSide.top
-        : _BallCollisionSide.bottom;
+    return double.negativeInfinity;
+  }
+
+  int _contactsAfterBounce(Brick brick) {
+    final resolvedBounds = _resolvedBounds(brick);
+    return _brickCollisionCandidates
+        .where((candidate) =>
+            candidate != brick &&
+            resolvedBounds.overlaps(_scaledBounds(candidate)))
+        .length;
+  }
+
+  Rect _resolvedBounds(PositionComponent other) {
+    final ball = _scaledBounds(this);
+    final obstacle = _scaledBounds(other);
+    return switch (_collisionImpact(other).side) {
+      _BallCollisionSide.top => Rect.fromLTWH(
+          ball.left,
+          obstacle.top - ball.height - 1,
+          ball.width,
+          ball.height,
+        ),
+      _BallCollisionSide.bottom => Rect.fromLTWH(
+          ball.left,
+          obstacle.bottom + 1,
+          ball.width,
+          ball.height,
+        ),
+      _BallCollisionSide.left => Rect.fromLTWH(
+          obstacle.left - ball.width - 1,
+          ball.top,
+          ball.width,
+          ball.height,
+        ),
+      _BallCollisionSide.right => Rect.fromLTWH(
+          obstacle.right + 1,
+          ball.top,
+          ball.width,
+          ball.height,
+        ),
+    };
   }
 
   _BallCollisionSide _sideFromAxis(BallCollisionAxis axis) {
