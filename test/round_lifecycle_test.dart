@@ -7,6 +7,7 @@ import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
+import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,7 +141,7 @@ void main() {
     expect(level.children.whereType<Brick>(), hasLength(2));
   });
 
-  testWidgets('multiple brick removals are reconciled by the round',
+  testWidgets('multiple removals complete the round and show the next banner',
       (tester) async {
     final level = _testLevel();
     final game = _TestArkanoid(level);
@@ -171,8 +172,35 @@ void main() {
 
     level.bricks.first[2]!.hit(false);
     expect(level.phase, RoundPhase.completed);
-    await tester.pump();
-    await _pumpUntilRoundIsReady(tester, game.currentLevel);
+    for (var attempt = 0;
+        attempt < 20 && game.currentLevel == level;
+        attempt++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+
+    final nextLevel = game.currentLevel;
+    for (var attempt = 0;
+        attempt < 20 &&
+            !nextLevel.children
+                .whereType<TextComponent>()
+                .any((component) => component.text == 'ROUND 2\nREADY');
+        attempt++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+    expect(nextLevel.phase, RoundPhase.intro);
+    expect(
+      nextLevel.children
+          .whereType<TextComponent>()
+          .map((component) => component.text),
+      contains('ROUND 2\nREADY'),
+    );
+    await _pumpUntilRoundIsReady(tester, nextLevel);
   });
 
   testWidgets('escaping is an explicit round phase', (tester) async {

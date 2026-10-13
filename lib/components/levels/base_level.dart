@@ -30,6 +30,8 @@ enum RoundPhase {
 class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
   BaseLevel(this.definition) : fieldType = definition.fieldType;
 
+  static const _roundReadyDuration = Duration(seconds: 2);
+
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
       background: Background(),
@@ -64,7 +66,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       5,
     );
   late final _roundNumberComponent = TextComponent(
-      text: "Round ${definition.roundNumber}\n Ready",
+      text: "ROUND ${definition.roundNumber}\nREADY",
       textRenderer: TextPaint(
           style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
@@ -232,7 +234,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
       await loadBricks();
     }
     await add(_roundNumberComponent
-      ..priority = 20
+      ..priority = 100
       ..position = Vector2(
           field.x,
           (field.size.y * field.scale.y + field.y) / 2 +
@@ -240,8 +242,7 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
 
     gameRef.audio.play(GameSound.gameStart);
     // wait for audio to finish to start game
-    final elapsed =
-        await _waitFor(const Duration(seconds: 1, milliseconds: 500));
+    final elapsed = await _waitFor(_roundReadyDuration);
     if (!elapsed || !_isCurrentRound) {
       return;
     }
