@@ -246,7 +246,7 @@ class StarshipAnimationComponent
   late final _spriteDisappearing = [0, 1, 2, 3, 4, 5, 6].map((i) => Sprite.load(
         'starship.png',
         srcPosition:
-            i < 3 ? Vector2(176.0, 8.0 * i) : Vector2(16.0 + 48 * i, 76),
+            i < 3 ? Vector2(176.0, 8.0 * i) : Vector2(16.0 + 48 * (i - 3), 76),
         srcSize: i < 3 ? Vector2(32.0, starshipHeight) : Vector2(48, 24),
       ));
 

@@ -198,7 +198,7 @@ abstract class BaseLevel extends PositionedEntity
   Future<void> _loadGameComponents() async {
     await add(field);
     _starship.position = Vector2(
-      field.x - _starship.size.x * _starship.scale.x / 2,
+      field.x - _starship.size.x * gameRef.scaleFactor / 2,
       field.size.y * field.scale.y +
           field.position.y -
           _starship.size.y * field.scale.y -
@@ -210,16 +210,7 @@ abstract class BaseLevel extends PositionedEntity
           Field.hitboxSize * gameRef.scaleFactor,
       field.size.y * field.scale.y + field.position.y,
     );
-    final ball = Ball();
-    ball.position = Vector2(
-      field.x - ball.size.x * ball.scale.x / 2,
-      field.size.y * field.scale.y +
-          field.position.y -
-          30 -
-          _starship.size.y * field.scale.y -
-          ball.size.y * field.scale.y -
-          1,
-    );
+    final ball = _newBall();
     balls
       ..clear()
       ..add(ball);
@@ -273,6 +264,42 @@ abstract class BaseLevel extends PositionedEntity
         }
       }
     }
+  }
+
+  Ball _newBall() {
+    final ball = Ball();
+    ball.position = Vector2(
+      field.x - ball.size.x * gameRef.scaleFactor / 2,
+      field.size.y * field.scale.y +
+          field.position.y -
+          30 -
+          _starship.size.y * field.scale.y -
+          ball.size.y * gameRef.scaleFactor -
+          1,
+    );
+    return ball;
+  }
+
+  void _removeTemporaryComponents() {
+    for (final component in children.toList()) {
+      if (component is PowerUp || component is BreakAnimationComponent) {
+        component.removeFromParent();
+      }
+    }
+  }
+
+  Future<void> _restartAfterLifeLoss() async {
+    _removeTemporaryComponents();
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final ball = _newBall();
+    balls.add(ball);
+    await add(ball);
+    _fireButton.addInteractable(ball);
+    _starship.appear();
+    _introFinished = true;
+    _gameStarted = true;
+    ball.ballCanMove = true;
   }
 
   @override
@@ -352,10 +379,8 @@ abstract class BaseLevel extends PositionedEntity
 
     try {
       await _starship.destroy();
-      await _removeGameComponents();
-      await Future.delayed(const Duration(milliseconds: 500));
       if (gameRef.numberOfLives > 0) {
-        await _loadGameComponents();
+        await _restartAfterLifeLoss();
       } else {
         // GAME OVER
         _gameOver();
