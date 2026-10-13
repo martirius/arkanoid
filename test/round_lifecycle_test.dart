@@ -183,20 +183,22 @@ void main() {
 
     final nextLevel = game.currentLevel;
     for (var attempt = 0;
-        attempt < 20 &&
-            !nextLevel.children
-                .whereType<TextComponent>()
-                .any((component) => component.text == 'ROUND 2\nREADY');
+        attempt < 300 &&
+            !(nextLevel.isMounted &&
+                nextLevel.children.whereType<TextComponent>().any(
+                      (component) =>
+                          component.isMounted &&
+                          component.text == 'ROUND 2\nREADY',
+                    ));
         attempt++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
     }
     expect(nextLevel.phase, RoundPhase.intro);
+    expect(nextLevel.isMounted, isTrue);
     expect(
       nextLevel.children
           .whereType<TextComponent>()
+          .where((component) => component.isMounted)
           .map((component) => component.text),
       contains('ROUND 2\nREADY'),
     );

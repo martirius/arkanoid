@@ -241,13 +241,16 @@ class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
               (field.size.y * field.scale.y + field.y) / 4));
 
     gameRef.audio.play(GameSound.gameStart);
-    // wait for audio to finish to start game
+    async.unawaited(_completeRoundIntro(ball));
+    // Let onLoad finish so Flame can mount and render the READY screen.
+  }
+
+  Future<void> _completeRoundIntro(Ball ball) async {
     final elapsed = await _waitFor(_roundReadyDuration);
-    if (!elapsed || !_isCurrentRound) {
+    if (!elapsed || !_isCurrentRound || _phase != RoundPhase.intro) {
       return;
     }
     await _mountRoundComponents(ball, addLives: true);
-    //score shower component
   }
 
   Future<void> _mountRoundComponents(
