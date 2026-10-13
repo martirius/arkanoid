@@ -48,6 +48,7 @@ abstract class BaseLevel extends PositionedEntity
   bool _introFinished = false;
   bool _starshipEscaping = false;
   bool _lifeLossInProgress = false;
+  bool _levelCompletionInProgress = false;
   static const int numerOfBricEachRow = 13;
   static const int numberOfRow = 16;
   late final _playerTextComponent = TopText(
@@ -400,6 +401,10 @@ abstract class BaseLevel extends PositionedEntity
   }
 
   void levelCompleted() {
+    if (_levelCompletionInProgress) {
+      return;
+    }
+    _levelCompletionInProgress = true;
     _removeGameComponents()
         .then((value) => gameRef.levelCompleted(_roundNumber));
   }

@@ -47,7 +47,7 @@ class Starship extends PositionedEntity
             ],
             size: Vector2(starshipWidth, starshipHeight),
             anchor: Anchor.topLeft,
-            children: [RectangleHitbox()],
+            children: [RectangleHitbox(isSolid: true)],
             priority: 30);
 
   Starship.withJoystick({
@@ -182,11 +182,9 @@ class Starship extends PositionedEntity
             _canEscape = true;
           }
         }
-      } else if (other is CompositeHitbox) {
-        if (other.parent is Ball &&
-            powerUp == PowerUpType.cattch &&
-            !_collidingBalls.contains(other.parent as Ball)) {
-          final ball = other.parent as Ball;
+      } else if (other is Ball) {
+        if (powerUp == PowerUpType.cattch && !_collidingBalls.contains(other)) {
+          final ball = other;
           ball.ballCanMove = false;
           _collidingBalls.add(ball);
         }

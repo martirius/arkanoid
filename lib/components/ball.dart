@@ -12,6 +12,8 @@ import 'package:flame/flame.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/services.dart';
 
+enum BallCollisionAxis { horizontal, vertical }
+
 class Ball extends PositionedEntity
     with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
     implements ButtonInteractable {
@@ -19,22 +21,12 @@ class Ball extends PositionedEntity
       : super(
             size: Vector2(_ballWidth, _ballHeight),
             behaviors: [ActionBehaviour(fireKey: LogicalKeyboardKey.space)],
-            children: [
-              CompositeHitbox(children: [
-                RectangleHitbox(
-                    position: Vector2(0.0, _ballHeight / 2),
-                    size: Vector2(_ballWidth + 1, 0.1)),
-                RectangleHitbox(
-                    position: Vector2(_ballWidth / 2, 0),
-                    size: Vector2(0.1, _ballHeight + 1)),
-              ])
-            ],
+            children: [RectangleHitbox(isSolid: true)],
             anchor: Anchor.topLeft);
 
   Vector2 velocity = Vector2(130, -130);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
-  Brick? _previousBrick;
 
   static const _ballWidth = 5.0;
   static const _ballHeight = 4.0;
@@ -53,56 +45,75 @@ class Ball extends PositionedEntity
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
-    final middleIntersectionPoint =
-        (intersectionPoints.first + intersectionPoints.last) / 2;
-    final ballSpeed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 
-    if (other is Brick && _previousBrick != other) {
-      _previousBrick = other;
+    if (other is Brick) {
       other.hit(true);
       _numberOfBrickHit += 1;
       if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
           _numberOfBrickHit % _numberOfBricksHitToIncreaseVelocity == 0) {
         velocity *= 1.2;
       }
-      if (middleIntersectionPoint.y.round() == other.y.round() &&
-          velocity.y > 0) {
-        //ball is over brick, invert y
-        y = other.y - size.y * scale.y - 1;
-        velocity.y *= -1;
-      } else {
-        if (middleIntersectionPoint.y.round() ==
-                (other.y + (other.size.y * other.scale.y)).round() &&
-            velocity.y < 0) {
-          //y = other.y + other.size.y * other.scale.y + 1;
-          velocity.y *= -1;
-          //ball is below brick, inver y
-        } else {
-          //left or right part of brick, invert x
-          //x = x < other.x ? x - 1 : other.x + other.scale.x * other.size.x + 1;
-          velocity.x *= -1;
-        }
-      }
-    } else if (other is Starship && ballCanMove) {
+      _bounceOff(other);
+    } else if (other is Starship && ballCanMove && velocity.y > 0) {
       final starship = other;
-      //calculate bouncing direction only if startship is lower than ball
-      if (y + size.y <= starship.y) {
-        gameRef.audio.play(GameSound.ballHitStarship);
-        final relativeIntersectX =
-            (starship.x + (starship.width * starship.scale.x)) -
-                (middleIntersectionPoint.x);
-        var normalizedRelativeIntersectionX =
-            (relativeIntersectX / (starship.width * starship.scale.x));
-        var bounceAngle = (normalizedRelativeIntersectionX * ((pi)));
-        bounceAngle = bounceAngle > pi / 2
-            ? bounceAngle.clamp((pi / 2) + pi / 6, pi - pi / 6)
-            : bounceAngle.clamp(0 + pi / 6, (pi / 2) - pi / 6);
+      final ballSpeed = velocity.length;
+      final ballCenterX = x + size.x * scale.x / 2;
+      final starshipWidth = starship.width * starship.scale.x;
+      final relativeIntersectX =
+          (starship.x + starshipWidth - ballCenterX) / starshipWidth;
+      var bounceAngle = relativeIntersectX.clamp(0.0, 1.0) * pi;
+      bounceAngle = bounceAngle > pi / 2
+          ? bounceAngle.clamp((pi / 2) + pi / 6, pi - pi / 6)
+          : bounceAngle.clamp(pi / 6, (pi / 2) - pi / 6);
 
-        velocity.x = ballSpeed * cos(bounceAngle);
-        velocity.y = ballSpeed * -sin(bounceAngle);
-      }
+      y = starship.y - size.y * scale.y - 1;
+      velocity.x = ballSpeed * cos(bounceAngle);
+      velocity.y = ballSpeed * -sin(bounceAngle);
+      gameRef.audio.play(GameSound.ballHitStarship);
     }
-    _previousBrick = other is Brick ? other : null;
+  }
+
+  void _bounceOff(PositionComponent other) {
+    final ballBounds = _scaledBounds(this);
+    final otherBounds = _scaledBounds(other);
+    if (collisionAxis(ballBounds, otherBounds) == BallCollisionAxis.vertical) {
+      if (velocity.y > 0) {
+        y = otherBounds.top - ballBounds.height - 1;
+        velocity.y = -velocity.y.abs();
+      } else {
+        y = otherBounds.bottom + 1;
+        velocity.y = velocity.y.abs();
+      }
+    } else if (velocity.x > 0) {
+      x = otherBounds.left - ballBounds.width - 1;
+      velocity.x = -velocity.x.abs();
+    } else {
+      x = otherBounds.right + 1;
+      velocity.x = velocity.x.abs();
+    }
+  }
+
+  static BallCollisionAxis collisionAxis(Rect ball, Rect obstacle) {
+    final horizontalPenetration = min(
+      ball.right - obstacle.left,
+      obstacle.right - ball.left,
+    );
+    final verticalPenetration = min(
+      ball.bottom - obstacle.top,
+      obstacle.bottom - ball.top,
+    );
+    return verticalPenetration <= horizontalPenetration
+        ? BallCollisionAxis.vertical
+        : BallCollisionAxis.horizontal;
+  }
+
+  static Rect _scaledBounds(PositionComponent component) {
+    return Rect.fromLTWH(
+      component.x,
+      component.y,
+      component.size.x * component.scale.x,
+      component.size.y * component.scale.y,
+    );
   }
 
   @override
@@ -116,11 +127,11 @@ class Ball extends PositionedEntity
       double.infinity,
     );
     if (y < gameRef.currentLevel.field.lowWall && ballCanMove) {
-      calculateBallDirection(1, dt);
+      calculateBallDirection(dt);
     }
   }
 
-  void calculateBallDirection(double factor, double dt) {
+  void calculateBallDirection(double dt) {
     final field = gameRef.currentLevel.field;
     //calculate bouncing with Field borders
     if ((x <= field.leftWall || x >= field.rightWall - size.x * scale.x)) {

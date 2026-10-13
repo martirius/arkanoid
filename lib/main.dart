@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level1.dart';
@@ -25,6 +26,9 @@ void main() {
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
+  static const double _physicsStep = 1 / 120;
+  static const int _maxPhysicsSteps = 8;
+
   final GameAudio audio = GameAudio();
   BaseLevel currentLevel = Level1();
   int topScore = 50000;
@@ -40,6 +44,29 @@ class Arkanoid extends FlameGame
     double yScale = (size.y - 50) / 240.0;
     scaleFactor = size.x < size.y ? xScale : yScale;
     add(currentLevel);
+  }
+
+  static int physicsStepsFor(double dt) {
+    if (dt <= 0) {
+      return 0;
+    }
+    // shortcut: discard stalls beyond 1/15s to avoid a catch-up spiral.
+    final simulatedDt = min(dt, _physicsStep * _maxPhysicsSteps);
+    return (simulatedDt / _physicsStep).ceil();
+  }
+
+  @override
+  void update(double dt) {
+    final steps = physicsStepsFor(dt);
+    if (steps == 0) {
+      return;
+    }
+
+    final simulatedDt = min(dt, _physicsStep * _maxPhysicsSteps);
+    final stepDt = simulatedDt / steps;
+    for (var step = 0; step < steps; step++) {
+      super.update(stepDt);
+    }
   }
 
   @override

@@ -80,7 +80,10 @@ class Brick extends SpriteAnimationComponent with HasGameRef<Arkanoid> {
           loop: false),
     };
     animation = animations[model];
-    add(RectangleHitbox()..collisionType = CollisionType.passive);
+    add(RectangleHitbox(
+      isSolid: true,
+      collisionType: CollisionType.passive,
+    ));
     super.onLoad();
   }
 
