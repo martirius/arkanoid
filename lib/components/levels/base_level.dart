@@ -225,8 +225,8 @@ abstract class BaseLevel extends PositionedEntity
     //_fireButton.addInteractable(_starship);
     _fireButton.addInteractable(ball);
     _introFinished = true;
-    _gameStarted = true;
-    ball.ballCanMove = true;
+    _gameStarted = false;
+    ball.ballCanMove = false;
   }
 
   void _positionStarship() {
@@ -317,14 +317,32 @@ abstract class BaseLevel extends PositionedEntity
     final previousStarship = _starship;
     previousField.removeFromParent();
     previousStarship.removeFromParent();
+    for (final row in bricks) {
+      for (final brick in row) {
+        brick?.removeFromParent();
+      }
+    }
     await Future.delayed(const Duration(milliseconds: 500));
 
     field = _newField();
     _starship = _newStarship();
     await add(field);
+    await loadBricks();
+    await add(_roundNumberComponent
+      ..text = 'PLAYER 1\nREADY'
+      ..position = Vector2(
+        field.x,
+        (field.size.y * field.scale.y + field.y) / 2 +
+            (field.size.y * field.scale.y + field.y) / 4,
+      ));
+    FlameAudio.play('Game_Start.mp3');
+    await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+
     _positionStarship();
     final ball = _newBall();
-    balls.add(ball);
+    balls
+      ..clear()
+      ..add(ball);
     await _mountRoundComponents(ball, addLives: false);
   }
 
@@ -342,6 +360,7 @@ abstract class BaseLevel extends PositionedEntity
         for (var element in ballsToRemove) {
           balls.removeAt(balls.indexOf(element));
           element.removeFromParent();
+          _fireButton.removeInteractable(element);
         }
         if (balls.isEmpty && !_starshipEscaping && !_lifeLossInProgress) {
           //all balls are gone, life lost
