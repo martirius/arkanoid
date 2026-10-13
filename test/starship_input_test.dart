@@ -1,26 +1,81 @@
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/inputs/input_controller.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('keyboard movement takes priority over joystick movement', () {
-    final starship = Starship.withKeyboard(
-      onPowerUp: (_) {},
-      onEscape: () {},
+    var movementDirection = 0;
+    final joystick = JoystickComponent(
+      knob: CircleComponent(radius: 1),
+      size: 10,
+    )..delta.x = 5;
+    final controller = InputController(
+      joystick: joystick,
+      onMove: (direction) => movementDirection = direction,
+      onAction: () {},
     );
 
-    starship.setJoystickDirection(1);
-    expect(starship.movementDirection, 1);
+    controller.update(0);
+    expect(movementDirection, 1);
 
-    starship.setKeyboardDirection(-1);
-    expect(starship.movementDirection, -1);
+    controller.onKeyEvent(
+      const KeyDownEvent(
+        physicalKey: PhysicalKeyboardKey.arrowLeft,
+        logicalKey: LogicalKeyboardKey.arrowLeft,
+        timeStamp: Duration.zero,
+      ),
+      {LogicalKeyboardKey.arrowLeft},
+    );
+    controller.update(0);
+    expect(movementDirection, -1);
 
-    starship.setKeyboardDirection(0);
-    expect(starship.movementDirection, 1);
+    controller.onKeyEvent(
+      const KeyUpEvent(
+        physicalKey: PhysicalKeyboardKey.arrowLeft,
+        logicalKey: LogicalKeyboardKey.arrowLeft,
+        timeStamp: Duration.zero,
+      ),
+      {},
+    );
+    controller.update(0);
+    expect(movementDirection, 1);
+  });
+
+  test('action fires once for a physical key press', () {
+    var actions = 0;
+    final controller = InputController(
+      joystick: JoystickComponent(
+        knob: CircleComponent(radius: 1),
+        size: 10,
+      ),
+      onMove: (_) {},
+      onAction: () => actions++,
+    );
+
+    controller.onKeyEvent(
+      const KeyDownEvent(
+        physicalKey: PhysicalKeyboardKey.space,
+        logicalKey: LogicalKeyboardKey.space,
+        timeStamp: Duration.zero,
+      ),
+      {LogicalKeyboardKey.space},
+    );
+    controller.onKeyEvent(
+      const KeyRepeatEvent(
+        physicalKey: PhysicalKeyboardKey.space,
+        logicalKey: LogicalKeyboardKey.space,
+        timeStamp: Duration(milliseconds: 10),
+      ),
+      {LogicalKeyboardKey.space},
+    );
+
+    expect(actions, 1);
   });
 
   test('starship moves at the configured horizontal speed', () {
@@ -28,14 +83,14 @@ void main() {
     game.currentLevel.field = Field(FieldType.blue)
       ..position = Vector2(112, 0)
       ..scale = Vector2.all(1);
-    final starship = Starship.withKeyboard(
+    final starship = Starship(
       onPowerUp: (_) {},
       onEscape: () {},
     )
       ..game = game
       ..position = Vector2(100, 200);
 
-    starship.setKeyboardDirection(1);
+    starship.setMovementDirection(1);
     starship.update(0.1);
 
     expect(starship.x, 125);
@@ -46,7 +101,7 @@ void main() {
     game.currentLevel.field = Field(FieldType.blue)
       ..position = Vector2(112, 0)
       ..scale = Vector2.all(1);
-    final starship = Starship.withKeyboard(
+    final starship = Starship(
       onPowerUp: (_) {},
       onEscape: () {},
     )
@@ -56,7 +111,7 @@ void main() {
     final ball = Ball()..position = Vector2(200, 196);
 
     starship.onCollision({Vector2.zero()}, ball);
-    starship.setKeyboardDirection(1);
+    starship.setMovementDirection(1);
     starship.update(1 / 60);
 
     expect(starship.x, 184);

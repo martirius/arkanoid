@@ -1,13 +1,11 @@
 import 'dart:async' as async;
 
 import 'package:arkanoid/components/ball.dart';
-import 'package:arkanoid/components/behaviours/action_behaviour.dart';
 import 'package:arkanoid/components/break_animation.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/inputs/action_entity.dart';
-import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/inputs/fire_button.dart';
+import 'package:arkanoid/components/inputs/input_controller.dart';
 import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
@@ -16,9 +14,7 @@ import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:flutter/services.dart';
 
 enum RoundPhase {
   intro,
@@ -30,17 +26,8 @@ enum RoundPhase {
   gameOver,
 }
 
-abstract class BaseLevel extends PositionedEntity
-    with HasGameRef<Arkanoid>, ActionEntity
-    implements ButtonInteractable {
-  BaseLevel(this.fieldType, this._roundNumber)
-      : super(
-          behaviors: [
-            ActionBehaviour(
-              fireKey: LogicalKeyboardKey.space,
-            )
-          ],
-        );
+abstract class BaseLevel extends PositionedEntity with HasGameRef<Arkanoid> {
+  BaseLevel(this.fieldType, this._roundNumber);
 
   final JoystickComponent _joystick = JoystickComponent(
       knob: Knob(),
@@ -50,6 +37,7 @@ abstract class BaseLevel extends PositionedEntity
       knobRadius: 20);
   final int _roundNumber;
   late FireButton _fireButton;
+  late InputController _inputController;
   late Starship _starship;
   final List<Ball> balls = [];
   List<List<Brick?>> bricks = [];
@@ -185,8 +173,14 @@ abstract class BaseLevel extends PositionedEntity
       ..anchor = Anchor.bottomLeft
       ..priority = 20;
     _starship = _newStarship();
+    _inputController = InputController(
+      joystick: _joystick,
+      onMove: (direction) => _starship.setMovementDirection(direction),
+      onAction: performAction,
+    );
     _fireButton = FireButton(
       Vector2(40, size.y - 40),
+      onPressed: _inputController.pressAction,
     );
     _fireButton.position.y = size.y - 40 - _fireButton.size.y;
     field = _newField();
@@ -195,6 +189,7 @@ abstract class BaseLevel extends PositionedEntity
   Future<void> _loadComponents() async {
     add(_fireButton);
     add(_joystick);
+    add(_inputController);
     add(_playerTextComponent);
     add(_topScoreComponent);
     _playerTextComponent.blinkLabel();
@@ -263,11 +258,8 @@ abstract class BaseLevel extends PositionedEntity
     await add(ball);
     if (addLives) {
       await add(_lives);
-      _fireButton.addInteractable(this);
     }
     _roundNumberComponent.removeFromParent();
-    _fireButton.addInteractable(_starship);
-    _fireButton.addInteractable(ball);
     _phase = RoundPhase.ready;
     ball.ballCanMove = false;
   }
@@ -299,14 +291,11 @@ abstract class BaseLevel extends PositionedEntity
     }
     for (final element in balls) {
       element.removeFromParent();
-      _fireButton.removeInteractable(element);
     }
     balls.clear();
     _lives.removeFromParent();
     _starship.removeFromParent();
     field.removeFromParent();
-    _fireButton.removeInteractable(_starship);
-    _fireButton.removeInteractable(this);
     for (final row in bricks) {
       for (var brick in row) {
         if (brick != null) {
@@ -334,17 +323,10 @@ abstract class BaseLevel extends PositionedEntity
     ..priority = -10
     ..position = Vector2(gameRef.size.x / 2, 50);
 
-  Starship _newStarship() => (defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.android)
-      ? Starship.withJoystick(
-          joystickComponent: _joystick,
-          onPowerUp: _onPowerUpTaken,
-          onEscape: _onStarshipEscape,
-        )
-      : Starship.withKeyboard(
-          onPowerUp: _onPowerUpTaken,
-          onEscape: _onStarshipEscape,
-        );
+  Starship _newStarship() => Starship(
+        onPowerUp: _onPowerUpTaken,
+        onEscape: _onStarshipEscape,
+      );
 
   void _removeTemporaryComponents() {
     for (final component in children.toList()) {
@@ -360,7 +342,6 @@ abstract class BaseLevel extends PositionedEntity
     final previousStarship = _starship;
     previousField.removeFromParent();
     previousStarship.removeFromParent();
-    _fireButton.removeInteractable(previousStarship);
     for (final row in bricks) {
       for (final brick in row) {
         brick?.removeFromParent();
@@ -414,7 +395,6 @@ abstract class BaseLevel extends PositionedEntity
       for (var element in ballsToRemove) {
         balls.removeAt(balls.indexOf(element));
         element.removeFromParent();
-        _fireButton.removeInteractable(element);
       }
       if (balls.isEmpty) {
         async.unawaited(lifeLost());
@@ -507,17 +487,14 @@ abstract class BaseLevel extends PositionedEntity
     _playerTextComponent.updateMessage(gameRef.currentScore.toString());
   }
 
-  @override
-  void onButtonPressed() {
+  void performAction() {
     if (_phase == RoundPhase.ready) {
       _phase = RoundPhase.playing;
-    }
-  }
-
-  @override
-  void onActionPressed() {
-    if (_phase == RoundPhase.ready) {
-      _phase = RoundPhase.playing;
+      for (final ball in balls) {
+        ball.launch();
+      }
+    } else if (_phase == RoundPhase.playing) {
+      _starship.performAction();
     }
   }
 

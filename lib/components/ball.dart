@@ -1,8 +1,7 @@
 import 'dart:math';
-import 'package:arkanoid/components/behaviours/action_behaviour.dart';
+import 'dart:ui' show Rect;
+
 import 'package:arkanoid/components/brick.dart';
-import 'package:arkanoid/components/inputs/action_entity.dart';
-import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
@@ -10,19 +9,16 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:flutter/services.dart';
 
 enum BallCollisionAxis { horizontal, vertical }
 
 enum _BallCollisionSide { left, right, top, bottom }
 
 class Ball extends PositionedEntity
-    with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
-    implements ButtonInteractable {
+    with CollisionCallbacks, HasGameRef<Arkanoid> {
   Ball()
       : super(
             size: Vector2(_ballWidth, _ballHeight),
-            behaviors: [ActionBehaviour(fireKey: LogicalKeyboardKey.space)],
             children: [RectangleHitbox(isSolid: true)],
             anchor: Anchor.topLeft);
 
@@ -355,10 +351,7 @@ class Ball extends PositionedEntity
     y += velocity.y * dt * scale.y;
   }
 
-  @override
-  void onButtonPressed() {
-    ballCanMove = true;
-  }
+  void launch() => ballCanMove = true;
 
   void slow() {
     if (_numberOfBrickHit >= _numberOfBricksHitToIncreaseVelocity) {
@@ -370,10 +363,5 @@ class Ball extends PositionedEntity
           1.2;
       _numberOfBrickHit = 0;
     }
-  }
-
-  @override
-  void onActionPressed() {
-    onButtonPressed();
   }
 }

@@ -1,10 +1,5 @@
 import 'package:arkanoid/components/ball.dart';
-import 'package:arkanoid/components/behaviours/action_behaviour.dart';
-import 'package:arkanoid/components/behaviours/joystick_moving_behavior.dart';
-import 'package:arkanoid/components/behaviours/keyboard_moving_behavior.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/inputs/action_entity.dart';
-import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/game_audio.dart';
@@ -13,7 +8,6 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:flutter/services.dart';
 
 enum StarshipState { still, movingLeft, movingRight, escaping }
 
@@ -27,44 +21,17 @@ enum StarshipAnimation {
 }
 
 class Starship extends PositionedEntity
-    with CollisionCallbacks, HasGameRef<Arkanoid>, ActionEntity
-    implements ButtonInteractable {
-  Starship._(
-    this._onPowerUp,
-    this._onEscape, {
-    JoystickComponent? joystickComponent,
-  }) : super(
-            behaviors: [
-              KeyboardMovingBehavior(
-                leftKey: LogicalKeyboardKey.arrowLeft,
-                rightKey: LogicalKeyboardKey.arrowRight,
-              ),
-              if (joystickComponent != null)
-                JoystickMovingBehavior(
-                  joystickComponent: joystickComponent,
-                ),
-              ActionBehaviour(fireKey: LogicalKeyboardKey.space)
-            ],
-            size: Vector2(starshipWidth, starshipHeight),
-            anchor: Anchor.topLeft,
-            children: [RectangleHitbox(isSolid: true)],
-            priority: 30);
-
-  Starship.withJoystick({
-    required JoystickComponent joystickComponent,
-    required Function(PowerUpType) onPowerUp,
-    required Function onEscape,
-  }) : this._(
-          onPowerUp,
-          onEscape,
-          joystickComponent: joystickComponent,
-        );
-
-  Starship.withKeyboard(
-      {required Function(PowerUpType) onPowerUp, required Function onEscape})
-      : this._(
-          onPowerUp,
-          onEscape,
+    with CollisionCallbacks, HasGameRef<Arkanoid> {
+  Starship({
+    required void Function(PowerUpType) onPowerUp,
+    required void Function() onEscape,
+  })  : _onPowerUp = onPowerUp,
+        _onEscape = onEscape,
+        super(
+          size: Vector2(starshipWidth, starshipHeight),
+          anchor: Anchor.topLeft,
+          children: [RectangleHitbox(isSolid: true)],
+          priority: 30,
         );
 
   StarshipState state = StarshipState.still;
@@ -77,14 +44,13 @@ class Starship extends PositionedEntity
   static const double starshipWidth = 32;
   static const double starshipHeight = 8;
   PowerUpType? powerUp;
-  final Function(PowerUpType) _onPowerUp;
-  final Function _onEscape;
+  final void Function(PowerUpType) _onPowerUp;
+  final void Function() _onEscape;
   bool _isDisappearing = false;
   final List<Ball> _collidingBalls = [];
   bool _canEscape = false;
   bool _isEscaping = false;
-  int _keyboardDirection = 0;
-  int _joystickDirection = 0;
+  int movementDirection = 0;
 
   @override
   Future<void>? onLoad() async {
@@ -141,16 +107,7 @@ class Starship extends PositionedEntity
     }
   }
 
-  int get movementDirection =>
-      _keyboardDirection != 0 ? _keyboardDirection : _joystickDirection;
-
-  void setKeyboardDirection(int direction) {
-    _keyboardDirection = direction;
-  }
-
-  void setJoystickDirection(int direction) {
-    _joystickDirection = direction;
-  }
+  void setMovementDirection(int direction) => movementDirection = direction;
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
@@ -213,8 +170,7 @@ class Starship extends PositionedEntity
     return Future.delayed(const Duration(seconds: 2));
   }
 
-  @override
-  void onActionPressed() {
+  void performAction() {
     if (powerUp == PowerUpType.laser) {
       gameRef.audio.play(GameSound.starshipShoot);
       parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
@@ -223,11 +179,6 @@ class Starship extends PositionedEntity
       ball.ballCanMove = true;
     }
     _collidingBalls.clear();
-  }
-
-  @override
-  void onButtonPressed() {
-    onActionPressed();
   }
 }
 

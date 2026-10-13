@@ -1,11 +1,12 @@
-import 'package:arkanoid/components/inputs/button_interactable.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/rendering.dart';
 
 class FireButton extends CircleComponent with TapCallbacks {
-  final List<ButtonInteractable> _buttonInteractables = [];
-  FireButton(position) : super(position: position, radius: 50);
+  FireButton(Vector2 position, {required this.onPressed})
+      : super(position: position, radius: 50);
+
+  final void Function() onPressed;
 
   @override
   void render(Canvas canvas) {
@@ -17,16 +18,8 @@ class FireButton extends CircleComponent with TapCallbacks {
 
   @override
   bool onTapDown(TapDownEvent event) {
-    _buttonInteractables.forEach((element) => element.onButtonPressed());
+    onPressed();
     return true;
-  }
-
-  void addInteractable(ButtonInteractable buttonInteractable) {
-    _buttonInteractables.add(buttonInteractable);
-  }
-
-  void removeInteractable(ButtonInteractable buttonInteractable) {
-    _buttonInteractables.remove(buttonInteractable);
   }
 }
 

@@ -57,7 +57,7 @@ void main() {
     ball.update(1 / 60);
     expect(ball.position, readyPosition);
 
-    ball.onActionPressed();
+    ball.launch();
     ball.update(1 / 60);
     expect(ball.position, isNot(readyPosition));
   });
@@ -108,8 +108,9 @@ void main() {
     );
     await _pumpUntilRoundIsReady(tester, level);
     expect(level.phase, RoundPhase.ready);
-    level.onButtonPressed();
+    level.performAction();
     expect(level.phase, RoundPhase.playing);
+    expect(level.balls.single.ballCanMove, isTrue);
 
     final destroyedBrick = level.bricks.first.first!;
     destroyedBrick.hit(false);
@@ -148,7 +149,7 @@ void main() {
       ),
     );
     await _pumpUntilRoundIsReady(tester, level);
-    level.onButtonPressed();
+    level.performAction();
 
     final firstBrick = level.bricks.first[0]!;
     final secondBrick = level.bricks.first[1]!;
@@ -182,7 +183,7 @@ void main() {
       ),
     );
     await _pumpUntilRoundIsReady(tester, level);
-    level.onButtonPressed();
+    level.performAction();
 
     final starship = level.children.whereType<Starship>().single;
     starship.onCollision({Vector2.zero()}, PowerUp(PowerUpType.break_));
@@ -213,7 +214,7 @@ void main() {
       ),
     );
     await _pumpUntilRoundIsReady(tester, level);
-    level.onButtonPressed();
+    level.performAction();
 
     final lifeLoss = level.lifeLost();
     expect(level.phase, RoundPhase.lifeLost);
