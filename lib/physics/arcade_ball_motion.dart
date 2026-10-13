@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class ArcadeBallMotion {
   ArcadeBallMotion({required this.speedStage, this.trajectory = 3}) {
     RangeError.checkValueInInterval(speedStage, 0, 15, 'speedStage');
@@ -23,7 +25,8 @@ class ArcadeBallMotion {
     31,
   ];
 
-  static const _pixelsPerSecondPerUnit = 130.0;
+  static const _roundOneSpeed = 184.0;
+  static const _speedIncreasePerStage = 12.0;
   static const _paddleTrajectories = [7, 6, 5, 4, 3, 2];
   static const _changedTrajectories = [2, 3, 4, 3, 6, 5, 6, 7];
   static const _positiveDirections = [
@@ -36,42 +39,6 @@ class ArcadeBallMotion {
     (x: -2.0, y: -1.0),
     (x: -2.0, y: -1.0),
   ];
-  static const _speedTable1 = [
-    (multiplier: 0, target: 15),
-    (multiplier: 0, target: 14),
-    (multiplier: 0, target: 13),
-    (multiplier: 0, target: 12),
-    (multiplier: 1, target: 15),
-    (multiplier: 1, target: 14),
-    (multiplier: 1, target: 13),
-    (multiplier: 1, target: 12),
-    (multiplier: 0, target: 4),
-    (multiplier: 2, target: 8),
-    (multiplier: 0, target: 2),
-    (multiplier: 2, target: 4),
-    (multiplier: 0, target: 1),
-    (multiplier: 2, target: 2),
-    (multiplier: 1, target: 1),
-    (multiplier: 2, target: 1),
-  ];
-  static const _speedTable2 = [
-    (multiplier: 0, target: 23),
-    (multiplier: 0, target: 21),
-    (multiplier: 0, target: 20),
-    (multiplier: 0, target: 18),
-    (multiplier: 1, target: 23),
-    (multiplier: 1, target: 21),
-    (multiplier: 1, target: 20),
-    (multiplier: 1, target: 18),
-    (multiplier: 0, target: 6),
-    (multiplier: 2, target: 12),
-    (multiplier: 0, target: 3),
-    (multiplier: 1, target: 4),
-    (multiplier: 1, target: 3),
-    (multiplier: 1, target: 2),
-    (multiplier: 0, target: 1),
-    (multiplier: 1, target: 1),
-  ];
 
   int speedStage;
   int speedProgress = 0;
@@ -80,12 +47,12 @@ class ArcadeBallMotion {
   ({double x, double y}) get velocity {
     final absoluteTrajectory = trajectory.abs();
     final direction = _positiveDirections[absoluteTrajectory - 1];
-    final speedTable = absoluteTrajectory == 3 || absoluteTrajectory == 6
-        ? _speedTable1
-        : _speedTable2;
-    final speed = speedTable[speedStage];
-    final scale =
-        (speed.multiplier + 1) / speed.target * _pixelsPerSecondPerUnit;
+    // Keep the MSX stages but map them to smooth frame-independent speeds.
+    final speed = _roundOneSpeed + (speedStage - 12) * _speedIncreasePerStage;
+    final directionLength = sqrt(
+      direction.x * direction.x + direction.y * direction.y,
+    );
+    final scale = speed / directionLength;
     final sign = trajectory < 0 ? -1.0 : 1.0;
     return (
       x: direction.x * sign * scale,
