@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:arkanoid/components/ball.dart';
+import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,17 @@ class _UpdateCounter extends Component {
   void update(double dt) {
     updates += 1;
     elapsed += dt;
+  }
+}
+
+class _TestBrick extends Brick {
+  _TestBrick() : super(BrickModel.grey, null);
+
+  int hits = 0;
+
+  @override
+  void hit(bool playAudio) {
+    hits += 1;
   }
 }
 
@@ -53,5 +65,34 @@ void main() {
       ),
       BallCollisionAxis.horizontal,
     );
+  });
+
+  test('only one brick is hit during the same contact cluster', () {
+    final ball = Ball()
+      ..position = Vector2(14, 8)
+      ..velocity = Vector2(0, 130);
+    final firstBrick = _TestBrick()..position = Vector2(0, 10);
+    final secondBrick = _TestBrick()..position = Vector2(16, 10);
+    final intersectionPoints = {Vector2.zero()};
+
+    ball.onCollisionStart(intersectionPoints, firstBrick);
+    ball.onCollision(intersectionPoints, firstBrick);
+    ball.onCollisionStart(intersectionPoints, secondBrick);
+    ball.onCollision(intersectionPoints, secondBrick);
+
+    expect(firstBrick.hits, 1);
+    expect(secondBrick.hits, 0);
+
+    ball.onCollisionEnd(firstBrick);
+    ball.onCollision(intersectionPoints, secondBrick);
+    expect(secondBrick.hits, 0);
+
+    ball.onCollisionEnd(secondBrick);
+    ball.position = Vector2(14, 8);
+    ball.velocity = Vector2(0, 130);
+    ball.onCollisionStart(intersectionPoints, secondBrick);
+    ball.onCollision(intersectionPoints, secondBrick);
+
+    expect(secondBrick.hits, 1);
   });
 }

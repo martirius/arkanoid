@@ -27,6 +27,7 @@ class Ball extends PositionedEntity
   Vector2 velocity = Vector2(130, -130);
   bool ballCanMove = false;
   int _numberOfBrickHit = 0;
+  Brick? _activeBrickCollision;
 
   static const _ballWidth = 5.0;
   static const _ballHeight = 4.0;
@@ -47,6 +48,10 @@ class Ball extends PositionedEntity
     super.onCollision(intersectionPoints, other);
 
     if (other is Brick) {
+      if (_activeBrickCollision != null) {
+        return;
+      }
+      _activeBrickCollision = other;
       other.hit(true);
       _numberOfBrickHit += 1;
       if (_numberOfBrickHit < _maxBrickHitToIncreaseVelocity &&
@@ -70,6 +75,14 @@ class Ball extends PositionedEntity
       velocity.x = ballSpeed * cos(bounceAngle);
       velocity.y = ballSpeed * -sin(bounceAngle);
       gameRef.audio.play(GameSound.ballHitStarship);
+    }
+  }
+
+  @override
+  void onCollisionEnd(PositionComponent other) {
+    super.onCollisionEnd(other);
+    if (other is Brick && !activeCollisions.any((item) => item is Brick)) {
+      _activeBrickCollision = null;
     }
   }
 
