@@ -6,20 +6,7 @@ import 'package:arkanoid/components/power_up.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('the field is 192 by 232 pixels and fits eleven bricks', () {
-    final field = Field(FieldType.blue);
-    final brick = Brick(BrickModel.red, null);
-
-    expect(field.width, 192);
-    expect(field.height, 232);
-    expect(
-      (field.rightWall - field.leftWall) / brick.width,
-      LevelDefinition.columnCount,
-    );
-    expect(LevelDefinition.columnCount, 11);
-  });
-
-  test('the catalog contains five ordered 16 by 11 levels', () {
+  test('the catalog contains five ordered 16 by 13 levels', () {
     expect(
       levelCatalog.map((level) => level.roundNumber),
       orderedEquals([1, 2, 3, 4, 5]),
@@ -62,6 +49,8 @@ void main() {
       rows: [
         const [
           BrickSpec(BrickModel.red, powerUp: PowerUpType.laser),
+          null,
+          null,
           null,
           null,
           null,

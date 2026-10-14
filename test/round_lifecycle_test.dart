@@ -6,7 +6,6 @@ import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
-import 'package:arkanoid/game_geometry.dart';
 import 'package:arkanoid/game_session.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
@@ -43,6 +42,8 @@ final _testDefinition = LevelDefinition(
       null,
       null,
       null,
+      null,
+      null,
     ],
     for (var row = 1; row < LevelDefinition.rowCount; row++) emptyBrickRow,
   ],
@@ -53,8 +54,7 @@ BaseLevel _testLevel() => BaseLevel(_testDefinition);
 void main() {
   test('the ball stays ready until the player acts', () {
     final game = Arkanoid();
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..position = Vector2(100, 100)

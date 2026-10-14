@@ -1,7 +1,6 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/power_up.dart';
-import 'package:arkanoid/game_geometry.dart';
 import 'package:arkanoid/round_rules.dart';
 
 class BrickSpec {
@@ -25,8 +24,8 @@ class LevelDefinition {
   })  : rules = RoundRules(roundNumber),
         rows = _validateAndFreeze(rows);
 
-  static const rowCount = GameGeometry.brickRows;
-  static const columnCount = GameGeometry.brickColumns;
+  static const rowCount = 16;
+  static const columnCount = 13;
 
   final int roundNumber;
   final RoundRules rules;
@@ -63,26 +62,9 @@ class LevelDefinition {
   }
 }
 
-List<List<BrickSpec?>> centerLegacyArcadeRows(
-  List<List<BrickSpec?>> rows,
-) {
-  const legacyColumnCount = 13;
-  return [
-    for (final row in rows)
-      if (row.length == LevelDefinition.columnCount)
-        row
-      else if (row.length == legacyColumnCount)
-        row.sublist(1, legacyColumnCount - 1)
-      else
-        throw ArgumentError.value(
-          row.length,
-          'row',
-          'A legacy row must contain $legacyColumnCount columns',
-        ),
-  ];
-}
-
 const emptyBrickRow = <BrickSpec?>[
+  null,
+  null,
   null,
   null,
   null,

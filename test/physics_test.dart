@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/game_geometry.dart';
 import 'package:arkanoid/main.dart';
 import 'package:arkanoid/physics/ball_collision_resolver.dart';
 import 'package:flame/components.dart';
@@ -72,8 +71,7 @@ void main() {
 
   test('ball only bounces when moving towards a field wall', () {
     final game = Arkanoid();
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..ballCanMove = true
@@ -106,7 +104,7 @@ void main() {
     for (final verticalVelocity in [120.0, -120.0]) {
       final game = Arkanoid();
       game.currentLevel.field = Field(FieldType.blue)
-        ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+        ..position = Vector2(112, 0);
       final ball = Ball()
         ..game = game
         ..ballCanMove = true
@@ -131,8 +129,7 @@ void main() {
 
   test('vertical entry between brick columns keeps a vertical bounce', () {
     final game = Arkanoid();
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..ballCanMove = true
@@ -162,7 +159,7 @@ void main() {
       for (final reverseOrder in [false, true]) {
         final game = Arkanoid();
         game.currentLevel.field = Field(FieldType.blue)
-          ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+          ..position = Vector2(112, 0);
         final ball = Ball()
           ..game = game
           ..ballCanMove = true
@@ -198,7 +195,7 @@ void main() {
     Vector2 resolveCollision({required bool reverseOrder}) {
       final game = Arkanoid();
       game.currentLevel.field = Field(FieldType.blue)
-        ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+        ..position = Vector2(112, 0);
       final ball = Ball()
         ..game = game
         ..ballCanMove = true
@@ -235,8 +232,7 @@ void main() {
 
   test('adjacent brick is resolved on the next high-speed physics step', () {
     final game = Arkanoid();
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final ball = Ball()
       ..game = game
       ..ballCanMove = true

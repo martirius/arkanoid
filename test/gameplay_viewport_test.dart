@@ -15,9 +15,6 @@ void main() {
   test('the game world always uses the original logical resolution', () {
     final game = Arkanoid();
 
-    expect(GameplayViewport.logicalWidth, 192);
-    expect(GameplayViewport.logicalHeight, 232);
-
     game.onGameResize(Vector2(360, 800));
     expect(
       game.size,

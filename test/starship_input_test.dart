@@ -3,7 +3,6 @@ import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/inputs/input_controller.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
-import 'package:arkanoid/game_geometry.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
@@ -81,8 +80,7 @@ void main() {
 
   test('starship moves at the configured horizontal speed', () {
     final game = Arkanoid();
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final starship = Starship(
       onPowerUp: (_) {},
       onEscape: () {},
@@ -98,25 +96,21 @@ void main() {
 
   test('caught ball follows only the starship effective movement', () {
     final game = Arkanoid();
-    game.currentLevel.field = Field(FieldType.blue)
-      ..position = Vector2(GameGeometry.fieldWidth / 2, 0);
-    final rightmostStarshipX =
-        game.currentLevel.field.rightWall - Starship.starshipWidth;
-    final caughtBallX = rightmostStarshipX + Starship.starshipWidth / 2;
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
     final starship = Starship(
       onPowerUp: (_) {},
       onEscape: () {},
     )
       ..game = game
-      ..position = Vector2(rightmostStarshipX, 200)
+      ..position = Vector2(184, 200)
       ..powerUp = PowerUpType.cattch;
-    final ball = Ball()..position = Vector2(caughtBallX, 196);
+    final ball = Ball()..position = Vector2(200, 196);
 
     starship.onCollision({Vector2.zero()}, ball);
     starship.setMovementDirection(1);
     starship.update(1 / 60);
 
-    expect(starship.x, rightmostStarshipX);
-    expect(ball.x, caughtBallX);
+    expect(starship.x, 184);
+    expect(ball.x, 200);
   });
 }

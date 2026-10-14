@@ -6,7 +6,7 @@ import 'package:arkanoid/components/power_up.dart';
 final level5 = LevelDefinition(
   roundNumber: 5,
   fieldType: FieldType.blue,
-  rows: centerLegacyArcadeRows([
+  rows: [
     const [
       null,
       null,
@@ -247,5 +247,5 @@ final level5 = LevelDefinition(
       null,
       null
     ]
-  ]),
+  ],
 );

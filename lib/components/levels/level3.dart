@@ -6,7 +6,7 @@ import 'package:arkanoid/components/power_up.dart';
 final level3 = LevelDefinition(
   roundNumber: 3,
   fieldType: FieldType.electricBlue,
-  rows: centerLegacyArcadeRows([
+  rows: [
     emptyBrickRow,
     const [
       BrickSpec(BrickModel.green, powerUp: PowerUpType.slow),
@@ -135,5 +135,5 @@ final level3 = LevelDefinition(
       BrickSpec(BrickModel.lightBlue, powerUp: PowerUpType.extend),
       BrickSpec(BrickModel.lightBlue)
     ]
-  ]),
+  ],
 );

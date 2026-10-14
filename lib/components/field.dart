@@ -1,4 +1,3 @@
-import 'package:arkanoid/game_geometry.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -16,62 +15,34 @@ enum FieldType {
   boss
 }
 
-class Field extends PositionComponent with HasGameReference<Arkanoid> {
+class Field extends SpriteComponent with HasGameReference<Arkanoid> {
   final FieldType fieldType;
   Field(this.fieldType)
-      : super(
-          size: Vector2(GameGeometry.fieldWidth, GameGeometry.fieldHeight),
-          anchor: Anchor.topCenter,
-        );
+      : super(size: Vector2(224, 240), anchor: Anchor.topCenter);
 
-  static const double hitboxSize = GameGeometry.wallThickness;
-  static const double _sourceFieldWidth = 224;
-  static const double _sliceWidth = GameGeometry.fieldWidth / 2;
+  static const double hitboxSize = 8;
   double get left => position.x - width / 2;
   double get leftWall => left + Field.hitboxSize;
   double get rightWall => left + width - Field.hitboxSize;
   double get topWall => position.y + Field.hitboxSize;
   double get lowWall => position.y + height;
 
-  static const _fieldOrigins = <FieldType, ({double x, double y})>{
-    FieldType.blue: (x: 0, y: 0),
-    FieldType.green: (x: 232, y: 0),
-    FieldType.electricBlue: (x: 464, y: 0),
-    FieldType.electricRed: (x: 696, y: 0),
-    FieldType.boss: (x: 928, y: 0),
-    FieldType.darkBlue: (x: 0, y: 256),
-    FieldType.darkGreen: (x: 232, y: 256),
-    FieldType.darkElectricBlue: (x: 464, y: 256),
-    FieldType.darkElectricRed: (x: 696, y: 256),
+  late final _fields = {
+    FieldType.blue: extractSprite(0, 0, 224, 240, 'fields.png'),
+    FieldType.green: extractSprite(232, 0, 224, 240, 'fields.png'),
+    FieldType.electricBlue: extractSprite(464, 0, 224, 240, 'fields.png'),
+    FieldType.electricRed: extractSprite(696, 0, 224, 240, 'fields.png'),
+    FieldType.boss: extractSprite(928, 0, 224, 240, 'fields.png'),
+    FieldType.darkBlue: extractSprite(0, 256, 224, 240, 'fields.png'),
+    FieldType.darkGreen: extractSprite(232, 256, 224, 240, 'fields.png'),
+    FieldType.darkElectricBlue: extractSprite(464, 256, 224, 240, 'fields.png'),
+    FieldType.darkElectricRed: extractSprite(696, 256, 224, 240, 'fields.png'),
   };
 
   @override
   Future<void>? onLoad() async {
     await Flame.images.load('fields.png');
-    final origin = _fieldOrigins[fieldType]!;
-    await addAll([
-      SpriteComponent(
-        sprite: extractSprite(
-          origin.x,
-          origin.y,
-          _sliceWidth,
-          height,
-          'fields.png',
-        ),
-        size: Vector2(_sliceWidth, height),
-      ),
-      SpriteComponent(
-        sprite: extractSprite(
-          origin.x + _sourceFieldWidth - _sliceWidth,
-          origin.y,
-          _sliceWidth,
-          height,
-          'fields.png',
-        ),
-        position: Vector2(_sliceWidth, 0),
-        size: Vector2(_sliceWidth, height),
-      ),
-    ]);
+    sprite = _fields[fieldType];
     add(RectangleHitbox(size: Vector2(hitboxSize, size.y))
       ..collisionType = CollisionType.passive);
     add(RectangleHitbox(size: Vector2(hitboxSize, size.y))
