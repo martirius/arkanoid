@@ -84,19 +84,21 @@ class Starship extends PositionedEntity
                 ? StarshipState.movingRight
                 : StarshipState.still;
       }
-      switch (state) {
-        case StarshipState.movingLeft:
-          x -= starshipSpeed * dt;
-          break;
-        case StarshipState.movingRight:
-          x += starshipSpeed * dt;
-          break;
-        case StarshipState.escaping:
-          _isEscaping = true;
-          x += _escapeSpeed * dt;
-          break;
-        default:
-          break;
+      if (_targetCenterX == null || state == StarshipState.escaping) {
+        switch (state) {
+          case StarshipState.movingLeft:
+            x -= starshipSpeed * dt;
+            break;
+          case StarshipState.movingRight:
+            x += starshipSpeed * dt;
+            break;
+          case StarshipState.escaping:
+            _isEscaping = true;
+            x += _escapeSpeed * dt;
+            break;
+          default:
+            break;
+        }
       }
 
       if (state != StarshipState.escaping) {

@@ -206,11 +206,13 @@ void main() {
       ..position = Vector2(100, 200);
 
     starship.setHorizontalTarget(120);
-    starship.update(0);
+    starship.update(1 / 60);
+    expect(starship.x, 104);
+    starship.update(1 / 60);
     expect(starship.x, 104);
 
     starship.setHorizontalTarget(500);
-    starship.update(0);
+    starship.update(1 / 60);
     expect(starship.x, 184);
   });
 
@@ -228,7 +230,7 @@ void main() {
 
     starship.onCollision({Vector2.zero()}, ball);
     starship.setHorizontalTarget(150);
-    starship.update(0);
+    starship.update(1 / 60);
 
     expect(starship.x, 134);
     expect(ball.x, 144);
