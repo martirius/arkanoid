@@ -68,8 +68,18 @@ void main() {
     }
   });
 
-  test('provisional capsule markers only use colored breakable bricks', () {
-    for (final level in levelCatalog.skip(5)) {
+  test('capsule markers only use colored breakable bricks', () {
+    expect(
+      levelCatalog.take(5).map(
+            (level) => level.rows
+                .expand((row) => row)
+                .where((brick) => brick?.dropsCapsule ?? false)
+                .length,
+          ),
+      orderedEquals([12, 15, 12, 16, 5]),
+    );
+
+    for (final level in levelCatalog) {
       for (final brick
           in level.rows.expand((row) => row).whereType<BrickSpec>()) {
         if (brick.dropsCapsule) {
