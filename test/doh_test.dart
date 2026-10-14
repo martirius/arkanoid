@@ -71,7 +71,7 @@ void main() {
     expect(hit, isFalse);
   });
 
-  testWidgets('round 33 mounts Doh and reaches the ending after sixteen hits',
+  testWidgets('round 33 shows the ending story after sixteen hits',
       (tester) async {
     final level = DohLevel();
     final game = _TestArkanoid(level);
@@ -105,11 +105,36 @@ void main() {
     await tester.pump();
     expect(
       level.children.whereType<TextComponent>().map((text) => text.text),
-      contains('CONGRATULATIONS\nGAME OVER'),
+      contains('DOH\'S DIMENSIONAL\nFORTRESS IS DESTROYED.'),
     );
-    level.removeFromParent();
-    game.update(1 / 120);
+
+    await tester.pump(const Duration(seconds: 4));
     await tester.pump();
+    expect(
+      level.children.whereType<TextComponent>().map((text) => text.text),
+      contains('TIME FLOWS BACKWARD.\nVAUS ESCAPES THE\nWARPED SPACE.'),
+    );
+
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pump();
+    expect(
+      level.children.whereType<TextComponent>().map((text) => text.text),
+      contains(
+        'ARKANOID\'S JOURNEY\nTHROUGH THE GALAXY\nHAS JUST BEGUN...',
+      ),
+    );
+
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pump();
+    expect(
+      level.children.whereType<TextComponent>().map((text) => text.text),
+      contains('THE END'),
+    );
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(game.flowState, GameFlowState.menu);
+    expect(level.parent, isNull);
   });
 
   testWidgets('losing a life resets Doh damage', (tester) async {

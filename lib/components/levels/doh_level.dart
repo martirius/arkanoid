@@ -24,6 +24,21 @@ class DohLevel extends BaseLevel {
   DohLevel() : super(dohDefinition);
 
   static const _readyDuration = Duration(seconds: 2);
+  static const _endingPages = [
+    (
+      text: 'DOH\'S DIMENSIONAL\nFORTRESS IS DESTROYED.',
+      duration: Duration(seconds: 4),
+    ),
+    (
+      text: 'TIME FLOWS BACKWARD.\nVAUS ESCAPES THE\nWARPED SPACE.',
+      duration: Duration(seconds: 4),
+    ),
+    (
+      text: 'ARKANOID\'S JOURNEY\nTHROUGH THE GALAXY\nHAS JUST BEGUN...',
+      duration: Duration(seconds: 4),
+    ),
+    (text: 'THE END', duration: Duration(seconds: 3)),
+  ];
   static const _messageFontSize = 10.0;
   static const _starshipBottomMargin = 12.0;
 
@@ -177,15 +192,30 @@ class DohLevel extends BaseLevel {
     if (!_isCurrentBoss || _bossPhase != RoundPhase.completed) {
       return;
     }
-    add(_message('CONGRATULATIONS\nGAME OVER'));
     async.unawaited(_completeEnding());
   }
 
   Future<void> _completeEnding() async {
-    final elapsed = await _waitFor(const Duration(seconds: 5));
-    if (elapsed && _isCurrentBoss && _bossPhase == RoundPhase.completed) {
+    for (final page in _endingPages) {
+      if (!_isCurrentBoss || _bossPhase != RoundPhase.completed) {
+        return;
+      }
+      _replaceMessage(page.text);
+      final elapsed = await _waitFor(page.duration);
+      if (!elapsed) {
+        return;
+      }
+    }
+    if (_isCurrentBoss && _bossPhase == RoundPhase.completed) {
       game.gameOver();
     }
+  }
+
+  void _replaceMessage(String text) {
+    for (final message in children.whereType<TextComponent>().toList()) {
+      message.removeFromParent();
+    }
+    add(_message(text));
   }
 
   @override

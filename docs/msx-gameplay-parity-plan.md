@@ -241,7 +241,7 @@ Le scelte provvisorie da calibrare sono documentate in
 
 ### Fase 10 - Finale e rifinitura
 
-- completare la sequenza narrativa successiva alla sconfitta di Doh;
+- completare la sequenza narrativa successiva alla sconfitta di Doh (integrato);
 - calibrare tempi, suoni e animazioni confrontando registrazioni a 60 Hz;
 - documentare quali differenze dalla versione MSX sono intenzionali;
 - aggiornare README e matrice di compatibilità delle regole.
