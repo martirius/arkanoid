@@ -40,6 +40,8 @@ class Starship extends PositionedEntity
 
   static const double starshipSpeed = 250;
   static const double _escapeSpeed = 30;
+  static const double _catchDuration = 4;
+  static const int _maxActiveLaserVolleys = 3;
 
   static const double starshipWidth = 32;
   static const double starshipHeight = 8;
@@ -47,9 +49,10 @@ class Starship extends PositionedEntity
   final void Function(PowerUpType) _onPowerUp;
   final void Function() _onEscape;
   bool _isDisappearing = false;
-  final List<Ball> _collidingBalls = [];
+  final Map<Ball, double> _caughtBalls = {};
   bool _canEscape = false;
   bool _isEscaping = false;
+  int _activeLaserVolleys = 0;
   int movementDirection = 0;
 
   @override
@@ -94,11 +97,12 @@ class Starship extends PositionedEntity
           game.currentLevel.field.rightWall - width * scale.x,
         );
         final movement = x - previousX;
-        for (final ball in _collidingBalls) {
+        for (final ball in _caughtBalls.keys) {
           ball.x += movement;
         }
       }
     }
+    _updateCaughtBalls(dt);
   }
 
   void setMovementDirection(int direction) => movementDirection = direction;
@@ -114,38 +118,77 @@ class Starship extends PositionedEntity
         }
       } else if (other is PowerUp) {
         other.removeFromParent();
+        _applyPowerUp(other.powerUpType);
         _onPowerUp(other.powerUpType);
-        if (powerUp != other.powerUpType) {
-          powerUp = other.powerUpType;
-          removePowerUp(powerUp!);
-          if (powerUp == PowerUpType.extend) {
-            _starshipAnimationComponent.current = StarshipAnimation.extended;
-            scale.x *= 1.5;
-            game.audio.play(GameSound.starshipExtends);
-          } else if (powerUp == PowerUpType.laser) {
-            _starshipAnimationComponent.current =
-                StarshipAnimation.laserTransforming;
-            _starshipAnimationComponent.animationTicker?.reset();
-          } else if (powerUp == PowerUpType.break_) {
-            _canEscape = true;
-          }
-        }
       } else if (other is Ball) {
-        if (powerUp == PowerUpType.cattch && !_collidingBalls.contains(other)) {
+        if (powerUp == PowerUpType.cattch && !_caughtBalls.containsKey(other)) {
           final ball = other;
           ball.ballCanMove = false;
-          _collidingBalls.add(ball);
+          _caughtBalls[ball] = _catchDuration;
         }
       }
     }
   }
 
-  void removePowerUp(PowerUpType? newPowerUp) {
-    if (newPowerUp != PowerUpType.extend) {
-      scale.x = 1;
-      _starshipAnimationComponent.current = StarshipAnimation.normal;
+  void _applyPowerUp(PowerUpType newPowerUp) {
+    _normalizePowerUp();
+    switch (newPowerUp) {
+      case PowerUpType.cattch:
+        powerUp = newPowerUp;
+        break;
+      case PowerUpType.extend:
+        powerUp = newPowerUp;
+        _starshipAnimationComponent.current = StarshipAnimation.extended;
+        scale.x = 1.5;
+        game.audio.play(GameSound.starshipExtends);
+        break;
+      case PowerUpType.laser:
+        powerUp = newPowerUp;
+        _starshipAnimationComponent.current =
+            StarshipAnimation.laserTransforming;
+        _starshipAnimationComponent.animationTicker?.reset();
+        break;
+      case PowerUpType.break_:
+        _canEscape = true;
+        break;
+      case PowerUpType.slow:
+      case PowerUpType.disrupt:
+      case PowerUpType.player:
+        break;
     }
   }
+
+  void _normalizePowerUp() {
+    releaseCaughtBalls();
+    powerUp = null;
+    scale.x = 1;
+    _starshipAnimationComponent.current = StarshipAnimation.normal;
+  }
+
+  void _updateCaughtBalls(double dt) {
+    final expired = <Ball>[];
+    for (final entry in _caughtBalls.entries) {
+      final remaining = entry.value - dt;
+      if (remaining <= 0) {
+        expired.add(entry.key);
+      } else {
+        _caughtBalls[entry.key] = remaining;
+      }
+    }
+    for (final ball in expired) {
+      _caughtBalls.remove(ball);
+      ball.launch();
+    }
+  }
+
+  void releaseCaughtBalls() {
+    for (final ball in _caughtBalls.keys) {
+      ball.launch();
+    }
+    _caughtBalls.clear();
+  }
+
+  bool get canEscape => _canEscape;
 
   void appear() {
     _isDisappearing = false;
@@ -154,10 +197,9 @@ class Starship extends PositionedEntity
   }
 
   Future<void> destroy() async {
-    _collidingBalls.clear();
+    _caughtBalls.clear();
     _isDisappearing = true;
-    removePowerUp(null);
-    powerUp = null;
+    _normalizePowerUp();
     game.audio.play(GameSound.ballGoDown);
     _starshipAnimationComponent.current = StarshipAnimation.disappearing;
     _starshipAnimationComponent.animationTicker?.reset();
@@ -165,14 +207,16 @@ class Starship extends PositionedEntity
   }
 
   void performAction() {
-    if (powerUp == PowerUpType.laser) {
+    final level = parent;
+    if (powerUp == PowerUpType.laser &&
+        level != null &&
+        _activeLaserVolleys < _maxActiveLaserVolleys) {
       game.audio.play(GameSound.starshipShoot);
-      parent?.add(Laser()..position = Vector2(x + (width * scale.x / 4), y));
+      _activeLaserVolleys += 1;
+      level.add(Laser(onRemoved: (_) => _activeLaserVolleys -= 1)
+        ..position = Vector2(x + (width * scale.x / 4), y));
     }
-    for (final ball in _collidingBalls) {
-      ball.ballCanMove = true;
-    }
-    _collidingBalls.clear();
+    releaseCaughtBalls();
   }
 }
 

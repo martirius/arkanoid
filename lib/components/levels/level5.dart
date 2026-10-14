@@ -1,7 +1,6 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
-import 'package:arkanoid/components/power_up.dart';
 
 final level5 = LevelDefinition(
   roundNumber: 5,
@@ -11,7 +10,7 @@ final level5 = LevelDefinition(
       null,
       null,
       null,
-      BrickSpec(BrickModel.yellow, powerUp: PowerUpType.laser),
+      BrickSpec(BrickModel.yellow, dropsCapsule: true),
       null,
       null,
       null,
@@ -61,7 +60,7 @@ final level5 = LevelDefinition(
       null,
       null,
       null,
-      BrickSpec(BrickModel.yellow, powerUp: PowerUpType.laser),
+      BrickSpec(BrickModel.yellow, dropsCapsule: true),
       null,
       null,
       null,
@@ -102,7 +101,7 @@ final level5 = LevelDefinition(
       null,
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
-      BrickSpec(BrickModel.red, powerUp: PowerUpType.extend),
+      BrickSpec(BrickModel.red, dropsCapsule: true),
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
@@ -117,11 +116,11 @@ final level5 = LevelDefinition(
       null,
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
-      BrickSpec(BrickModel.red, powerUp: PowerUpType.laser),
+      BrickSpec(BrickModel.red, dropsCapsule: true),
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
-      BrickSpec(BrickModel.red, powerUp: PowerUpType.break_),
+      BrickSpec(BrickModel.red, dropsCapsule: true),
       BrickSpec(BrickModel.silver),
       BrickSpec(BrickModel.silver),
       null,

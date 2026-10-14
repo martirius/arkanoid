@@ -4,12 +4,14 @@ import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/break_animation.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
+import 'package:arkanoid/power_up_director.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
@@ -43,6 +45,8 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   bool _removed = false;
   int _wallBounceCount = 0;
   int _goldBrickHitCount = 0;
+  final PowerUpDirector _powerUpDirector = PowerUpDirector();
+  PowerUp? _fallingPowerUp;
 
   RoundPhase get phase => _phase;
 
@@ -118,7 +122,10 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
         }
         break;
       case PowerUpType.player:
-        addLife();
+        if (game.session.awardLifeCapsule()) {
+          game.audio.play(GameSound.extraLife);
+          _lives.addLife(true);
+        }
         break;
       default:
         break;
@@ -239,10 +246,13 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
 
   Future<void> _removeGameComponents() async {
     for (final element in children.toList()) {
-      if (element is PowerUp || element is BreakAnimationComponent) {
+      if (element is PowerUp ||
+          element is BreakAnimationComponent ||
+          element is Laser) {
         element.removeFromParent();
       }
     }
+    _fallingPowerUp = null;
     for (final element in balls) {
       element.removeFromParent();
     }
@@ -283,10 +293,13 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
 
   void _removeTemporaryComponents() {
     for (final component in children.toList()) {
-      if (component is PowerUp || component is BreakAnimationComponent) {
+      if (component is PowerUp ||
+          component is BreakAnimationComponent ||
+          component is Laser) {
         component.removeFromParent();
       }
     }
+    _fallingPowerUp = null;
   }
 
   Future<void> _restartAfterLifeLoss() async {
@@ -367,12 +380,46 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
 
     bricks[rowIndex][columnIndex] = null;
     addScore(brick.value);
+    if (brick.dropsCapsule) {
+      _spawnCapsule(brick.position);
+    }
     final isLevelCompleted = bricks.every((row) => row.every(
           (brick) => brick == null || !brick.canBeBroken,
         ));
     if (isLevelCompleted) {
       levelCompleted();
     }
+  }
+
+  void _spawnCapsule(Vector2 position) {
+    final breakableBricksRemaining = bricks.fold(
+      0,
+      (count, row) =>
+          count + row.where((brick) => brick?.canBeBroken ?? false).length,
+    );
+    final type = _powerUpDirector.select(
+      activePowerUp: _starship.powerUp,
+      hasFallingCapsule: _fallingPowerUp != null,
+      hasMultipleBalls: balls.length > 1,
+      portalOpen: _starship.canEscape,
+      breakableBricksRemaining: breakableBricksRemaining,
+      playerAlreadyAwarded: game.session.lifeCapsuleAlreadyAwarded,
+    );
+    if (type == null) {
+      return;
+    }
+
+    late final PowerUp powerUp;
+    powerUp = PowerUp(
+      type,
+      onRemoved: (removed) {
+        if (identical(_fallingPowerUp, removed)) {
+          _fallingPowerUp = null;
+        }
+      },
+    )..position = position.clone();
+    _fallingPowerUp = powerUp;
+    add(powerUp);
   }
 
   void onBallWallBounce() {

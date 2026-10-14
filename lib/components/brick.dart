@@ -5,8 +5,6 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
-import 'power_up.dart';
-
 enum BrickModel {
   grey,
   orange,
@@ -24,11 +22,11 @@ class Brick extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
   late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
-  final PowerUp? powerUp;
+  final bool dropsCapsule;
   void Function()? onDestroyed;
   late final int value;
   static const int _baseBrickValue = 50;
-  Brick(this.model, this.powerUp, {RoundRules? rules})
+  Brick(this.model, {this.dropsCapsule = false, RoundRules? rules})
       : rules = rules ?? RoundRules(1),
         super(size: Vector2(16, 8)) {
     canBeBroken = model != BrickModel.gold;
@@ -114,9 +112,6 @@ class Brick extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
     _numberOfTimeHit += 1;
     if (_numberOfTimeHit >= _numberOfHitToBroke && canBeBroken) {
       _isDestroyed = true;
-      if (powerUp != null && powerUp!.parent == null) {
-        parent?.add(powerUp!..position = position);
-      }
       removeFromParent();
       onDestroyed?.call();
     }

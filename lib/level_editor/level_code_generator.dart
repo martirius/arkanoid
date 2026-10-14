@@ -25,7 +25,6 @@ class LevelCodeGenerator {
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
-import 'package:arkanoid/components/power_up.dart';
 
 final level$_level = LevelDefinition(
   roundNumber: $_level,
@@ -39,7 +38,7 @@ final level$_level = LevelDefinition(
 
   String _brickString(Brick brick) {
     return brick.model != null
-        ? "BrickSpec(${brick.model}${brick.powerUp != null ? ", powerUp: ${brick.powerUp}" : ""})"
+        ? "BrickSpec(${brick.model}${brick.dropsCapsule ? ", dropsCapsule: true" : ""})"
         : "null";
   }
 

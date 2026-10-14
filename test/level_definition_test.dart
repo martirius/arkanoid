@@ -2,7 +2,6 @@ import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
-import 'package:arkanoid/components/power_up.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -48,7 +47,7 @@ void main() {
       fieldType: FieldType.blue,
       rows: [
         const [
-          BrickSpec(BrickModel.red, powerUp: PowerUpType.laser),
+          BrickSpec(BrickModel.red, dropsCapsule: true),
           null,
           null,
           null,
@@ -70,10 +69,8 @@ void main() {
     final secondRound = definition.createBricks();
 
     expect(firstRound.first.first, isNot(same(secondRound.first.first)));
-    expect(
-      firstRound.first.first!.powerUp,
-      isNot(same(secondRound.first.first!.powerUp)),
-    );
+    expect(firstRound.first.first!.dropsCapsule, isTrue);
+    expect(secondRound.first.first!.dropsCapsule, isTrue);
     expect(() => definition.rows.add(emptyBrickRow), throwsUnsupportedError);
     expect(() => definition.rows.first.add(null), throwsUnsupportedError);
   });

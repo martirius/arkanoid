@@ -34,6 +34,7 @@ void main() {
     session.addScore(80000);
     session.currentRound = 5;
     session.addLife();
+    session.awardLifeCapsule();
 
     session.reset();
 
@@ -42,5 +43,14 @@ void main() {
     expect(session.lives, GameSession.initialLives);
     expect(session.currentRound, 1);
     expect(session.nextExtraLifeScore, 20000);
+    expect(session.lifeCapsuleAlreadyAwarded, isFalse);
+  });
+
+  test('the player capsule awards only one life per game', () {
+    final session = GameSession();
+
+    expect(session.awardLifeCapsule(), isTrue);
+    expect(session.awardLifeCapsule(), isFalse);
+    expect(session.lives, GameSession.initialLives + 1);
   });
 }

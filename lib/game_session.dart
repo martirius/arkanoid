@@ -4,6 +4,7 @@ class GameSession {
     int highScore = 50000,
     this.lives = initialLives,
     this.currentRound = 1,
+    this.lifeCapsuleAlreadyAwarded = false,
   })  : highScore = score > highScore ? score : highScore,
         nextExtraLifeScore = _nextExtraLifeTarget(score);
 
@@ -17,6 +18,7 @@ class GameSession {
   int lives;
   int currentRound;
   int nextExtraLifeScore;
+  bool lifeCapsuleAlreadyAwarded;
 
   int addScore(int points) {
     if (points < 0) {
@@ -43,6 +45,15 @@ class GameSession {
     lives += 1;
   }
 
+  bool awardLifeCapsule() {
+    if (lifeCapsuleAlreadyAwarded) {
+      return false;
+    }
+    lifeCapsuleAlreadyAwarded = true;
+    lives += 1;
+    return true;
+  }
+
   int loseLife() {
     if (lives > 0) {
       lives -= 1;
@@ -55,6 +66,7 @@ class GameSession {
     lives = initialLives;
     currentRound = 1;
     nextExtraLifeScore = _firstExtraLifeScore;
+    lifeCapsuleAlreadyAwarded = false;
   }
 
   static int _nextExtraLifeTarget(int score) {

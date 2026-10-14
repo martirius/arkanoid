@@ -9,8 +9,9 @@ enum PowerUpType { slow, cattch, laser, extend, disrupt, break_, player }
 
 class PowerUp extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
   final PowerUpType powerUpType;
+  final void Function(PowerUp)? onRemoved;
 
-  PowerUp(this.powerUpType) : super(size: Vector2(16, 8));
+  PowerUp(this.powerUpType, {this.onRemoved}) : super(size: Vector2(16, 8));
 
   static const spriteSheetFile = 'powerups.png';
   static const _velocity = 30.0;
@@ -25,6 +26,12 @@ class PowerUp extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
         spriteSheet.createAnimation(row: key, stepTime: 0.2, loop: true)));
     animation = animations[powerUpType];
     add(RectangleHitbox()..collisionType = CollisionType.passive);
+  }
+
+  @override
+  void onRemove() {
+    onRemoved?.call(this);
+    super.onRemove();
   }
 
   @override

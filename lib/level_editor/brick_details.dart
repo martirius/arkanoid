@@ -1,5 +1,4 @@
 import 'package:arkanoid/components/brick.dart' hide Brick;
-import 'package:arkanoid/components/power_up.dart';
 import 'package:flutter/material.dart' hide RadioGroup;
 import 'package:group_radio_button/group_radio_button.dart';
 
@@ -17,13 +16,13 @@ class BrickDetails extends StatefulWidget {
 
 class _BrickDetailsState extends State<BrickDetails> {
   BrickModel? brickModel;
-  PowerUpType? powerUpType;
+  bool dropsCapsule = false;
 
   @override
   void initState() {
     super.initState();
     brickModel = widget._brick.model;
-    powerUpType = widget._brick.powerUp;
+    dropsCapsule = widget._brick.dropsCapsule;
   }
 
   @override
@@ -46,18 +45,16 @@ class _BrickDetailsState extends State<BrickDetails> {
         const SizedBox(
           height: 16,
         ),
-        const Text("Power up"),
-        RadioGroup<PowerUpType?>.builder(
-          groupValue: powerUpType,
+        CheckboxListTile(
+          title: const Text('Drops capsule'),
+          value: dropsCapsule,
           onChanged: (value) => setState(() {
-            powerUpType = value;
+            dropsCapsule = value ?? false;
           }),
-          items: const [...PowerUpType.values, null],
-          itemBuilder: (item) => RadioButtonBuilder(item?.name ?? "null"),
         ),
         ElevatedButton(
             onPressed: () {
-              widget._onSettingsSet(Brick(brickModel, powerUpType,
+              widget._onSettingsSet(Brick(brickModel, dropsCapsule,
                   widget._brick.xIndex, widget._brick.yIndex));
             },
             child: const Text("Set on brick"))

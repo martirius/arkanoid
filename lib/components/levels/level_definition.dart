@@ -1,17 +1,16 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
-import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/round_rules.dart';
 
 class BrickSpec {
-  const BrickSpec(this.model, {this.powerUp});
+  const BrickSpec(this.model, {this.dropsCapsule = false});
 
   final BrickModel model;
-  final PowerUpType? powerUp;
+  final bool dropsCapsule;
 
   Brick createBrick(RoundRules rules) => Brick(
         model,
-        powerUp == null ? null : PowerUp(powerUp!),
+        dropsCapsule: dropsCapsule,
         rules: rules,
       );
 }

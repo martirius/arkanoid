@@ -113,4 +113,25 @@ void main() {
     expect(starship.x, 184);
     expect(ball.x, 200);
   });
+
+  test('catch releases a ball automatically after four seconds', () {
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
+    final starship = Starship(
+      onPowerUp: (_) {},
+      onEscape: () {},
+    )
+      ..game = game
+      ..position = Vector2(100, 200)
+      ..powerUp = PowerUpType.cattch;
+    final ball = Ball()
+      ..position = Vector2(110, 196)
+      ..ballCanMove = true;
+
+    starship.onCollision({Vector2.zero()}, ball);
+    expect(ball.ballCanMove, isFalse);
+
+    starship.update(4);
+    expect(ball.ballCanMove, isTrue);
+  });
 }

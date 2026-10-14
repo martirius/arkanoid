@@ -1,7 +1,6 @@
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
-import 'package:arkanoid/components/power_up.dart';
 
 final level3 = LevelDefinition(
   roundNumber: 3,
@@ -9,19 +8,19 @@ final level3 = LevelDefinition(
   rows: [
     emptyBrickRow,
     const [
-      BrickSpec(BrickModel.green, powerUp: PowerUpType.slow),
+      BrickSpec(BrickModel.green, dropsCapsule: true),
       BrickSpec(BrickModel.green),
       BrickSpec(BrickModel.green),
       BrickSpec(BrickModel.green),
       BrickSpec(BrickModel.green),
       BrickSpec(BrickModel.green),
-      BrickSpec(BrickModel.green, powerUp: PowerUpType.slow),
+      BrickSpec(BrickModel.green, dropsCapsule: true),
       BrickSpec(BrickModel.green),
       BrickSpec(BrickModel.green),
       BrickSpec(BrickModel.green),
-      BrickSpec(BrickModel.green, powerUp: PowerUpType.slow),
+      BrickSpec(BrickModel.green, dropsCapsule: true),
       BrickSpec(BrickModel.green),
-      BrickSpec(BrickModel.green, powerUp: PowerUpType.cattch)
+      BrickSpec(BrickModel.green, dropsCapsule: true)
     ],
     emptyBrickRow,
     const [
@@ -43,7 +42,7 @@ final level3 = LevelDefinition(
     const [
       BrickSpec(BrickModel.red),
       BrickSpec(BrickModel.red),
-      BrickSpec(BrickModel.red, powerUp: PowerUpType.extend),
+      BrickSpec(BrickModel.red, dropsCapsule: true),
       BrickSpec(BrickModel.red),
       BrickSpec(BrickModel.red),
       BrickSpec(BrickModel.red),
@@ -52,7 +51,7 @@ final level3 = LevelDefinition(
       BrickSpec(BrickModel.red),
       BrickSpec(BrickModel.red),
       BrickSpec(BrickModel.red),
-      BrickSpec(BrickModel.red, powerUp: PowerUpType.extend),
+      BrickSpec(BrickModel.red, dropsCapsule: true),
       BrickSpec(BrickModel.red)
     ],
     emptyBrickRow,
@@ -75,13 +74,13 @@ final level3 = LevelDefinition(
     const [
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
-      BrickSpec(BrickModel.pink, powerUp: PowerUpType.slow),
+      BrickSpec(BrickModel.pink, dropsCapsule: true),
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
-      BrickSpec(BrickModel.pink, powerUp: PowerUpType.slow),
+      BrickSpec(BrickModel.pink, dropsCapsule: true),
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
       BrickSpec(BrickModel.pink),
@@ -110,11 +109,11 @@ final level3 = LevelDefinition(
       BrickSpec(BrickModel.lightBlue),
       BrickSpec(BrickModel.lightBlue),
       BrickSpec(BrickModel.lightBlue),
-      BrickSpec(BrickModel.lightBlue, powerUp: PowerUpType.cattch),
-      BrickSpec(BrickModel.lightBlue, powerUp: PowerUpType.cattch),
+      BrickSpec(BrickModel.lightBlue, dropsCapsule: true),
+      BrickSpec(BrickModel.lightBlue, dropsCapsule: true),
       BrickSpec(BrickModel.lightBlue),
       BrickSpec(BrickModel.lightBlue),
-      BrickSpec(BrickModel.lightBlue, powerUp: PowerUpType.extend),
+      BrickSpec(BrickModel.lightBlue, dropsCapsule: true),
       BrickSpec(BrickModel.lightBlue),
       BrickSpec(BrickModel.lightBlue),
       BrickSpec(BrickModel.lightBlue)
@@ -132,7 +131,7 @@ final level3 = LevelDefinition(
       BrickSpec(BrickModel.gold),
       BrickSpec(BrickModel.gold),
       BrickSpec(BrickModel.lightBlue),
-      BrickSpec(BrickModel.lightBlue, powerUp: PowerUpType.extend),
+      BrickSpec(BrickModel.lightBlue, dropsCapsule: true),
       BrickSpec(BrickModel.lightBlue)
     ]
   ],

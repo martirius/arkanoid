@@ -20,7 +20,7 @@ class _UpdateCounter extends Component {
 }
 
 class _TestBrick extends Brick {
-  _TestBrick() : super(BrickModel.grey, null);
+  _TestBrick() : super(BrickModel.grey);
 
   int hits = 0;
 

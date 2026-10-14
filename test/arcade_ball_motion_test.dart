@@ -90,7 +90,7 @@ void main() {
     expect(first.trajectory, 4);
     expect(second.trajectory, 4);
 
-    final gold = Brick(BrickModel.gold, null);
+    final gold = Brick(BrickModel.gold);
     for (var hit = 0; hit < 20; hit++) {
       level.onBallBrickImpact(gold);
     }

@@ -3,7 +3,6 @@ import 'dart:js_interop';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
-import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/level_editor/brick_details.dart';
 import 'package:arkanoid/level_editor/level_code_generator.dart';
 import 'package:flutter/material.dart' hide RadioGroup;
@@ -39,11 +38,11 @@ class LevelEditor extends StatefulWidget {
 class _LevelEditorState extends State<LevelEditor> {
   final bricks = List<List<Brick>>.generate(LevelDefinition.rowCount, (index) {
     return List<Brick>.generate(LevelDefinition.columnCount,
-        (index2) => Brick(BrickModel.blue, null, index, index2));
+        (index2) => Brick(BrickModel.blue, false, index, index2));
   });
 
   FieldType currentFieldType = FieldType.blue;
-  Brick? currentBrick = Brick(null, null, 0, 0);
+  Brick? currentBrick = Brick(null, false, 0, 0);
   int currentLevel = 1;
   bool modificationEnabled = false;
 
@@ -74,7 +73,7 @@ class _LevelEditorState extends State<LevelEditor> {
                               setState(() {
                                 bricks[brick.xIndex][brick.yIndex] = Brick(
                                   currentBrick?.model,
-                                  currentBrick?.powerUp,
+                                  currentBrick?.dropsCapsule ?? false,
                                   brick.xIndex,
                                   brick.yIndex,
                                 );
@@ -84,7 +83,7 @@ class _LevelEditorState extends State<LevelEditor> {
                             setState(() {
                               bricks[brick.xIndex][brick.yIndex] = Brick(
                                 currentBrick?.model,
-                                currentBrick?.powerUp,
+                                currentBrick?.dropsCapsule ?? false,
                                 brick.xIndex,
                                 brick.yIndex,
                               );
@@ -297,7 +296,7 @@ class BrickWidget extends StatelessWidget {
               _onHover(_brick);
             },
           ),
-          _brick.powerUp != null ? Text(_brick.powerUp.toString()) : Container()
+          _brick.dropsCapsule ? const Text('P') : Container()
         ]),
       ),
     );
@@ -306,9 +305,9 @@ class BrickWidget extends StatelessWidget {
 
 class Brick {
   final BrickModel? model;
-  final PowerUpType? powerUp;
+  final bool dropsCapsule;
   final int xIndex;
   final int yIndex;
 
-  Brick(this.model, this.powerUp, this.xIndex, this.yIndex);
+  Brick(this.model, this.dropsCapsule, this.xIndex, this.yIndex);
 }

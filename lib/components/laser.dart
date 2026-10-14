@@ -8,7 +8,9 @@ enum LaserStatus { normal, destroy }
 
 class Laser extends SpriteAnimationGroupComponent<LaserStatus>
     with CollisionCallbacks, HasGameReference<Arkanoid> {
-  Laser() : super(size: Vector2(16, 8), priority: 10);
+  Laser({this.onRemoved}) : super(size: Vector2(16, 8), priority: 10);
+
+  final void Function(Laser)? onRemoved;
 
   late final spritesNormal = [
     Sprite.load(
@@ -25,6 +27,8 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
 
   bool _brickAlreadyHit = false;
   static const _velocity = 150.0;
+
+  bool get isActive => !_brickAlreadyHit;
 
   @override
   Future<void>? onLoad() async {
@@ -49,13 +53,14 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
+    if (_brickAlreadyHit) {
+      return;
+    }
     if (other is Brick) {
+      _brickAlreadyHit = true;
       other.hit(false);
       removeAll(children);
-      if (!_brickAlreadyHit) {
-        _brickAlreadyHit = true;
-        removeLaserFromGame();
-      }
+      removeLaserFromGame();
     } else if (other is Field) {
       _brickAlreadyHit = true;
       removeLaserFromGame();
@@ -67,6 +72,12 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
     Future.delayed(const Duration(seconds: 1), () {
       removeFromParent();
     });
+  }
+
+  @override
+  void onRemove() {
+    onRemoved?.call(this);
+    super.onRemove();
   }
 
   @override

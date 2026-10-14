@@ -6,7 +6,7 @@ void main() {
   test('gold bricks are the only unbreakable bricks', () {
     for (final model in BrickModel.values) {
       expect(
-        Brick(model, null).canBeBroken,
+        Brick(model).canBeBroken,
         model != BrickModel.gold,
         reason: 'Unexpected breakability for $model',
       );
@@ -29,7 +29,7 @@ void main() {
 
     for (final entry in expectedValues.entries) {
       expect(
-        Brick(entry.key, null).value,
+        Brick(entry.key).value,
         entry.value,
         reason: 'Unexpected score for ${entry.key}',
       );
@@ -38,8 +38,7 @@ void main() {
 
   test('a brick reports its destruction only once', () {
     var destructions = 0;
-    final brick = Brick(BrickModel.red, null)
-      ..onDestroyed = () => destructions += 1;
+    final brick = Brick(BrickModel.red)..onDestroyed = () => destructions += 1;
 
     brick.hit(false);
     brick.hit(false);
@@ -70,7 +69,6 @@ void main() {
     var destructions = 0;
     final brick = Brick(
       BrickModel.silver,
-      null,
       rules: RoundRules(17),
     )..onDestroyed = () => destructions += 1;
 
