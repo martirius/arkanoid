@@ -57,4 +57,6 @@ class InputController extends Component with KeyboardHandler {
   }
 
   void pressAction() => _onAction();
+
+  void reset() => _keyboardDirection = 0;
 }

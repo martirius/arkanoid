@@ -33,7 +33,9 @@ class GameAudio {
   final Map<GameSound, List<AudioPlayer>> _players = {};
   final Map<GameSound, int> _nextPlayer = {};
   final Map<AudioPlayer, Future<void>> _operations = {};
+  final Set<AudioPlayer> _pausedPlayers = {};
   bool _disposed = false;
+  bool _pauseRequested = false;
 
   Future<void> load() async {
     final audioContext = AudioContextConfig(
@@ -97,6 +99,62 @@ class GameAudio {
     }
   }
 
+  Future<void> pause() async {
+    if (_disposed) {
+      return;
+    }
+    _pauseRequested = true;
+    final operations = <Future<void>>[];
+    for (final player in _players.values.expand((players) => players)) {
+      final operation =
+          (_operations[player] ?? Future<void>.value()).then((_) async {
+        if (_pauseRequested && player.state == PlayerState.playing) {
+          await player.pause();
+          _pausedPlayers.add(player);
+        }
+      });
+      _operations[player] = operation;
+      operations.add(operation);
+    }
+    await Future.wait(operations);
+  }
+
+  Future<void> resume() async {
+    if (_disposed) {
+      return;
+    }
+    _pauseRequested = false;
+    final operations = <Future<void>>[];
+    for (final player in _players.values.expand((players) => players)) {
+      final operation =
+          (_operations[player] ?? Future<void>.value()).then((_) async {
+        if (!_pauseRequested && player.state == PlayerState.paused) {
+          await player.resume();
+        }
+        _pausedPlayers.remove(player);
+      });
+      _operations[player] = operation;
+      operations.add(operation);
+    }
+    await Future.wait(operations);
+  }
+
+  Future<void> stopAll() async {
+    if (_disposed) {
+      return;
+    }
+    _pauseRequested = false;
+    _pausedPlayers.clear();
+    final operations = <Future<void>>[];
+    for (final player in _players.values.expand((players) => players)) {
+      final operation = (_operations[player] ?? Future<void>.value())
+          .then((_) => player.stop());
+      _operations[player] = operation;
+      operations.add(operation);
+    }
+    await Future.wait(operations);
+  }
+
   Future<void> dispose() async {
     if (_disposed) {
       return;
@@ -112,5 +170,7 @@ class GameAudio {
     _players.clear();
     _nextPlayer.clear();
     _operations.clear();
+    _pausedPlayers.clear();
+    _pauseRequested = false;
   }
 }

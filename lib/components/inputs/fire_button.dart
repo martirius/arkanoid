@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/rendering.dart';
 
-class FireButton extends CircleComponent with TapCallbacks {
+class FireButton extends CircleComponent with TapCallbacks, HasVisibility {
   FireButton(Vector2 position, {required this.onPressed})
       : super(position: position, radius: 50, priority: 1);
 

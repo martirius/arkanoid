@@ -4,7 +4,7 @@ import 'package:arkanoid/components/inputs/pointer_input_surface.dart';
 import 'package:arkanoid/components/top_text.dart';
 import 'package:flame/components.dart';
 
-class GameHud extends PositionComponent {
+class GameHud extends PositionComponent with HasVisibility {
   GameHud({
     required void Function(int direction) onMove,
     required void Function(Vector2 canvasPosition) onMoveTo,
@@ -28,19 +28,21 @@ class GameHud extends PositionComponent {
   late final TopText _topScoreText;
   int _score;
   int _topScore;
+  bool _gameplayActive = false;
+  bool _controlsEnabled = false;
 
   @override
   Future<void> onLoad() async {
-    _fireButton = FireButton(Vector2.zero(), onPressed: _onAction);
+    _fireButton = FireButton(Vector2.zero(), onPressed: _performAction);
     _pointerInputSurface = PointerInputSurface(
       onMoveTo: _inputControllerMoveTo,
-      onAction: _onAction,
+      onAction: _performAction,
       acceptsTouchAt: (position) => !_fireButton.containsPoint(position),
     );
     _inputController = InputController(
-      onMove: _onMove,
+      onMove: _move,
       onMoveTo: _onMoveTo,
-      onAction: _onAction,
+      onAction: _performAction,
     );
     _playerText = TopText('1UP', _score.toString());
     _topScoreText = TopText('HIGH SCORE', _topScore.toString());
@@ -53,6 +55,7 @@ class GameHud extends PositionComponent {
       _playerText,
       _topScoreText,
     ]);
+    _applyGameplayState();
     _playerText.blinkLabel();
   }
 
@@ -74,7 +77,47 @@ class GameHud extends PositionComponent {
   }
 
   void _inputControllerMoveTo(Vector2 canvasPosition) {
-    _inputController.moveTo(canvasPosition);
+    if (_controlsEnabled) {
+      _inputController.moveTo(canvasPosition);
+    }
+  }
+
+  void _move(int direction) {
+    if (_controlsEnabled) {
+      _onMove(direction);
+    }
+  }
+
+  void _performAction() {
+    if (_controlsEnabled) {
+      _onAction();
+    }
+  }
+
+  void setGameplayActive(bool active) {
+    _gameplayActive = active;
+    _controlsEnabled = active;
+    if (!active && isLoaded) {
+      _inputController.reset();
+    }
+    if (isLoaded) {
+      _applyGameplayState();
+    }
+  }
+
+  void setControlsEnabled(bool enabled) {
+    _controlsEnabled = enabled && _gameplayActive;
+    if (!enabled && isLoaded) {
+      _inputController.reset();
+    }
+    if (isLoaded) {
+      _fireButton.isVisible = _controlsEnabled;
+    }
+  }
+
+  void _applyGameplayState() {
+    isVisible = _gameplayActive;
+    _fireButton.isVisible = _controlsEnabled;
   }
 
   void updateScores({required int score, required int topScore}) {
