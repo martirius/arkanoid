@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:arkanoid/game_geometry.dart';
 import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 
@@ -9,8 +10,8 @@ class GameplayViewport extends FixedResolutionViewport {
           resolution: Vector2(logicalWidth, logicalHeight),
         );
 
-  static const logicalWidth = 224.0;
-  static const logicalHeight = 240.0;
+  static const logicalWidth = GameGeometry.fieldWidth;
+  static const logicalHeight = GameGeometry.fieldHeight;
   static const screenTopMargin = 50.0;
 
   @override
