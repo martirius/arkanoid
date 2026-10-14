@@ -26,11 +26,11 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
           priority: 15,
         );
 
-  static const _spriteRows = {
-    EnemyType.konerd: 0.0,
-    EnemyType.pyradok: 32.0,
-    EnemyType.triSphere: 64.0,
-    EnemyType.opopo: 112.0,
+  static const _spriteLayouts = {
+    EnemyType.konerd: (y: 0.0, frames: 8, framesPerRow: 8),
+    EnemyType.pyradok: (y: 16.0, frames: 11, framesPerRow: 6),
+    EnemyType.triSphere: (y: 48.0, frames: 24, framesPerRow: 8),
+    EnemyType.opopo: (y: 96.0, frames: 10, framesPerRow: 5),
   };
   static const _baseVelocities = {
     EnemyType.konerd: (x: 38.0, y: 24.0),
@@ -51,24 +51,26 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   @override
   Future<void> onLoad() async {
     final image = await Flame.images.load('aliens.png');
+    final spriteLayout = _spriteLayouts[type]!;
     animations = {
       EnemyState.active: SpriteAnimation.fromFrameData(
         image,
         SpriteAnimationData.sequenced(
-          amount: 8,
+          amount: spriteLayout.frames,
+          amountPerRow: spriteLayout.framesPerRow,
           stepTime: 0.08,
           textureSize: Vector2.all(16),
-          texturePosition: Vector2(0, _spriteRows[type]!),
+          texturePosition: Vector2(0, spriteLayout.y),
         ),
       ),
       EnemyState.exploding: SpriteAnimation.fromFrameData(
         image,
         SpriteAnimationData.sequenced(
-          amount: 8,
+          amount: 6,
           stepTime: 0.06,
           loop: false,
           textureSize: Vector2.all(16),
-          texturePosition: Vector2(0, 144),
+          texturePosition: Vector2(0, 128),
         ),
       ),
     };
@@ -83,7 +85,7 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     super.update(dt);
     if (_destroyed) {
       _explosionElapsed += dt;
-      if (_explosionElapsed >= 0.48) {
+      if (_explosionElapsed >= 0.36) {
         removeFromParent();
       }
       return;
