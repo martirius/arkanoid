@@ -7,7 +7,13 @@ import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/gestures.dart' show PointerDeviceKind, TapDownDetails;
+import 'package:flutter/gestures.dart'
+    show
+        DragEndDetails,
+        DragStartDetails,
+        DragUpdateDetails,
+        PointerDeviceKind,
+        TapDownDetails;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -92,6 +98,7 @@ void main() {
     final surface = PointerInputSurface(
       onMoveTo: (_) {},
       onAction: () => actions++,
+      acceptsTouchAt: (_) => true,
     );
 
     surface.onTapDown(
@@ -103,6 +110,73 @@ void main() {
     );
 
     expect(actions, 1);
+  });
+
+  test('touch drag ignores the action button and additional pointers', () {
+    final positions = <Vector2>[];
+    final game = FlameGame();
+    final surface = PointerInputSurface(
+      onMoveTo: positions.add,
+      onAction: () {},
+      acceptsTouchAt: (position) => position.x >= 100,
+    );
+
+    surface.onDragStart(
+      DragStartEvent(
+        1,
+        game,
+        DragStartDetails(
+          globalPosition: const Offset(40, 20),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+    surface.onDragStart(
+      DragStartEvent(
+        2,
+        game,
+        DragStartDetails(
+          globalPosition: const Offset(120, 20),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+    surface.onDragStart(
+      DragStartEvent(
+        3,
+        game,
+        DragStartDetails(
+          globalPosition: const Offset(180, 20),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+    surface.onDragUpdate(
+      DragUpdateEvent(
+        2,
+        game,
+        DragUpdateDetails(
+          globalPosition: const Offset(140, 20),
+          delta: const Offset(5, 0),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+
+    expect(positions, [Vector2(120, 20), Vector2(140, 20)]);
+
+    surface.onDragEnd(DragEndEvent(2, DragEndDetails()));
+    surface.onDragStart(
+      DragStartEvent(
+        3,
+        game,
+        DragStartDetails(
+          globalPosition: const Offset(180, 20),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+    expect(positions.last, Vector2(180, 20));
   });
 
   test('starship moves at the configured horizontal speed', () {

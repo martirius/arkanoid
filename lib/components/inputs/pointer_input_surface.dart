@@ -7,10 +7,13 @@ class PointerInputSurface extends PositionComponent
   PointerInputSurface({
     required this.onMoveTo,
     required this.onAction,
+    required this.acceptsTouchAt,
   }) : super(priority: -1);
 
   final void Function(Vector2 canvasPosition) onMoveTo;
   final void Function() onAction;
+  final bool Function(Vector2 canvasPosition) acceptsTouchAt;
+  int? _activeDragPointer;
 
   @override
   void onPointerMove(PointerMoveEvent event) {
@@ -21,19 +24,35 @@ class PointerInputSurface extends PositionComponent
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (_activeDragPointer != null ||
+        (event.deviceKind != PointerDeviceKind.mouse &&
+            !acceptsTouchAt(event.canvasPosition))) {
+      return;
+    }
+    _activeDragPointer = event.pointerId;
     onMoveTo(event.canvasPosition);
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
-    onMoveTo(event.canvasEndPosition);
+    if (event.pointerId == _activeDragPointer) {
+      onMoveTo(event.canvasStartPosition);
+    }
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    if (event.pointerId == _activeDragPointer) {
+      _activeDragPointer = null;
+    }
   }
 
   @override
   void onTapDown(TapDownEvent event) {
     if (event.deviceKind == PointerDeviceKind.mouse) {
       onAction();
-    } else {
+    } else if (acceptsTouchAt(event.canvasPosition)) {
       onMoveTo(event.canvasPosition);
     }
   }

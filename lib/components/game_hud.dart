@@ -35,6 +35,7 @@ class GameHud extends PositionComponent {
     _pointerInputSurface = PointerInputSurface(
       onMoveTo: _inputControllerMoveTo,
       onAction: _onAction,
+      acceptsTouchAt: (position) => !_fireButton.containsPoint(position),
     );
     _inputController = InputController(
       onMove: _onMove,
