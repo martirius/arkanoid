@@ -205,9 +205,43 @@ Le scelte provvisorie da calibrare sono documentate in
 - aggiungere sequenza di sconfitta, testo finale e ritorno al ciclo iniziale;
 - coprire vittoria, morte durante il boss e ripristino del boss dopo una vita.
 
-### Fase 8 - Ciclo esterno e rifinitura
+### Fase 8 - Input multipiattaforma e controllo della Vaus
 
-- aggiungere pausa reale, title screen e demo opzionale;
+- sostituire sul telefono il joystick digitale con un'area di trascinamento
+  orizzontale: la posizione del dito determina direttamente il centro della
+  Vaus, mantenendo separato il pulsante azione;
+- aggiungere su desktop il controllo tramite posizione orizzontale del mouse
+  sul campo e usare il clic sinistro per lancio, rilascio Catch e laser;
+- mantenere frecce e `A`/`D` come controllo digitale alternativo e
+  `Spazio`/`Invio` per l'azione;
+- centralizzare gli input in un solo controller che produca un intento
+  assoluto oppure direzionale, evitando che touch, mouse e tastiera si
+  sovrascrivano nello stesso frame;
+- convertire correttamente coordinate schermo/camera/campo, limitare il centro
+  della Vaus in base alla larghezza corrente e conservare il movimento delle
+  palline catturate;
+- sospendere i comandi durante intro, perdita vita, pausa, uscita laterale e
+  finale, senza generare azioni duplicate tra HUD e puntatore;
+- aggiungere test per mapping, limiti, priorità degli input e singola azione per
+  clic. Il controllo assoluto parte senza smoothing, come il potenziometro
+  originale; sensibilità o interpolazione verranno aggiunte solo se necessarie
+  dopo una prova su dispositivo.
+
+### Fase 9 - UI e ciclo esterno
+
+- introdurre uno stato applicativo esplicito per title, menu, partita, pausa,
+  game over e finale;
+- aggiungere schermata iniziale e menu principale con avvio nuova partita;
+- aggiungere pausa reale, bloccando fisica, timer, input di gioco e audio;
+- separare HUD di gioco e controlli touch dalla UI dei menu e renderli
+  adattabili alle diverse dimensioni dello schermo;
+- riportare game over e conclusione di Doh al menu invece di avviare
+  implicitamente un nuovo round;
+- aggiungere la demo automatica soltanto dopo la stabilizzazione del menu.
+
+### Fase 10 - Finale e rifinitura
+
+- completare la sequenza narrativa successiva alla sconfitta di Doh;
 - calibrare tempi, suoni e animazioni confrontando registrazioni a 60 Hz;
 - documentare quali differenze dalla versione MSX sono intenzionali;
 - aggiornare README e matrice di compatibilità delle regole.
