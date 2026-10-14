@@ -39,3 +39,15 @@ esatta andrà calibrata da una fonte arcade verificabile prima del rilascio.
 
 Fonte dei layout:
 [Arkanoid - Rounds (VGMaps)](https://vgmaps.com/Atlas/Arcade/Arkanoid-Rounds.png).
+
+## Doh
+
+Il round 33 è un tipo di round distinto, senza mattoni, capsule o alieni. Doh
+richiede 16 colpi, assegna 1.000 punti per colpo e perde tutti i danni accumulati
+quando il giocatore perde una vita. Può mantenere al massimo tre proiettili,
+diretti verso la posizione della Vaus al momento dello sparo.
+
+Lo spritesheet arcade e i due suoni già presenti nel progetto vengono usati per
+ingresso, feedback dei colpi e dissoluzione. Velocità e intervallo dei proiettili
+restano valori da calibrare su una registrazione arcade; la sequenza finale è
+per ora limitata al messaggio conclusivo e al ritorno al round 1.

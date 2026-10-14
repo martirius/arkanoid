@@ -1,5 +1,5 @@
-import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/projectile_target.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -56,9 +56,9 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
     if (_brickAlreadyHit) {
       return;
     }
-    if (other is Brick) {
+    if (other is ProjectileTarget) {
       _brickAlreadyHit = true;
-      other.hit(false);
+      (other as ProjectileTarget).hitByLaser();
       removeLaserFromGame();
     } else if (other is Field) {
       _brickAlreadyHit = true;

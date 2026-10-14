@@ -1,5 +1,6 @@
 import 'package:arkanoid/main.dart';
 import 'package:arkanoid/game_audio.dart';
+import 'package:arkanoid/components/projectile_target.dart';
 import 'package:arkanoid/round_rules.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -18,7 +19,9 @@ enum BrickModel {
   gold
 }
 
-class Brick extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
+class Brick extends SpriteAnimationComponent
+    with HasGameReference<Arkanoid>
+    implements ProjectileTarget {
   late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
@@ -116,4 +119,10 @@ class Brick extends SpriteAnimationComponent with HasGameReference<Arkanoid> {
       onDestroyed?.call();
     }
   }
+
+  @override
+  void hitByBall() => hit(true);
+
+  @override
+  void hitByLaser() => hit(false);
 }

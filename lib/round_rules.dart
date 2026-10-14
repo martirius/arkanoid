@@ -1,6 +1,6 @@
 class RoundRules {
   RoundRules(this.roundNumber) {
-    RangeError.checkValueInInterval(roundNumber, 1, 32, 'roundNumber');
+    RangeError.checkValueInInterval(roundNumber, 1, 33, 'roundNumber');
   }
 
   final int roundNumber;

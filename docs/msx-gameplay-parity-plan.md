@@ -49,20 +49,20 @@ variazione delle traiettorie in
 e selezione/azioni delle capsule in
 [`disassembly.asm`](https://github.com/mcolom/arkanoid_msx_disasm/blob/20f5b7ba8e3d4ee04e0cfc051a3dfd98dbed233e/disassembly.asm#L8557-L9105).
 
-### Regole mancanti
+### Regole originariamente mancanti
 
-1. **Vite extra legate al punteggio.** Si ottiene una vita a 20.000 punti, poi
+1. **Vite extra legate al punteggio (integrato).** Si ottiene una vita a 20.000 punti, poi
    a 60.000 e successivamente ogni 60.000 punti (120.000, 180.000, ...). La
    capsula Player è un meccanismo aggiuntivo e separato.
-2. **Alieni.** Il round 1 consente un alieno attivo, il round 2 due e dal round
+2. **Alieni (integrato, da calibrare).** Il round 1 consente un alieno attivo, il round 2 due e dal round
    3 in poi tre. Il tentativo di spawn avviene ogni 240 tick e usa la porta più
    lontana dalla Vaus. Esistono quattro varianti di aspetto/movimento cicliche
    per round. Pallina, laser e Vaus li distruggono; la collisione con la Vaus
    non costa una vita. Ogni alieno vale 100 punti e fa rimbalzare la pallina.
-3. **Progressione completa.** Il gioco MSX ha 32 round, mentre la versione
+3. **Progressione completa (integrata).** Il gioco MSX ha 32 round, mentre la versione
    arcade scelta come riferimento ha 32 round di mattoni seguiti da Doh. Il
    progetto deve mantenere intenzionalmente questa differenza dal port.
-4. **Round finale con Doh.** Nel port MSX Doh occupa il round 32; nel percorso
+4. **Round finale con Doh (integrato).** Nel port MSX Doh occupa il round 32; nel percorso
    arcade del progetto sarà il round 33. Non ci sono capsule o alieni: Doh
    richiede 16 colpi, cambia colore quando viene colpito e può mantenere fino a
    tre proiettili diretti verso la Vaus. Un proiettile distrugge la Vaus. Alla
@@ -196,7 +196,7 @@ Le scelte provvisorie da calibrare sono documentate in
   silenzioso al round 1;
 - aggiornare il level editor dopo la stabilizzazione del nuovo schema dati.
 
-### Fase 7 - Doh (round 33) e finale
+### Fase 7 - Doh (round 33) e finale (completata)
 
 - modellare il round 33 come tipo di round distinto, senza griglia di mattoni;
 - implementare hitbox di Doh, 16 colpi, feedback colore e rimbalzo corretto;

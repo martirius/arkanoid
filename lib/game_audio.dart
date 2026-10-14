@@ -13,6 +13,8 @@ enum GameSound {
   ballGoDown('ball_go_down.wav'),
   wallPortalTook('wall_portal_took.wav'),
   extraLife('extra_life.wav'),
+  dohDeath('doh_death.wav'),
+  dohStart('Dimensional_Fortress_Doh.mp3', mode: PlayerMode.mediaPlayer),
   gameStart('Game_Start.mp3', mode: PlayerMode.mediaPlayer),
   gameOver('Game_Over.mp3', mode: PlayerMode.mediaPlayer);
 

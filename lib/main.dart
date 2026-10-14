@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:arkanoid/components/game_hud.dart';
 import 'package:arkanoid/components/gameplay_viewport.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
+import 'package:arkanoid/components/levels/doh_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/game_session.dart';
@@ -88,6 +89,12 @@ class Arkanoid extends FlameGame
 
   void levelCompleted(int levelNumber) {
     if (levelNumber == levelCatalog.length) {
+      if (currentLevel.parent != null) {
+        currentLevel.removeFromParent();
+      }
+      session.currentRound = 33;
+      currentLevel = DohLevel();
+      world.add(currentLevel);
       return;
     }
     final definition = levelCatalog[levelNumber];

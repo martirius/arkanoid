@@ -1,6 +1,7 @@
 import 'dart:ui' show Offset, Rect;
 
 import 'package:arkanoid/components/brick.dart';
+import 'package:arkanoid/components/projectile_target.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/main.dart';
@@ -30,7 +31,7 @@ class Ball extends PositionedEntity
   final ArcadeBallMotion motion;
   late Vector2 velocity;
   bool ballCanMove = false;
-  final Set<Brick> _brickCollisionCandidates = {};
+  final Set<PositionComponent> _collisionCandidates = {};
   final Vector2 _previousPosition = Vector2.zero();
   bool _hasPreviousPosition = false;
 
@@ -53,14 +54,14 @@ class Ball extends PositionedEntity
   void onMount() {
     super.onMount();
     game.collisionDetection.collisionsCompletedNotifier
-        .addListener(_resolveBrickCollision);
+        .addListener(_resolveProjectileCollision);
   }
 
   @override
   void onRemove() {
     game.collisionDetection.collisionsCompletedNotifier
-        .removeListener(_resolveBrickCollision);
-    _brickCollisionCandidates.clear();
+        .removeListener(_resolveProjectileCollision);
+    _collisionCandidates.clear();
     super.onRemove();
   }
 
@@ -68,8 +69,8 @@ class Ball extends PositionedEntity
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
 
-    if (other is Brick) {
-      _brickCollisionCandidates.add(other);
+    if (other is ProjectileTarget) {
+      _collisionCandidates.add(other);
     } else if (other is Starship && ballCanMove && velocity.y > 0) {
       final starship = other;
       final ballCenterX = x + size.x * scale.x / 2;
@@ -83,8 +84,8 @@ class Ball extends PositionedEntity
     }
   }
 
-  void _resolveBrickCollision() {
-    if (_brickCollisionCandidates.isEmpty) {
+  void _resolveProjectileCollision() {
+    if (_collisionCandidates.isEmpty) {
       return;
     }
 
@@ -100,11 +101,11 @@ class Ball extends PositionedEntity
             )
           : null,
       velocity: Offset(velocity.x, velocity.y),
-      candidates: _brickCollisionCandidates.map(
-        (brick) => (target: brick, bounds: _bounds(brick)),
+      candidates: _collisionCandidates.map(
+        (target) => (target: target, bounds: _bounds(target)),
       ),
     );
-    _brickCollisionCandidates.clear();
+    _collisionCandidates.clear();
     if (resolution == null) {
       return;
     }
@@ -120,10 +121,12 @@ class Ball extends PositionedEntity
     );
     _syncTrajectoryAfterReflection(previousVelocity);
 
-    final brick = resolution.target;
-    brick.hit(true);
+    final target = resolution.target;
+    (target as ProjectileTarget).hitByBall();
     _registerImpact();
-    game.currentLevel.onBallBrickImpact(brick);
+    if (target is Brick) {
+      game.currentLevel.onBallBrickImpact(target);
+    }
   }
 
   void _syncTrajectoryAfterReflection(Vector2 previousVelocity) {
