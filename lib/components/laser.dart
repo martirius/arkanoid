@@ -59,7 +59,6 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
     if (other is Brick) {
       _brickAlreadyHit = true;
       other.hit(false);
-      removeAll(children);
       removeLaserFromGame();
     } else if (other is Field) {
       _brickAlreadyHit = true;
@@ -68,6 +67,11 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
   }
 
   void removeLaserFromGame() {
+    if (current == LaserStatus.destroy) {
+      return;
+    }
+    _brickAlreadyHit = true;
+    removeAll(children);
     current = LaserStatus.destroy;
     Future.delayed(const Duration(seconds: 1), () {
       removeFromParent();

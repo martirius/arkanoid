@@ -3,6 +3,7 @@ import 'dart:async' as async;
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/break_animation.dart';
 import 'package:arkanoid/components/brick.dart';
+import 'package:arkanoid/components/enemy.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
@@ -10,6 +11,7 @@ import 'package:arkanoid/components/lives.dart';
 import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
+import 'package:arkanoid/enemy_director.dart';
 import 'package:arkanoid/main.dart';
 import 'package:arkanoid/power_up_director.dart';
 import 'package:flame/components.dart';
@@ -39,6 +41,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   List<List<Brick?>> bricks = [];
   late Lives _lives;
   late Field field;
+  late EnemyDirector _enemyDirector;
   final FieldType fieldType;
   RoundPhase _phase = RoundPhase.intro;
   final Map<async.Timer, async.Completer<bool>> _pendingRoundDelays = {};
@@ -163,6 +166,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
       ..priority = 20;
     _starship = _newStarship();
     field = _newField();
+    _enemyDirector = _newEnemyDirector();
   }
 
   Future<void> _loadComponents() async {
@@ -189,6 +193,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
 
   Future<void> _loadGameComponents() async {
     await add(field);
+    await add(_enemyDirector);
     _positionStarship();
     _positionLives();
     final ball = _newBall();
@@ -245,6 +250,8 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   }
 
   Future<void> _removeGameComponents() async {
+    _enemyDirector.reset();
+    _enemyDirector.removeFromParent();
     for (final element in children.toList()) {
       if (element is PowerUp ||
           element is BreakAnimationComponent ||
@@ -291,11 +298,24 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
         onEscape: _onStarshipEscape,
       );
 
+  EnemyDirector _newEnemyDirector() => EnemyDirector(
+        roundNumber: definition.roundNumber,
+        field: () => field,
+        isPlaying: () => _phase == RoundPhase.playing,
+        onEnemyDestroyed: (enemy) {
+          addScore(100);
+          game.audio.play(GameSound.alienHit);
+        },
+      );
+
   void _removeTemporaryComponents() {
+    _enemyDirector.reset();
     for (final component in children.toList()) {
       if (component is PowerUp ||
           component is BreakAnimationComponent ||
-          component is Laser) {
+          component is Laser ||
+          component is Enemy ||
+          component is EnemyGate) {
         component.removeFromParent();
       }
     }

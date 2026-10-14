@@ -6,6 +6,7 @@ import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/physics/arcade_ball_motion.dart';
 import 'package:arkanoid/round_rules.dart';
+import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -96,5 +97,19 @@ void main() {
     }
     expect(first.trajectory, 3);
     expect(second.trajectory, 3);
+  });
+
+  test('an arcade obstacle deflects the ball without changing its speed', () {
+    final ball = Ball()..position = Vector2(100, 100);
+    final obstacle = PositionComponent(
+      position: Vector2(106, 98),
+      size: Vector2.all(16),
+    );
+    final speedBefore = ball.velocity.length;
+
+    ball.bounceFromObstacle(obstacle);
+
+    expect(ball.velocity.x, lessThan(0));
+    expect(ball.velocity.length, closeTo(speedBefore, 0.000001));
   });
 }

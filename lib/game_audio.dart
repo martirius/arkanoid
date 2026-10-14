@@ -8,6 +8,7 @@ enum GameSound {
   ballHitBlockUnbreakable('ball_hit_block_unbreakable.wav', players: 3),
   ballHitStarship('ball_hit_starship.wav', players: 3),
   starshipShoot('starship_shoot.wav', players: 3),
+  alienHit('alien_hit.wav', players: 3),
   starshipExtends('starship_extends.wav'),
   ballGoDown('ball_go_down.wav'),
   wallPortalTook('wall_portal_took.wav'),

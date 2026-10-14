@@ -1,5 +1,6 @@
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
+import 'package:arkanoid/components/enemy.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
@@ -8,6 +9,7 @@ import 'package:arkanoid/components/power_up.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_session.dart';
 import 'package:arkanoid/main.dart';
+import 'package:arkanoid/enemy_director.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
@@ -235,6 +237,60 @@ void main() {
       await tester.pump();
     }
     expect(level.isRemoved, isTrue);
+  });
+
+  testWidgets('arcade enemies spawn only while the round is playing',
+      (tester) async {
+    final level = _testLevel();
+    final game = _TestArkanoid(level);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 224,
+          height: 320,
+          child: GameWidget(game: game),
+        ),
+      ),
+    );
+    await _pumpUntilRoundIsReady(tester, level);
+
+    for (var step = 0; step < 100; step++) {
+      game.update(1 / 15);
+    }
+    expect(level.children.whereType<Enemy>(), isEmpty);
+
+    level.performAction();
+    level.balls.single.ballCanMove = false;
+    for (var step = 0; step < 110; step++) {
+      game.update(1 / 15);
+      if (step % 10 == 0) {
+        await tester.pump();
+      }
+    }
+    await tester.pump();
+
+    expect(level.phase, RoundPhase.playing);
+    final director = level.children.whereType<EnemyDirector>().single;
+    expect(director.activeEnemyCount, 1);
+    final enemy = director.activeEnemies.single;
+    for (var attempt = 0;
+        attempt < 20 && level.children.whereType<Enemy>().isEmpty;
+        attempt++) {
+      game.update(1 / 60);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+    expect(enemy.isLoaded, isTrue);
+    expect(enemy.isMounted, isTrue);
+    expect(level.children.whereType<Enemy>(), isNotEmpty);
+
+    final scoreBefore = game.currentScore;
+    enemy.destroy();
+    enemy.destroy();
+    expect(game.currentScore, scoreBefore + 100);
   });
 
   testWidgets('removing a round cancels its pending game-over transition',

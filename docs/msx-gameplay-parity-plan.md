@@ -157,7 +157,11 @@ successiva.
   catturate quando cambia power-up;
 - aggiungere timeout di Catch e limite di tre raffiche laser attive.
 
-### Fase 4 - Disruption completo
+### Fase 4 - Disruption completo (confermato)
+
+Il comportamento attuale è stato validato nel gameplay ed è considerato
+soddisfacente. Non sono previste altre modifiche in questa fase, per evitare di
+sostituire un comportamento arcade funzionante con dettagli specifici MSX.
 
 - rendere la capsula realmente ottenibile dalla selezione casuale;
 - creare tre palline con posizione e stadio identici alla pallina sorgente e
@@ -168,14 +172,16 @@ successiva.
 
 ### Fase 5 - Alieni
 
-- introdurre `EnemyDirector`, porte animate e cap 1/2/3 in base al round;
-- convertire i 240 tick in un intervallo di simulazione configurabile;
-- scegliere sempre la porta più lontana dalla Vaus;
-- implementare le quattro varianti cicliche e il comportamento rispetto ai
-  mattoni;
+- introdurre `EnemyDirector`, porte animate e un limite arcade configurabile;
+- usare un intervallo di simulazione in secondi, indipendente dal frame rate;
+- alternare le porte senza importare la scelta specifica del port MSX;
+- implementare le quattro forme arcade e il comportamento rispetto ai mattoni;
 - gestire collisioni con pallina, laser e Vaus, esplosione, suono e 100 punti;
 - assicurare che gli alieni non siano necessari per completare il round e
   vengano rimossi durante ogni transizione.
+
+Le scelte provvisorie da calibrare sono documentate in
+`docs/arcade-behavior-decisions.md`.
 
 ### Fase 6 - Contenuti e progressione 1-31
 

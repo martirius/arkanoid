@@ -211,4 +211,17 @@ class Ball extends PositionedEntity
     motion.changeTrajectory();
     _applyMotionVelocity();
   }
+
+  void bounceFromObstacle(PositionComponent obstacle) {
+    final deltaX = center.x - obstacle.center.x;
+    final deltaY = center.y - obstacle.center.y;
+    if (deltaX.abs() > deltaY.abs()) {
+      motion.bounceHorizontally();
+      x += deltaX < 0 ? -1 : 1;
+    } else {
+      motion.bounceVertically();
+      y += deltaY < 0 ? -1 : 1;
+    }
+    _applyMotionVelocity();
+  }
 }
