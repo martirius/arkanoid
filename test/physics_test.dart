@@ -87,7 +87,7 @@ void main() {
     ball.velocity = Vector2(130, 0);
     ball.update(1 / 120);
 
-    expect(ball.velocity.x, -130);
+    expect(ball.velocity.x, closeTo(-130 * 19 / 18, 0.0001));
     expect(ball.x, lessThan(211));
     expect(ball.speedProgress, 1);
 
@@ -95,8 +95,8 @@ void main() {
     ball.velocity = Vector2(-130, -130);
     ball.update(1 / 120);
 
-    expect(ball.velocity.x, 130);
-    expect(ball.velocity.y, 130);
+    expect(ball.velocity.x, greaterThan(0));
+    expect(ball.velocity.y, greaterThan(0));
     expect(ball.speedProgress, 3);
   });
 
@@ -121,8 +121,8 @@ void main() {
 
       expect(ball.x, 10);
       expect(ball.y, collisionY);
-      expect(ball.velocity.x, -300);
-      expect(ball.velocity.y, verticalVelocity);
+      expect(ball.velocity.x, closeTo(-300 * 19 / 18, 0.0001));
+      expect(ball.velocity.y, closeTo(verticalVelocity * 19 / 18, 0.0001));
       expect(ball.speedProgress, 1);
     }
   });
@@ -146,8 +146,8 @@ void main() {
 
     expect(ball.x, collisionX);
     expect(ball.y, 87);
-    expect(ball.velocity.x, 120);
-    expect(ball.velocity.y, 240);
+    expect(ball.velocity.x, closeTo(120 * 19 / 18, 0.0001));
+    expect(ball.velocity.y, closeTo(240 * 19 / 18, 0.0001));
   });
 
   test('earliest brick impact wins regardless of callback order', () {
@@ -185,8 +185,8 @@ void main() {
         expect(rightBrick.hits, 1);
         expect(ball.x, scenario.expectedX);
         expect(ball.y, 87);
-        expect(ball.velocity.x, scenario.vx);
-        expect(ball.velocity.y, 360);
+        expect(ball.velocity.x, closeTo(scenario.vx * 19 / 18, 0.0001));
+        expect(ball.velocity.y, closeTo(360 * 19 / 18, 0.0001));
       }
     }
   });

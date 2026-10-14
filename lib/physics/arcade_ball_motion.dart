@@ -84,8 +84,16 @@ class ArcadeBallMotion {
         ? _speedTable1
         : _speedTable2;
     final speed = speedTable[speedStage];
-    final scale =
+    final currentScale =
         (speed.multiplier + 1) / speed.target * _pixelsPerSecondPerUnit;
+    final nextStage = (speedStage + 1).clamp(0, speedTable.length - 1);
+    final nextSpeed = speedTable[nextStage];
+    final nextScale =
+        (nextSpeed.multiplier + 1) / nextSpeed.target * _pixelsPerSecondPerUnit;
+    final transitionProgress =
+        speedProgress / (speedThresholds[speedStage] + 1);
+    final scale =
+        currentScale + (nextScale - currentScale) * transitionProgress;
     final sign = trajectory < 0 ? -1.0 : 1.0;
     return (
       x: direction.x * sign * scale,

@@ -142,9 +142,12 @@ class Ball extends PositionedEntity
       before != 0 && after != 0 && before.sign != after.sign;
 
   void _registerImpact() {
-    if (motion.registerImpact()) {
-      _applyMotionVelocity();
-    }
+    final previousMotionVelocity = motion.velocity;
+    motion.registerImpact();
+    final nextMotionVelocity = motion.velocity;
+    final acceleration =
+        nextMotionVelocity.x.abs() / previousMotionVelocity.x.abs();
+    velocity.scale(acceleration);
   }
 
   void _applyMotionVelocity() {
