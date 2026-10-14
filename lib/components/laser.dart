@@ -73,9 +73,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
     _brickAlreadyHit = true;
     removeAll(children);
     current = LaserStatus.destroy;
-    Future.delayed(const Duration(seconds: 1), () {
-      removeFromParent();
-    });
+    removeFromParent();
   }
 
   @override

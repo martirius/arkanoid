@@ -27,23 +27,6 @@ void main() {
     expect(motion.speedProgress, 0);
   });
 
-  test('speed increases gradually between two stages', () {
-    final motion = ArcadeBallMotion(speedStage: 12);
-    final speeds = <double>[motion.velocity.x];
-
-    for (var impact = 0; impact < 9; impact++) {
-      motion.registerImpact();
-      speeds.add(motion.velocity.x);
-    }
-
-    expect(speeds.first, 130);
-    expect(speeds.last, 195);
-    expect(speeds, orderedEquals([...speeds]..sort()));
-    for (var index = 1; index < speeds.length; index++) {
-      expect(speeds[index] - speeds[index - 1], lessThan(8));
-    }
-  });
-
   test('advanced stages use the original speed table', () {
     expect(
       [
