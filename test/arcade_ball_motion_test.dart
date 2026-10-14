@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
@@ -29,18 +27,19 @@ void main() {
     expect(motion.speedProgress, 0);
   });
 
-  test('advanced speed stages stay gradual and controllable', () {
-    final speeds = <double>[];
-
-    for (var stage = 12; stage <= 15; stage++) {
-      final velocity = ArcadeBallMotion(speedStage: stage).velocity;
-      speeds.add(sqrt(velocity.x * velocity.x + velocity.y * velocity.y));
-    }
-
-    final expectedSpeeds = [184.0, 196.0, 208.0, 220.0];
-    for (var index = 0; index < speeds.length; index++) {
-      expect(speeds[index], closeTo(expectedSpeeds[index], 0.000001));
-    }
+  test('advanced stages use the original speed table', () {
+    expect(
+      [
+        for (var stage = 12; stage <= 15; stage++)
+          ArcadeBallMotion(speedStage: stage).velocity,
+      ],
+      [
+        (x: 130.0, y: -130.0),
+        (x: 195.0, y: -195.0),
+        (x: 260.0, y: -260.0),
+        (x: 390.0, y: -390.0),
+      ],
+    );
   });
 
   test('slow drops exactly one stage and clears its progress', () {

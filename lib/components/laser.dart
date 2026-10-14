@@ -26,7 +26,7 @@ class Laser extends SpriteAnimationGroupComponent<LaserStatus>
       ));
 
   bool _brickAlreadyHit = false;
-  static const _velocity = 150.0;
+  static const _velocity = 240.0;
 
   bool get isActive => !_brickAlreadyHit;
 
