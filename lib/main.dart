@@ -87,10 +87,13 @@ class Arkanoid extends FlameGame
   }
 
   void levelCompleted(int levelNumber) {
+    if (levelNumber == levelCatalog.length) {
+      return;
+    }
+    final definition = levelCatalog[levelNumber];
     if (currentLevel.parent != null) {
       currentLevel.removeFromParent();
     }
-    final definition = levelCatalog[levelNumber % levelCatalog.length];
     session.currentRound = definition.roundNumber;
     currentLevel = BaseLevel(definition);
     world.add(currentLevel);

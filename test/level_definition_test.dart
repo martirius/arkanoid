@@ -5,15 +5,76 @@ import 'package:arkanoid/components/levels/level_definition.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('the catalog contains five ordered 16 by 13 levels', () {
+  test('the catalog contains 32 ordered 16 by 13 arcade rounds', () {
     expect(
       levelCatalog.map((level) => level.roundNumber),
-      orderedEquals([1, 2, 3, 4, 5]),
+      orderedEquals(List.generate(32, (index) => index + 1)),
     );
     for (final level in levelCatalog) {
       expect(level.rows, hasLength(LevelDefinition.rowCount));
       for (final row in level.rows) {
         expect(row, hasLength(LevelDefinition.columnCount));
+      }
+    }
+  });
+
+  test('arcade rounds contain the expected number of breakable bricks', () {
+    const expectedBreakableBricks = [
+      78,
+      91,
+      64,
+      140,
+      98,
+      81,
+      98,
+      7,
+      34,
+      41,
+      72,
+      8,
+      72,
+      91,
+      148,
+      72,
+      67,
+      56,
+      57,
+      23,
+      26,
+      80,
+      94,
+      75,
+      66,
+      19,
+      78,
+      64,
+      92,
+      78,
+      92,
+      38,
+    ];
+
+    for (var index = 0; index < levelCatalog.length; index++) {
+      final breakableBricks = levelCatalog[index]
+          .rows
+          .expand((row) => row)
+          .where((brick) => brick != null && brick.model != BrickModel.gold)
+          .length;
+      expect(
+        breakableBricks,
+        expectedBreakableBricks[index],
+        reason: 'Unexpected breakable brick count in round ${index + 1}',
+      );
+    }
+  });
+
+  test('provisional capsule markers only use colored breakable bricks', () {
+    for (final level in levelCatalog.skip(5)) {
+      for (final brick
+          in level.rows.expand((row) => row).whereType<BrickSpec>()) {
+        if (brick.dropsCapsule) {
+          expect(brick.model, isNot(anyOf(BrickModel.silver, BrickModel.gold)));
+        }
       }
     }
   });

@@ -71,7 +71,7 @@ void main() {
     expect(ball.position, isNot(readyPosition));
   });
 
-  test('level progression follows the current five-round sequence', () {
+  test('level progression follows the arcade round sequence', () {
     final game = Arkanoid();
 
     game.levelCompleted(0);
@@ -85,7 +85,9 @@ void main() {
     game.levelCompleted(4);
     expect(game.currentLevel.definition, same(levelCatalog[4]));
     game.levelCompleted(5);
-    expect(game.currentLevel.definition, same(levelCatalog[0]));
+    expect(game.currentLevel.definition, same(levelCatalog[5]));
+    game.levelCompleted(31);
+    expect(game.currentLevel.definition, same(levelCatalog[31]));
   });
 
   test('level progression preserves the current session', () {

@@ -34,7 +34,7 @@ class EnemyDirector extends Component {
   @override
   void update(double dt) {
     super.update(dt);
-    if (!isPlaying() || roundNumber >= 32) {
+    if (!isPlaying() || roundNumber >= 33) {
       return;
     }
     _elapsed += dt;

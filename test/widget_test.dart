@@ -18,11 +18,20 @@ void main() {
     expect(game.currentLevel.definition, same(levelCatalog.first));
   });
 
-  test('completing level five loops back to a fresh level one', () {
-    final game = Arkanoid()..currentLevel = BaseLevel(levelCatalog.last);
+  test('completing level five advances to level six', () {
+    final game = Arkanoid()..currentLevel = BaseLevel(levelCatalog[4]);
 
     game.levelCompleted(5);
 
-    expect(game.currentLevel.definition, same(levelCatalog.first));
+    expect(game.currentLevel.definition, same(levelCatalog[5]));
+  });
+
+  test('completing level 32 does not silently loop to level one', () {
+    final lastLevel = BaseLevel(levelCatalog.last);
+    final game = Arkanoid()..currentLevel = lastLevel;
+
+    game.levelCompleted(32);
+
+    expect(game.currentLevel, same(lastLevel));
   });
 }
