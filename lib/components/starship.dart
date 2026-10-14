@@ -54,6 +54,7 @@ class Starship extends PositionedEntity
   bool _isEscaping = false;
   int _activeLaserVolleys = 0;
   int movementDirection = 0;
+  double? _targetCenterX;
 
   @override
   Future<void>? onLoad() async {
@@ -69,6 +70,13 @@ class Starship extends PositionedEntity
       if (_isEscaping || state == StarshipState.escaping) {
         _isEscaping = true;
         state = StarshipState.escaping;
+      } else if (_targetCenterX != null) {
+        x = _targetCenterX! - width * scale.x / 2;
+        state = x < previousX
+            ? StarshipState.movingLeft
+            : x > previousX
+                ? StarshipState.movingRight
+                : StarshipState.still;
       } else {
         state = movementDirection < 0
             ? StarshipState.movingLeft
@@ -105,7 +113,15 @@ class Starship extends PositionedEntity
     _updateCaughtBalls(dt);
   }
 
-  void setMovementDirection(int direction) => movementDirection = direction;
+  void setMovementDirection(int direction) {
+    _targetCenterX = null;
+    movementDirection = direction;
+  }
+
+  void setHorizontalTarget(double centerX) {
+    movementDirection = 0;
+    _targetCenterX = centerX;
+  }
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {

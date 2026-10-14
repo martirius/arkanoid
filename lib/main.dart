@@ -32,6 +32,9 @@ class Arkanoid extends FlameGame
         super(camera: _createCamera()) {
     hud = GameHud(
       onMove: (direction) => currentLevel.setMovementDirection(direction),
+      onMoveTo: (canvasPosition) => currentLevel.setHorizontalTarget(
+        camera.globalToLocal(canvasPosition).x,
+      ),
       onAction: () => currentLevel.performAction(),
       score: currentScore,
       topScore: topScore,

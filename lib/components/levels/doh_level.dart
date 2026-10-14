@@ -278,7 +278,16 @@ class DohLevel extends BaseLevel {
 
   @override
   void setMovementDirection(int direction) {
-    _bossStarship.setMovementDirection(direction);
+    if (_bossPhase == RoundPhase.ready || _bossPhase == RoundPhase.playing) {
+      _bossStarship.setMovementDirection(direction);
+    }
+  }
+
+  @override
+  void setHorizontalTarget(double centerX) {
+    if (_bossPhase == RoundPhase.ready || _bossPhase == RoundPhase.playing) {
+      _bossStarship.setHorizontalTarget(centerX);
+    }
   }
 
   @override

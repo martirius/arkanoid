@@ -535,7 +535,15 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   }
 
   void setMovementDirection(int direction) {
-    _starship.setMovementDirection(direction);
+    if (_phase == RoundPhase.ready || _phase == RoundPhase.playing) {
+      _starship.setMovementDirection(direction);
+    }
+  }
+
+  void setHorizontalTarget(double centerX) {
+    if (_phase == RoundPhase.ready || _phase == RoundPhase.playing) {
+      _starship.setHorizontalTarget(centerX);
+    }
   }
 
   void performAction() {

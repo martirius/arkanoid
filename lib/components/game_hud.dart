@@ -1,31 +1,28 @@
 import 'package:arkanoid/components/inputs/fire_button.dart';
 import 'package:arkanoid/components/inputs/input_controller.dart';
+import 'package:arkanoid/components/inputs/pointer_input_surface.dart';
 import 'package:arkanoid/components/top_text.dart';
 import 'package:flame/components.dart';
-import 'package:flutter/painting.dart';
 
 class GameHud extends PositionComponent {
   GameHud({
     required void Function(int direction) onMove,
+    required void Function(Vector2 canvasPosition) onMoveTo,
     required void Function() onAction,
     required int score,
     required int topScore,
   })  : _onMove = onMove,
+        _onMoveTo = onMoveTo,
         _onAction = onAction,
         _score = score,
         _topScore = topScore,
         super(priority: 100);
 
   final void Function(int direction) _onMove;
+  final void Function(Vector2 canvasPosition) _onMoveTo;
   final void Function() _onAction;
-  final JoystickComponent _joystick = JoystickComponent(
-    knob: Knob(),
-    background: Background(),
-    margin: const EdgeInsets.only(right: 40, bottom: 40),
-    size: 50,
-    knobRadius: 20,
-  );
   late final FireButton _fireButton;
+  late final PointerInputSurface _pointerInputSurface;
   late final InputController _inputController;
   late final TopText _playerText;
   late final TopText _topScoreText;
@@ -35,9 +32,13 @@ class GameHud extends PositionComponent {
   @override
   Future<void> onLoad() async {
     _fireButton = FireButton(Vector2.zero(), onPressed: _onAction);
+    _pointerInputSurface = PointerInputSurface(
+      onMoveTo: _inputControllerMoveTo,
+      onAction: _onAction,
+    );
     _inputController = InputController(
-      joystick: _joystick,
       onMove: _onMove,
+      onMoveTo: _onMoveTo,
       onAction: _onAction,
     );
     _playerText = TopText('1UP', _score.toString());
@@ -45,8 +46,8 @@ class GameHud extends PositionComponent {
     _layout(findGame()!.canvasSize);
 
     await addAll([
+      _pointerInputSurface,
       _fireButton,
-      _joystick,
       _inputController,
       _playerText,
       _topScoreText,
@@ -66,8 +67,13 @@ class GameHud extends PositionComponent {
       return;
     }
     _fireButton.position = Vector2(40, size.y - 40 - _fireButton.size.y);
+    _pointerInputSurface.size.setFrom(size);
     _playerText.position = Vector2(size.x / 4, 5);
     _topScoreText.position = Vector2(size.x / 2, 5);
+  }
+
+  void _inputControllerMoveTo(Vector2 canvasPosition) {
+    _inputController.moveTo(canvasPosition);
   }
 
   void updateScores({required int score, required int topScore}) {

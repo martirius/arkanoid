@@ -3,15 +3,15 @@ import 'package:flutter/services.dart';
 
 class InputController extends Component with KeyboardHandler {
   InputController({
-    required JoystickComponent joystick,
     required void Function(int direction) onMove,
+    required void Function(Vector2 canvasPosition) onMoveTo,
     required void Function() onAction,
-  })  : _joystick = joystick,
-        _onMove = onMove,
+  })  : _onMove = onMove,
+        _onMoveTo = onMoveTo,
         _onAction = onAction;
 
-  final JoystickComponent _joystick;
   final void Function(int direction) _onMove;
+  final void Function(Vector2 canvasPosition) _onMoveTo;
   final void Function() _onAction;
   int _keyboardDirection = 0;
 
@@ -20,13 +20,23 @@ class InputController extends Component with KeyboardHandler {
     KeyEvent event,
     Set<LogicalKeyboardKey> keysPressed,
   ) {
-    _keyboardDirection = keysPressed.contains(LogicalKeyboardKey.arrowLeft)
-        ? -1
-        : keysPressed.contains(LogicalKeyboardKey.arrowRight)
-            ? 1
-            : 0;
+    final left = keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+        keysPressed.contains(LogicalKeyboardKey.keyA);
+    final right = keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+        keysPressed.contains(LogicalKeyboardKey.keyD);
+    final direction = left == right
+        ? 0
+        : left
+            ? -1
+            : 1;
+    if (direction != _keyboardDirection) {
+      _keyboardDirection = direction;
+      _onMove(direction);
+    }
 
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
+    if (event is KeyDownEvent &&
+        (event.logicalKey == LogicalKeyboardKey.space ||
+            event.logicalKey == LogicalKeyboardKey.enter)) {
       pressAction();
     }
     return true;
@@ -35,14 +45,16 @@ class InputController extends Component with KeyboardHandler {
   @override
   void update(double dt) {
     super.update(dt);
-    _onMove(_keyboardDirection != 0 ? _keyboardDirection : _joystickDirection);
+    if (_keyboardDirection != 0) {
+      _onMove(_keyboardDirection);
+    }
+  }
+
+  void moveTo(Vector2 canvasPosition) {
+    if (_keyboardDirection == 0) {
+      _onMoveTo(canvasPosition);
+    }
   }
 
   void pressAction() => _onAction();
-
-  int get _joystickDirection => switch (_joystick.direction) {
-        JoystickDirection.left => -1,
-        JoystickDirection.right => 1,
-        _ => 0,
-      };
 }
