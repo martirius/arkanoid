@@ -40,6 +40,13 @@ esatta andrà calibrata da una fonte arcade verificabile prima del rilascio.
 Fonte dei layout:
 [Arkanoid - Rounds (VGMaps)](https://vgmaps.com/Atlas/Arcade/Arkanoid-Rounds.png).
 
+## Traiettoria della pallina
+
+I cambi automatici di traiettoria dopo 40 rimbalzi sui bordi o 20 colpi sui
+mattoni oro appartengono al port MSX e non vengono applicati. La traiettoria
+cambia soltanto in seguito a una collisione o all'impatto con la Vaus, evitando
+che una pallina del Disruption possa deviare un'altra pallina in volo.
+
 ## Doh
 
 Il round 33 è un tipo di round distinto, senza mattoni, capsule o alieni. Doh

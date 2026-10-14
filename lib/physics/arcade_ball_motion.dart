@@ -25,7 +25,6 @@ class ArcadeBallMotion {
 
   static const _pixelsPerSecondPerUnit = 130.0;
   static const _paddleTrajectories = [7, 6, 5, 4, 3, 2];
-  static const _changedTrajectories = [2, 3, 4, 3, 6, 5, 6, 7];
   static const _positiveDirections = [
     (x: 2.0, y: -1.0),
     (x: 2.0, y: -1.0),
@@ -131,11 +130,6 @@ class ArcadeBallMotion {
             .floor()
             .clamp(0, _paddleTrajectories.length - 1);
     trajectory = _paddleTrajectories[zone];
-  }
-
-  void changeTrajectory() {
-    final sign = trajectory.sign;
-    trajectory = sign * _changedTrajectories[trajectory.abs() - 1];
   }
 
   static void _checkTrajectory(int trajectory) {

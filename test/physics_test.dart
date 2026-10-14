@@ -100,6 +100,25 @@ void main() {
     expect(ball.speedProgress, 3);
   });
 
+  test('forty wall bounces do not redirect another active ball', () {
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
+    final bouncingBall = Ball()
+      ..game = game
+      ..ballCanMove = true;
+    final otherBall = Ball();
+    game.currentLevel.balls.addAll([bouncingBall, otherBall]);
+
+    for (var bounce = 0; bounce < 40; bounce++) {
+      bouncingBall
+        ..position = Vector2(211, 100)
+        ..velocity = Vector2(130, 0)
+        ..update(1 / 120);
+    }
+
+    expect(otherBall.trajectory, 3);
+  });
+
   test('lateral entry between brick rows keeps a horizontal bounce', () {
     for (final verticalVelocity in [120.0, -120.0]) {
       final game = Arkanoid();

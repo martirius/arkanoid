@@ -1,6 +1,5 @@
 import 'dart:ui' show Offset, Rect;
 
-import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/projectile_target.dart';
 import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
@@ -124,9 +123,6 @@ class Ball extends PositionedEntity
     final target = resolution.target;
     (target as ProjectileTarget).hitByBall();
     _registerImpact();
-    if (target is Brick) {
-      game.currentLevel.onBallBrickImpact(target);
-    }
   }
 
   void _syncTrajectoryAfterReflection(Vector2 previousVelocity) {
@@ -184,18 +180,15 @@ class Ball extends PositionedEntity
       velocity.x = velocity.x.abs();
       motion.bounceHorizontally();
       _registerImpact();
-      game.currentLevel.onBallWallBounce();
     } else if (x >= field.rightWall - size.x * scale.x && velocity.x > 0) {
       velocity.x = -velocity.x.abs();
       motion.bounceHorizontally();
       _registerImpact();
-      game.currentLevel.onBallWallBounce();
     }
     if (y <= field.topWall && velocity.y < 0) {
       velocity.y = velocity.y.abs();
       motion.bounceVertically();
       _registerImpact();
-      game.currentLevel.onBallWallBounce();
     }
     _previousPosition.setFrom(position);
     _hasPreviousPosition = true;
@@ -207,11 +200,6 @@ class Ball extends PositionedEntity
 
   void slow() {
     motion.slow();
-    _applyMotionVelocity();
-  }
-
-  void changeTrajectory() {
-    motion.changeTrajectory();
     _applyMotionVelocity();
   }
 

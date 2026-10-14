@@ -46,8 +46,6 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   RoundPhase _phase = RoundPhase.intro;
   final Map<async.Timer, async.Completer<bool>> _pendingRoundDelays = {};
   bool _removed = false;
-  int _wallBounceCount = 0;
-  int _goldBrickHitCount = 0;
   final PowerUpDirector _powerUpDirector = PowerUpDirector();
   PowerUp? _fallingPowerUp;
 
@@ -440,31 +438,6 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
     )..position = position.clone();
     _fallingPowerUp = powerUp;
     add(powerUp);
-  }
-
-  void onBallWallBounce() {
-    _wallBounceCount += 1;
-    if (_wallBounceCount == 40) {
-      _wallBounceCount = 0;
-      _changeAllBallTrajectories();
-    }
-  }
-
-  void onBallBrickImpact(Brick brick) {
-    if (brick.model != BrickModel.gold) {
-      return;
-    }
-    _goldBrickHitCount += 1;
-    if (_goldBrickHitCount == 20) {
-      _goldBrickHitCount = 0;
-      _changeAllBallTrajectories();
-    }
-  }
-
-  void _changeAllBallTrajectories() {
-    for (final ball in balls) {
-      ball.changeTrajectory();
-    }
   }
 
   void levelCompleted() {

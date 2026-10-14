@@ -1,7 +1,4 @@
 import 'package:arkanoid/components/ball.dart';
-import 'package:arkanoid/components/brick.dart';
-import 'package:arkanoid/components/levels/base_level.dart';
-import 'package:arkanoid/components/levels/level_catalog.dart';
 import 'package:arkanoid/physics/arcade_ball_motion.dart';
 import 'package:arkanoid/round_rules.dart';
 import 'package:flame/components.dart';
@@ -76,26 +73,6 @@ void main() {
     expect(motion.trajectory, -3);
     expect(motion.velocity.x, lessThan(0));
     expect(motion.velocity.y, greaterThan(0));
-  });
-
-  test('wall and gold counters change every active ball trajectory', () {
-    final level = BaseLevel(levelCatalog.first);
-    final first = Ball();
-    final second = Ball();
-    level.balls.addAll([first, second]);
-
-    for (var bounce = 0; bounce < 40; bounce++) {
-      level.onBallWallBounce();
-    }
-    expect(first.trajectory, 4);
-    expect(second.trajectory, 4);
-
-    final gold = Brick(BrickModel.gold);
-    for (var hit = 0; hit < 20; hit++) {
-      level.onBallBrickImpact(gold);
-    }
-    expect(first.trajectory, 3);
-    expect(second.trajectory, 3);
   });
 
   test('an arcade obstacle deflects the ball without changing its speed', () {
