@@ -21,12 +21,21 @@ class MainMenuOverlay extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'ARKANOID',
-                style: TextStyle(
-                  color: _orange,
-                  fontFamily: 'Joystix',
-                  fontSize: 34,
+              const SizedBox(
+                key: Key('main-menu-title'),
+                width: 196,
+                height: 54,
+                child: ClipRect(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/intro.png'),
+                        alignment: Alignment.topLeft,
+                        fit: BoxFit.none,
+                        filterQuality: FilterQuality.none,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

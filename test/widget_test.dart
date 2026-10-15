@@ -89,7 +89,7 @@ void main() {
       ),
     );
 
-    expect(find.text('ARKANOID'), findsOneWidget);
+    expect(find.byKey(const Key('main-menu-title')), findsOneWidget);
     expect(find.text('HIGH SCORE\n50000'), findsOneWidget);
     await tester.tap(find.text('START'));
     expect(starts, 1);
