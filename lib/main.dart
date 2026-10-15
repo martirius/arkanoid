@@ -30,24 +30,26 @@ void main() {
       theme: ThemeData.dark(),
       home: Scaffold(
         backgroundColor: Colors.black,
-        body: GameWidget<Arkanoid>(
-          game: arkanoidGame,
-          overlayBuilderMap: {
-            Arkanoid.mainMenuOverlay: (context, game) => MainMenuOverlay(
-                  highScore: game.topScore,
-                  onStart: game.startNewGame,
-                ),
-            Arkanoid.pauseOverlay: (context, game) => PauseOverlay(
-                  onResume: game.resumeGame,
-                  onExit: game.returnToMenu,
-                ),
-            Arkanoid.gameplayOverlay: (context, game) => GameplayOverlay(
-                  onPause: game.pauseGame,
-                ),
-            Arkanoid.introOverlay: (context, game) => IntroOverlay(
-                  onSkip: game.skipIntro,
-                ),
-          },
+        body: SafeArea(
+          child: GameWidget<Arkanoid>(
+            game: arkanoidGame,
+            overlayBuilderMap: {
+              Arkanoid.mainMenuOverlay: (context, game) => MainMenuOverlay(
+                    highScore: game.topScore,
+                    onStart: game.startNewGame,
+                  ),
+              Arkanoid.pauseOverlay: (context, game) => PauseOverlay(
+                    onResume: game.resumeGame,
+                    onExit: game.returnToMenu,
+                  ),
+              Arkanoid.gameplayOverlay: (context, game) => GameplayOverlay(
+                    onPause: game.pauseGame,
+                  ),
+              Arkanoid.introOverlay: (context, game) => IntroOverlay(
+                    onSkip: game.skipIntro,
+                  ),
+            },
+          ),
         ),
       ),
     ),
