@@ -233,6 +233,17 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   }
 
   @override
+  void onCollisionStart(
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
+    super.onCollisionStart(intersectionPoints, other);
+    if (!_destroyed && other is Enemy) {
+      _separateFrom(other);
+    }
+  }
+
+  @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (_destroyed) {
@@ -246,8 +257,6 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
       destroy();
     } else if (other is Starship) {
       destroy();
-    } else if (other is Enemy) {
-      _separateFrom(other);
     } else if (other is Brick) {
       _bounceFrom(other);
     }
@@ -272,11 +281,12 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     }
     const minimumDistance = 12.0;
     final overlap = minimumDistance - distance;
-    if (overlap > 0) {
-      final correction = normal * (overlap / 2);
-      position.add(correction);
-      other.position.sub(correction);
+    if (overlap <= 0) {
+      return;
     }
+    final correction = normal * (overlap / 2);
+    position.add(correction);
+    other.position.sub(correction);
     _motion.headAwayFrom(normal);
     other._motion.headAwayFrom(-normal);
   }

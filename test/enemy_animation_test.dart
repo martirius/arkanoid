@@ -59,6 +59,10 @@ void main() {
 
     final first = enemies[EnemyType.konerd]!..position = Vector2(80, 80);
     final second = enemies[EnemyType.pyradok]!..position = Vector2(80, 80);
+    first.onCollisionStart(<Vector2>{}, second);
+    second.onCollisionStart(<Vector2>{}, first);
+    expect(first.position.distanceTo(second.position), 12);
+
     first.onCollision(<Vector2>{}, second);
     second.onCollision(<Vector2>{}, first);
     expect(first.position.distanceTo(second.position), 12);
