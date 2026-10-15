@@ -54,11 +54,12 @@ e selezione/azioni delle capsule in
 1. **Vite extra legate al punteggio (integrato).** Si ottiene una vita a 20.000 punti, poi
    a 60.000 e successivamente ogni 60.000 punti (120.000, 180.000, ...). La
    capsula Player è un meccanismo aggiuntivo e separato.
-2. **Alieni (integrato, da calibrare).** Il round 1 consente un alieno attivo, il round 2 due e dal round
-   3 in poi tre. Il tentativo di spawn avviene ogni 240 tick e usa la porta più
-   lontana dalla Vaus. Esistono quattro varianti di aspetto/movimento cicliche
-   per round. Pallina, laser e Vaus li distruggono; la collisione con la Vaus
-   non costa una vita. Ogni alieno vale 100 punti e fa rimbalzare la pallina.
+2. **Alieni (integrato, da calibrare).** Il progetto segue il profilo Hard
+   arcade: tre slot fin dal primo round, porta sul lato della Vaus e una forma
+   fissa per round. Le regole MSX del limite progressivo, della porta più
+   lontana e dei 240 tick non vengono importate. Pallina, laser e Vaus li
+   distruggono; la collisione con la Vaus non costa una vita. Ogni alieno vale
+   100 punti e fa rimbalzare la pallina.
 3. **Progressione completa (integrata).** Il gioco MSX ha 32 round, mentre la versione
    arcade scelta come riferimento ha 32 round di mattoni seguiti da Doh. Il
    progetto deve mantenere intenzionalmente questa differenza dal port.
@@ -110,7 +111,7 @@ Arkanoid
   a usare il resolver swept già presente per evitare tunneling.
 - `PowerUpDirector` decide se e quale capsula generare quando viene distrutto
   un mattone colorato; i dati del livello non contengono marker di rilascio.
-- `EnemyDirector` gestisce timer, cap degli alieni e porta di ingresso. I singoli
+- `EnemyDirector` gestisce slot, sequenza e porta di ingresso. I singoli
   alieni gestiscono soltanto movimento, animazione e collisioni locali.
 - I tempi originali in tick vengono espressi come secondi di simulazione e
   aggiornati con `dt`, mantenendo il fixed step già usato dal progetto.
@@ -175,9 +176,9 @@ sostituire un comportamento arcade funzionante con dettagli specifici MSX.
 
 ### Fase 5 - Alieni
 
-- introdurre `EnemyDirector`, porte animate e un limite arcade configurabile;
-- usare un intervallo di simulazione in secondi, indipendente dal frame rate;
-- alternare le porte senza importare la scelta specifica del port MSX;
+- introdurre `EnemyDirector`, porte animate e i tre slot del profilo Hard;
+- usare tempi di simulazione in secondi, indipendenti dal frame rate;
+- scegliere la porta sul lato della Vaus come nella ROM arcade;
 - implementare le quattro forme arcade e il comportamento rispetto ai mattoni;
 - gestire collisioni con pallina, laser e Vaus, esplosione, suono e 100 punti;
 - assicurare che gli alieni non siano necessari per completare il round e

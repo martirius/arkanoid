@@ -3,17 +3,23 @@ import 'package:arkanoid/enemy_director.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('arcade enemy sequence alternates gates and cycles all four forms', () {
-    final sequence = ArcadeEnemySequence(roundNumber: 1);
+  test('arcade hard uses one enemy form for the whole round', () {
+    expect(const ArcadeEnemyRules(roundNumber: 1).type, EnemyType.konerd);
+    expect(const ArcadeEnemyRules(roundNumber: 2).type, EnemyType.pyradok);
+    expect(const ArcadeEnemyRules(roundNumber: 3).type, EnemyType.triSphere);
+    expect(const ArcadeEnemyRules(roundNumber: 4).type, EnemyType.opopo);
+    expect(const ArcadeEnemyRules(roundNumber: 5).type, EnemyType.konerd);
+  });
 
+  test('arcade hard opens the gate nearest to Vaus', () {
+    const rules = ArcadeEnemyRules(roundNumber: 2);
     expect(
-      [for (var index = 0; index < 4; index++) sequence.next()],
-      [
-        (gateIndex: 0, type: EnemyType.konerd),
-        (gateIndex: 1, type: EnemyType.pyradok),
-        (gateIndex: 0, type: EnemyType.triSphere),
-        (gateIndex: 1, type: EnemyType.opopo),
-      ],
+      rules.spawnFor(vausCenterX: 80, fieldCenterX: 112),
+      (gateIndex: 0, type: EnemyType.pyradok),
+    );
+    expect(
+      rules.spawnFor(vausCenterX: 150, fieldCenterX: 112),
+      (gateIndex: 1, type: EnemyType.pyradok),
     );
   });
 
@@ -24,10 +30,10 @@ void main() {
       onRemoved: () {},
     );
 
-    gate.update(0.29);
+    gate.update(EnemyGate.openingDuration - 0.01);
     expect(openings, 0);
     gate.update(0.01);
-    gate.update(0.3);
+    gate.update(EnemyGate.closingDuration);
     expect(openings, 1);
   });
 }

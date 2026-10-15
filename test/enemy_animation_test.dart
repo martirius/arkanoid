@@ -35,9 +35,9 @@ void main() {
 
     const expectedLayouts = {
       EnemyType.konerd: (frames: 8, lastX: 112.0, lastY: 0.0),
-      EnemyType.pyradok: (frames: 11, lastX: 64.0, lastY: 32.0),
+      EnemyType.pyradok: (frames: 12, lastX: 80.0, lastY: 16.0),
       EnemyType.triSphere: (frames: 24, lastX: 112.0, lastY: 80.0),
-      EnemyType.opopo: (frames: 10, lastX: 64.0, lastY: 112.0),
+      EnemyType.opopo: (frames: 20, lastX: 0.0, lastY: 112.0),
     };
     for (final MapEntry(key: type, value: expected)
         in expectedLayouts.entries) {
@@ -52,8 +52,9 @@ void main() {
 
     final explosion =
         enemies.values.first.animations![EnemyState.exploding]!.frames;
-    expect(explosion, hasLength(6));
+    expect(explosion, hasLength(7));
     expect(explosion.first.sprite.srcPosition, Vector2(0, 128));
     expect(explosion.last.sprite.srcPosition, Vector2(80, 128));
+    expect(explosion[4].sprite.srcPosition, Vector2(0, 128));
   });
 }

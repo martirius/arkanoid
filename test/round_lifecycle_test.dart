@@ -264,18 +264,22 @@ void main() {
 
     level.performAction();
     level.balls.single.ballCanMove = false;
-    for (var step = 0; step < 110; step++) {
-      game.update(1 / 15);
-      if (step % 10 == 0) {
-        await tester.pump();
+    final director = level.children.whereType<EnemyDirector>().single;
+    for (var step = 0;
+        step < 800 &&
+            director.activeEnemyCount < EnemyDirector.maxActiveEnemies;
+        step++) {
+      await tester.pump(const Duration(milliseconds: 17));
+      if (step % 30 == 0) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 5)),
+        );
       }
     }
-    await tester.pump();
 
     expect(level.phase, RoundPhase.playing);
-    final director = level.children.whereType<EnemyDirector>().single;
-    expect(director.activeEnemyCount, 1);
-    final enemy = director.activeEnemies.single;
+    expect(director.activeEnemyCount, EnemyDirector.maxActiveEnemies);
+    final enemy = director.activeEnemies.first;
     for (var attempt = 0;
         attempt < 20 && level.children.whereType<Enemy>().isEmpty;
         attempt++) {

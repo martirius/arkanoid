@@ -299,6 +299,8 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   EnemyDirector _newEnemyDirector() => EnemyDirector(
         roundNumber: definition.roundNumber,
         field: () => field,
+        vausCenterX: () =>
+            _starship.x + _starship.width * _starship.scale.x / 2,
         isPlaying: () => _phase == RoundPhase.playing,
         onEnemyDestroyed: (enemy) {
           addScore(100);

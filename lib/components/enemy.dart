@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'dart:ui' show Rect;
+import 'dart:ui' show Image, Rect;
 
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
@@ -26,12 +26,121 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
           priority: 15,
         );
 
+  static const arcadeFramesPerSecond = 60.0;
   static const _spriteLayouts = {
-    EnemyType.konerd: (y: 0.0, frames: 8, framesPerRow: 8),
-    EnemyType.pyradok: (y: 16.0, frames: 11, framesPerRow: 6),
-    EnemyType.triSphere: (y: 48.0, frames: 24, framesPerRow: 8),
-    EnemyType.opopo: (y: 96.0, frames: 10, framesPerRow: 5),
+    EnemyType.konerd: (y: 0.0, framesPerRow: 8),
+    EnemyType.pyradok: (y: 16.0, framesPerRow: 6),
+    EnemyType.triSphere: (y: 48.0, framesPerRow: 8),
+    EnemyType.opopo: (y: 96.0, framesPerRow: 5),
   };
+  static const _activeFrameIndexes = {
+    EnemyType.konerd: [0, 1, 2, 3, 4, 5, 6, 7],
+    EnemyType.pyradok: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 5],
+    EnemyType.triSphere: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+    ],
+    EnemyType.opopo: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      8,
+      7,
+      6,
+      5,
+    ],
+  };
+  static const _activeFrameTicks = {
+    EnemyType.konerd: [7, 7, 7, 7, 7, 7, 7, 7],
+    EnemyType.pyradok: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+    EnemyType.triSphere: [
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+    ],
+    EnemyType.opopo: [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      5,
+      5,
+      5,
+      10,
+      5,
+      5,
+      5,
+      10,
+    ],
+  };
+  static const _explosionFrameIndexes = [0, 1, 2, 3, 0, 4, 5];
+  static const _explosionFrameTicks = 5;
+  static const _explosionDuration =
+      7 * _explosionFrameTicks / arcadeFramesPerSecond;
   static const _baseVelocities = {
     EnemyType.konerd: (x: 38.0, y: 24.0),
     EnemyType.pyradok: (x: -32.0, y: 27.0),
@@ -52,26 +161,29 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   Future<void> onLoad() async {
     final image = await Flame.images.load('aliens.png');
     final spriteLayout = _spriteLayouts[type]!;
+    final activeIndexes = _activeFrameIndexes[type]!;
+    final activeTicks = _activeFrameTicks[type]!;
     animations = {
-      EnemyState.active: SpriteAnimation.fromFrameData(
-        image,
-        SpriteAnimationData.sequenced(
-          amount: spriteLayout.frames,
-          amountPerRow: spriteLayout.framesPerRow,
-          stepTime: 0.08,
-          textureSize: Vector2.all(16),
-          texturePosition: Vector2(0, spriteLayout.y),
-        ),
+      EnemyState.active: SpriteAnimation.variableSpriteList(
+        [
+          for (final index in activeIndexes)
+            _spriteAt(image, spriteLayout, index),
+        ],
+        stepTimes: [
+          for (final ticks in activeTicks) ticks / arcadeFramesPerSecond,
+        ],
       ),
-      EnemyState.exploding: SpriteAnimation.fromFrameData(
-        image,
-        SpriteAnimationData.sequenced(
-          amount: 6,
-          stepTime: 0.06,
-          loop: false,
-          textureSize: Vector2.all(16),
-          texturePosition: Vector2(0, 128),
-        ),
+      EnemyState.exploding: SpriteAnimation.spriteList(
+        [
+          for (final index in _explosionFrameIndexes)
+            Sprite(
+              image,
+              srcPosition: Vector2(index * 16, 128),
+              srcSize: Vector2.all(16),
+            ),
+        ],
+        stepTime: _explosionFrameTicks / arcadeFramesPerSecond,
+        loop: false,
       ),
     };
     final baseVelocity = _baseVelocities[type]!;
@@ -80,12 +192,27 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     add(CircleHitbox(radius: 6, position: Vector2.all(2)));
   }
 
+  static Sprite _spriteAt(
+    Image image,
+    ({double y, int framesPerRow}) layout,
+    int index,
+  ) {
+    return Sprite(
+      image,
+      srcPosition: Vector2(
+        (index % layout.framesPerRow) * 16,
+        layout.y + (index ~/ layout.framesPerRow) * 16,
+      ),
+      srcSize: Vector2.all(16),
+    );
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
     if (_destroyed) {
       _explosionElapsed += dt;
-      if (_explosionElapsed >= 0.36) {
+      if (_explosionElapsed >= _explosionDuration) {
         removeFromParent();
       }
       return;

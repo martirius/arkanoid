@@ -11,17 +11,18 @@ Konerd, Pyradok, Tri-sphere e Opopo. Gli ostacoli deviano la pallina, possono
 essere distrutti dalla pallina, dal laser o dalla Vaus, assegnano 100 punti e
 non sono necessari per completare il round.
 
-Le seguenti regole del port MSX non vengono importate:
+Il progetto usa sempre il profilo arcade Hard. Dalla ROM arcade risultano:
 
-- limite progressivo di uno, due e tre alieni nei primi round;
-- scelta della porta più lontana dalla Vaus;
-- intervallo espresso in 240 tick MSX;
-- traiettorie ricavate dalle tabelle specifiche del port.
+- tre slot disponibili fin dal primo round;
+- una sola forma per round, scelta ciclicamente ogni quattro round;
+- porta di ingresso sullo stesso lato della Vaus;
+- riempimento degli slot appena la sequenza della porta lo consente, senza un
+  intervallo fisso di sei secondi;
+- sequenze e tempi di animazione ricavati dalle tabelle arcade.
 
-La configurazione corrente usa al massimo tre alieni, alterna le due porte e
-genera un nuovo ostacolo ogni sei secondi di gioco attivo. Questi valori sono
-isolati in `EnemyDirector` e andranno calibrati confrontando una registrazione
-del cabinato arcade, senza modificare collisioni o ciclo di vita del round.
+La difficoltà Easy e la crescita progressiva del limite non vengono
+implementate. Movimento e reazioni casuali agli ostacoli saranno ricavati
+dalle quattro routine arcade, senza importare le tabelle del port MSX.
 
 ## Progressione e livelli
 
