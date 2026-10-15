@@ -1,4 +1,5 @@
 import 'package:arkanoid/components/doh.dart';
+import 'package:arkanoid/components/ending_sequence.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/doh_level.dart';
@@ -102,36 +103,19 @@ void main() {
 
     doh.update(1.2);
     game.update(1 / 120);
-    await tester.pump();
-    expect(
-      level.children.whereType<TextComponent>().map((text) => text.text),
-      contains('DOH\'S DIMENSIONAL\nFORTRESS IS DESTROYED.'),
-    );
+    for (var attempt = 0;
+        attempt < 30 && level.children.whereType<EndingSequence>().isEmpty;
+        attempt++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    final ending = level.children.whereType<EndingSequence>().single;
+    expect(level.children.whereType<TextComponent>(), isEmpty);
 
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pump();
-    expect(
-      level.children.whereType<TextComponent>().map((text) => text.text),
-      contains('TIME FLOWS BACKWARD.\nVAUS ESCAPES THE\nWARPED SPACE.'),
-    );
-
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pump();
-    expect(
-      level.children.whereType<TextComponent>().map((text) => text.text),
-      contains(
-        'ARKANOID\'S JOURNEY\nTHROUGH THE GALAXY\nHAS JUST BEGUN...',
-      ),
-    );
-
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pump();
-    expect(
-      level.children.whereType<TextComponent>().map((text) => text.text),
-      contains('THE END'),
-    );
-
-    await tester.pump(const Duration(seconds: 3));
+    ending.update(EndingSequence.duration);
+    game.update(1 / 120);
     await tester.pump();
     expect(game.flowState, GameFlowState.menu);
     expect(level.parent, isNull);

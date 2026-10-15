@@ -2,6 +2,7 @@ import 'dart:async' as async;
 
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/doh.dart';
+import 'package:arkanoid/components/ending_sequence.dart';
 import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/level_definition.dart';
@@ -24,21 +25,6 @@ class DohLevel extends BaseLevel {
   DohLevel() : super(dohDefinition);
 
   static const _readyDuration = Duration(seconds: 2);
-  static const _endingPages = [
-    (
-      text: 'DOH\'S DIMENSIONAL\nFORTRESS IS DESTROYED.',
-      duration: Duration(seconds: 4),
-    ),
-    (
-      text: 'TIME FLOWS BACKWARD.\nVAUS ESCAPES THE\nWARPED SPACE.',
-      duration: Duration(seconds: 4),
-    ),
-    (
-      text: 'ARKANOID\'S JOURNEY\nTHROUGH THE GALAXY\nHAS JUST BEGUN...',
-      duration: Duration(seconds: 4),
-    ),
-    (text: 'THE END', duration: Duration(seconds: 3)),
-  ];
   static const _messageFontSize = 10.0;
   static const _starshipBottomMargin = 12.0;
 
@@ -192,30 +178,27 @@ class DohLevel extends BaseLevel {
     if (!_isCurrentBoss || _bossPhase != RoundPhase.completed) {
       return;
     }
-    async.unawaited(_completeEnding());
+    async.unawaited(_showEndingSequence());
   }
 
-  Future<void> _completeEnding() async {
-    for (final page in _endingPages) {
-      if (!_isCurrentBoss || _bossPhase != RoundPhase.completed) {
-        return;
-      }
-      _replaceMessage(page.text);
-      final elapsed = await _waitFor(page.duration);
-      if (!elapsed) {
-        return;
-      }
-    }
-    if (_isCurrentBoss && _bossPhase == RoundPhase.completed) {
-      game.gameOver();
-    }
-  }
-
-  void _replaceMessage(String text) {
+  Future<void> _showEndingSequence() async {
+    field.removeFromParent();
+    _doh.removeFromParent();
+    _bossStarship.removeFromParent();
+    _bossLives.removeFromParent();
     for (final message in children.whereType<TextComponent>().toList()) {
       message.removeFromParent();
     }
-    add(_message(text));
+    game.hud.setControlsEnabled(false);
+    await add(
+      EndingSequence(
+        onFinished: () {
+          if (_isCurrentBoss && _bossPhase == RoundPhase.completed) {
+            game.gameOver();
+          }
+        },
+      ),
+    );
   }
 
   @override
