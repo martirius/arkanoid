@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:arkanoid/components/game_hud.dart';
 import 'package:arkanoid/components/gameplay_viewport.dart';
+import 'package:arkanoid/components/intro_sequence.dart';
 import 'package:arkanoid/components/levels/base_level.dart';
 import 'package:arkanoid/components/levels/doh_level.dart';
 import 'package:arkanoid/components/levels/level_catalog.dart';
@@ -43,6 +44,9 @@ void main() {
             Arkanoid.gameplayOverlay: (context, game) => GameplayOverlay(
                   onPause: game.pauseGame,
                 ),
+            Arkanoid.introOverlay: (context, game) => IntroOverlay(
+                  onSkip: game.skipIntro,
+                ),
           },
         ),
       ),
@@ -50,7 +54,7 @@ void main() {
   );
 }
 
-enum GameFlowState { menu, playing, paused }
+enum GameFlowState { menu, intro, playing, paused }
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
@@ -73,11 +77,13 @@ class Arkanoid extends FlameGame
   static const mainMenuOverlay = 'mainMenu';
   static const pauseOverlay = 'pause';
   static const gameplayOverlay = 'gameplay';
+  static const introOverlay = 'intro';
 
   final GameAudio audio = GameAudio();
   final GameSession session;
   late final GameHud hud;
   BaseLevel currentLevel = BaseLevel(levelCatalog.first);
+  IntroSequence? _introSequence;
   GameFlowState flowState = GameFlowState.menu;
 
   int get topScore => session.highScore;
@@ -152,6 +158,28 @@ class Arkanoid extends FlameGame
     session.reset();
     hud.updateScores(score: currentScore, topScore: topScore);
     currentLevel = BaseLevel(levelCatalog.first);
+    _introSequence?.removeFromParent();
+    _introSequence = IntroSequence(onFinished: _beginGameplay);
+    world.add(_introSequence!);
+    flowState = GameFlowState.intro;
+    hud.setGameplayActive(false);
+    _showOnlyOverlay(introOverlay);
+    audio.play(GameSound.intro);
+  }
+
+  void skipIntro() {
+    if (flowState == GameFlowState.intro) {
+      _introSequence?.finish();
+    }
+  }
+
+  void _beginGameplay() {
+    if (flowState != GameFlowState.intro) {
+      return;
+    }
+    _introSequence?.removeFromParent();
+    _introSequence = null;
+    unawaited(audio.stopAll());
     world.add(currentLevel);
     flowState = GameFlowState.playing;
     hud.setGameplayActive(true);
@@ -188,6 +216,8 @@ class Arkanoid extends FlameGame
       resumeEngine();
     }
     unawaited(audio.stopAll());
+    _introSequence?.removeFromParent();
+    _introSequence = null;
     if (currentLevel.parent != null) {
       currentLevel.removeFromParent();
     }
@@ -227,6 +257,10 @@ class Arkanoid extends FlameGame
           key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.keyP;
       if (flowState == GameFlowState.menu && isAction) {
         startNewGame();
+      } else if (flowState == GameFlowState.intro && isAction) {
+        skipIntro();
+      } else if (flowState == GameFlowState.intro && isPause) {
+        returnToMenu();
       } else if (flowState == GameFlowState.paused &&
           (isPause || key == LogicalKeyboardKey.enter)) {
         resumeGame();

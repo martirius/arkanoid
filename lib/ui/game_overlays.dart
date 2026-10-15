@@ -119,6 +119,21 @@ class GameplayOverlay extends StatelessWidget {
   }
 }
 
+class IntroOverlay extends StatelessWidget {
+  const IntroOverlay({required this.onSkip, super.key});
+
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onSkip,
+      child: const SizedBox.expand(),
+    );
+  }
+}
+
 class _MenuButton extends StatelessWidget {
   const _MenuButton({required this.label, required this.onPressed});
 

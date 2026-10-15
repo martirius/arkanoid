@@ -41,6 +41,10 @@ void main() {
     expect(game.currentScore, 0);
     expect(game.numberOfLives, 3);
     expect(game.currentLevel.definition, same(levelCatalog.first));
+    expect(game.flowState, GameFlowState.intro);
+
+    game.skipIntro();
+
     expect(game.flowState, GameFlowState.playing);
   });
 
@@ -107,5 +111,16 @@ void main() {
     await tester.tap(find.text('EXIT'));
     expect(resumes, 1);
     expect(exits, 1);
+  });
+
+  testWidgets('intro can be skipped with a tap', (tester) async {
+    var skips = 0;
+    await tester.pumpWidget(
+      MaterialApp(home: IntroOverlay(onSkip: () => skips++)),
+    );
+
+    await tester.tap(find.byType(IntroOverlay));
+
+    expect(skips, 1);
   });
 }
