@@ -15,7 +15,8 @@ class GameplayViewport extends FixedResolutionViewport {
 
   @override
   void onGameResize(Vector2 size) {
-    super.onGameResize(size);
-    position.y = min(screenTopMargin, max(0, size.y - this.size.y));
+    final topMargin = min(screenTopMargin, max(0.0, size.y));
+    super.onGameResize(Vector2(size.x, max(0.0, size.y - topMargin)));
+    position.y = topMargin;
   }
 }

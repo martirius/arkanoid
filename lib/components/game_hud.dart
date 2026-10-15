@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:arkanoid/components/inputs/fire_button.dart';
 import 'package:arkanoid/components/inputs/input_controller.dart';
 import 'package:arkanoid/components/inputs/pointer_input_surface.dart';
@@ -36,8 +38,8 @@ class GameHud extends PositionComponent with HasVisibility {
     _fireButton = FireButton(Vector2.zero(), onPressed: _performAction);
     _pointerInputSurface = PointerInputSurface(
       onMoveTo: _inputControllerMoveTo,
+      onTouchMove: _inputControllerTouchMove,
       onAction: _performAction,
-      acceptsTouchAt: (position) => !_fireButton.containsPoint(position),
     );
     _inputController = InputController(
       onMove: _move,
@@ -70,15 +72,65 @@ class GameHud extends PositionComponent with HasVisibility {
     if (!isLoading && !isLoaded) {
       return;
     }
-    _fireButton.position = Vector2(40, size.y - 40 - _fireButton.size.y);
+    final viewport = findGame()!.camera.viewport;
+    final isLandscape = size.x > size.y;
+    if (isLandscape) {
+      final controlHeight = min(100.0, max(0.0, size.y - 48));
+      final controlY = (size.y - controlHeight) / 2;
+      final viewportRight = viewport.position.x + viewport.size.x;
+      final rightAreaWidth = max(0.0, size.x - viewportRight);
+      final rightMargin = min(24.0, rightAreaWidth / 4);
+      _fireButton.position = Vector2(
+        max(0.0, (viewport.position.x - _fireButton.size.x) / 2),
+        (size.y - _fireButton.size.y) / 2,
+      );
+      _pointerInputSurface.setTouchArea(
+        position: Vector2(viewportRight + rightMargin, controlY),
+        size: Vector2(
+          max(0.0, rightAreaWidth - rightMargin * 2),
+          controlHeight,
+        ),
+      );
+    } else {
+      _fireButton.position = Vector2(
+        min(40.0, max(0.0, size.x - _fireButton.size.x)),
+        max(0.0, size.y - 40 - _fireButton.size.y),
+      );
+      final controlX = _fireButton.position.x + _fireButton.size.x + 20;
+      _pointerInputSurface.setTouchArea(
+        position: Vector2(controlX, _fireButton.position.y),
+        size: Vector2(
+          max(0.0, size.x - controlX - 24),
+          _fireButton.size.y,
+        ),
+      );
+    }
     _pointerInputSurface.size.setFrom(size);
-    _playerText.position = Vector2(size.x / 4, 5);
-    _topScoreText.position = Vector2(size.x / 2, 5);
+    _playerText.position = Vector2(
+      viewport.position.x + viewport.size.x / 4,
+      5,
+    );
+    _topScoreText.position = Vector2(
+      viewport.position.x + viewport.size.x / 2,
+      5,
+    );
   }
 
   void _inputControllerMoveTo(Vector2 canvasPosition) {
     if (_controlsEnabled) {
       _inputController.moveTo(canvasPosition);
+    }
+  }
+
+  void _inputControllerTouchMove(double horizontalPosition) {
+    if (_controlsEnabled) {
+      final viewport = findGame()!.camera.viewport;
+      _inputController.moveTo(
+        Vector2(
+          viewport.position.x + viewport.size.x * horizontalPosition,
+          viewport.position.y,
+        ),
+      );
     }
   }
 
@@ -112,12 +164,14 @@ class GameHud extends PositionComponent with HasVisibility {
     }
     if (isLoaded) {
       _fireButton.isVisible = _controlsEnabled;
+      _pointerInputSurface.isVisible = _controlsEnabled;
     }
   }
 
   void _applyGameplayState() {
     isVisible = _gameplayActive;
     _fireButton.isVisible = _controlsEnabled;
+    _pointerInputSurface.isVisible = _controlsEnabled;
   }
 
   void updateScores({required int score, required int topScore}) {

@@ -1,4 +1,7 @@
 import 'package:arkanoid/components/gameplay_viewport.dart';
+import 'package:arkanoid/components/inputs/fire_button.dart';
+import 'package:arkanoid/components/inputs/pointer_input_surface.dart';
+import 'package:arkanoid/components/top_text.dart';
 import 'package:arkanoid/main.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
@@ -41,10 +44,15 @@ void main() {
     expect(game.camera.viewport.position.y, GameplayViewport.screenTopMargin);
 
     game.onGameResize(Vector2(800, 360));
-    expect(game.camera.viewport.position.y, 0);
+    expect(game.camera.viewport.position.y, GameplayViewport.screenTopMargin);
+    expect(
+      game.camera.viewport.position.y + game.camera.viewport.size.y,
+      lessThanOrEqualTo(360),
+    );
   });
 
-  testWidgets('the HUD matches the real canvas size', (tester) async {
+  testWidgets('portrait puts the touch box beside the fire button',
+      (tester) async {
     final game = _HudTestGame();
 
     await tester.pumpWidget(
@@ -60,5 +68,46 @@ void main() {
     await tester.pump();
 
     expect(game.hud.size, game.canvasSize);
+    final fireButton = game.hud.children.whereType<FireButton>().single;
+    final touchSurface =
+        game.hud.children.whereType<PointerInputSurface>().single;
+    expect(
+      touchSurface.touchAreaPosition.x,
+      greaterThan(fireButton.position.x + fireButton.size.x),
+    );
+    expect(touchSurface.touchAreaPosition.y, fireButton.position.y);
+  });
+
+  testWidgets('landscape puts controls beside and scores above the playfield',
+      (tester) async {
+    final game = _HudTestGame();
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 800,
+          height: 360,
+          child: GameWidget(game: game),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final viewport = game.camera.viewport;
+    final touchSurface =
+        game.hud.children.whereType<PointerInputSurface>().single;
+    expect(
+      touchSurface.touchAreaPosition.x,
+      greaterThanOrEqualTo(viewport.position.x + viewport.size.x),
+    );
+    for (final score in game.hud.children.whereType<TopText>()) {
+      expect(score.position.y, lessThan(viewport.position.y));
+      expect(score.position.x, greaterThanOrEqualTo(viewport.position.x));
+      expect(
+        score.position.x,
+        lessThanOrEqualTo(viewport.position.x + viewport.size.x),
+      );
+    }
   });
 }

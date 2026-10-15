@@ -1,19 +1,79 @@
+import 'dart:ui';
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/gestures.dart' show PointerDeviceKind;
 
 class PointerInputSurface extends PositionComponent
-    with DragCallbacks, HoverCallbacks, TapCallbacks {
+    with DragCallbacks, HoverCallbacks, TapCallbacks, HasVisibility {
   PointerInputSurface({
     required this.onMoveTo,
+    required this.onTouchMove,
     required this.onAction,
-    required this.acceptsTouchAt,
   }) : super(priority: -1);
 
   final void Function(Vector2 canvasPosition) onMoveTo;
+  final void Function(double horizontalPosition) onTouchMove;
   final void Function() onAction;
-  final bool Function(Vector2 canvasPosition) acceptsTouchAt;
+  final Vector2 touchAreaPosition = Vector2.zero();
+  final Vector2 touchAreaSize = Vector2.zero();
   int? _activeDragPointer;
+  bool _activeDragIsMouse = false;
+
+  final Paint _backgroundPaint = Paint()..color = const Color(0xcc111118);
+  final Paint _borderPaint = Paint()
+    ..color = const Color(0xffff5a1f)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2;
+  final Paint _centerPaint = Paint()
+    ..color = const Color(0x88ffffff)
+    ..strokeWidth = 2;
+
+  void setTouchArea({required Vector2 position, required Vector2 size}) {
+    touchAreaPosition.setFrom(position);
+    touchAreaSize.setFrom(size);
+  }
+
+  bool acceptsTouchAt(Vector2 canvasPosition) {
+    return touchAreaSize.x > 0 &&
+        touchAreaSize.y > 0 &&
+        canvasPosition.x >= touchAreaPosition.x &&
+        canvasPosition.x <= touchAreaPosition.x + touchAreaSize.x &&
+        canvasPosition.y >= touchAreaPosition.y &&
+        canvasPosition.y <= touchAreaPosition.y + touchAreaSize.y;
+  }
+
+  void _moveTouch(Vector2 canvasPosition) {
+    if (touchAreaSize.x <= 0) {
+      return;
+    }
+    final horizontalPosition =
+        ((canvasPosition.x - touchAreaPosition.x) / touchAreaSize.x)
+            .clamp(0.0, 1.0);
+    onTouchMove(horizontalPosition);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    if (touchAreaSize.x <= 0 || touchAreaSize.y <= 0) {
+      return;
+    }
+    final rect = Rect.fromLTWH(
+      touchAreaPosition.x,
+      touchAreaPosition.y,
+      touchAreaSize.x,
+      touchAreaSize.y,
+    );
+    final box = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+    canvas
+      ..drawRRect(box, _backgroundPaint)
+      ..drawRRect(box, _borderPaint)
+      ..drawLine(
+        Offset(rect.center.dx, rect.top + 12),
+        Offset(rect.center.dx, rect.bottom - 12),
+        _centerPaint,
+      );
+  }
 
   @override
   void onPointerMove(PointerMoveEvent event) {
@@ -24,19 +84,28 @@ class PointerInputSurface extends PositionComponent
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    final isMouse = event.deviceKind == PointerDeviceKind.mouse;
     if (_activeDragPointer != null ||
-        (event.deviceKind != PointerDeviceKind.mouse &&
-            !acceptsTouchAt(event.canvasPosition))) {
+        (!isMouse && !acceptsTouchAt(event.canvasPosition))) {
       return;
     }
     _activeDragPointer = event.pointerId;
-    onMoveTo(event.canvasPosition);
+    _activeDragIsMouse = isMouse;
+    if (isMouse) {
+      onMoveTo(event.canvasPosition);
+    } else {
+      _moveTouch(event.canvasPosition);
+    }
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     if (event.pointerId == _activeDragPointer) {
-      onMoveTo(event.canvasStartPosition);
+      if (_activeDragIsMouse) {
+        onMoveTo(event.canvasStartPosition);
+      } else {
+        _moveTouch(event.canvasStartPosition);
+      }
     }
   }
 
@@ -45,6 +114,7 @@ class PointerInputSurface extends PositionComponent
     super.onDragEnd(event);
     if (event.pointerId == _activeDragPointer) {
       _activeDragPointer = null;
+      _activeDragIsMouse = false;
     }
   }
 
@@ -53,7 +123,7 @@ class PointerInputSurface extends PositionComponent
     if (event.deviceKind == PointerDeviceKind.mouse) {
       onAction();
     } else if (acceptsTouchAt(event.canvasPosition)) {
-      onMoveTo(event.canvasPosition);
+      _moveTouch(event.canvasPosition);
     }
   }
 }

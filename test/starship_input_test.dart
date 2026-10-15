@@ -97,8 +97,8 @@ void main() {
     var actions = 0;
     final surface = PointerInputSurface(
       onMoveTo: (_) {},
+      onTouchMove: (_) {},
       onAction: () => actions++,
-      acceptsTouchAt: (_) => true,
     );
 
     surface.onTapDown(
@@ -112,14 +112,14 @@ void main() {
     expect(actions, 1);
   });
 
-  test('touch drag ignores the action button and additional pointers', () {
-    final positions = <Vector2>[];
+  test('touch drag stays in its control box and ignores extra pointers', () {
+    final positions = <double>[];
     final game = FlameGame();
     final surface = PointerInputSurface(
-      onMoveTo: positions.add,
+      onMoveTo: (_) {},
+      onTouchMove: positions.add,
       onAction: () {},
-      acceptsTouchAt: (position) => position.x >= 100,
-    );
+    )..setTouchArea(position: Vector2(100, 0), size: Vector2(100, 100));
 
     surface.onDragStart(
       DragStartEvent(
@@ -163,7 +163,7 @@ void main() {
       ),
     );
 
-    expect(positions, [Vector2(120, 20), Vector2(140, 20)]);
+    expect(positions, [0.2, 0.4]);
 
     surface.onDragEnd(DragEndEvent(2, DragEndDetails()));
     surface.onDragStart(
@@ -176,7 +176,7 @@ void main() {
         ),
       ),
     );
-    expect(positions.last, Vector2(180, 20));
+    expect(positions.last, 0.8);
   });
 
   test('starship moves at the configured horizontal speed', () {
