@@ -4,23 +4,22 @@ import 'package:flame/components.dart';
 
 enum EnemyType { konerd, pyradok, triSphere, opopo }
 
+enum EnemyMotionPhase { exiting, flying, followingPattern }
+
 typedef _MotionSegment = ({int direction, int duration});
 
 class ArcadeEnemyMotion {
   ArcadeEnemyMotion({
     required this.type,
-    required bool startsOnLeft,
     math.Random? random,
-  })  : _path = _pathFor(type, startsOnLeft),
-        _random = random ?? math.Random() {
-    _loadSegment(0);
-  }
+  }) : _random = random ?? math.Random();
 
   static const framesPerSecond = 60.0;
   static const _pixelsPerTick = 0.5;
   static const _collisionHeadingTicks = 8.0;
 
-  // Direction-duration pairs decoded from the arcade tables at 0x4cc7-0x4dea.
+  // Obstacle-pattern pairs decoded from the arcade tables at 0x4cc7-0x4dea.
+  // They are activated after free flight, not while leaving the gate.
   static const _leftPaths = {
     EnemyType.konerd: <_MotionSegment>[
       (direction: 0x0b, duration: 0x30),
@@ -95,13 +94,15 @@ class ArcadeEnemyMotion {
   };
 
   final EnemyType type;
-  final List<_MotionSegment> _path;
   final math.Random _random;
+  List<_MotionSegment>? _path;
+  EnemyMotionPhase _phase = EnemyMotionPhase.exiting;
   int _segmentIndex = 0;
-  int _direction = 0;
+  int _direction = 0x10;
   int _speedStage = 1;
   double _remaining = 0;
 
+  EnemyMotionPhase get phase => _phase;
   int get direction => _direction;
   int get speedStage => _speedStage;
   Vector2 get velocity => _velocityFor(_direction, _speedStage);
@@ -121,6 +122,10 @@ class ArcadeEnemyMotion {
   }
 
   Vector2 advance(double dt) {
+    if (_phase != EnemyMotionPhase.followingPattern) {
+      return velocity..scale(dt);
+    }
+
     var ticks = dt * framesPerSecond;
     final displacement = Vector2.zero();
     while (ticks > 0) {
@@ -133,18 +138,35 @@ class ArcadeEnemyMotion {
       ticks -= elapsedTicks;
       _remaining -= elapsedTicks * _speedStage;
       if (_remaining <= 0) {
-        _loadSegment((_segmentIndex + 1) % _path.length);
+        _loadSegment((_segmentIndex + 1) % _path!.length);
       }
     }
     return displacement;
   }
 
-  void hitObstacle({required bool bounceX}) {
+  void finishGateExit() {
+    if (_phase != EnemyMotionPhase.exiting) {
+      return;
+    }
+    _phase = EnemyMotionPhase.flying;
+    _direction = _random.nextInt(32);
+  }
+
+  void startObstaclePattern({required bool onLeftSide}) {
+    if (_phase != EnemyMotionPhase.flying) {
+      return;
+    }
+    _phase = EnemyMotionPhase.followingPattern;
+    _path = _pathFor(type, onLeftSide);
     _speedStage = switch (type) {
       EnemyType.konerd || EnemyType.opopo => math.min(15, _speedStage + 1),
       EnemyType.pyradok => math.max(1, _speedStage - 1),
       EnemyType.triSphere => _speedStage,
     };
+    _loadSegment(0);
+  }
+
+  void reflectFromObstacle({required bool bounceX}) {
     if (bounceX) {
       reflectX();
     } else {
@@ -183,7 +205,7 @@ class ArcadeEnemyMotion {
 
   void _loadSegment(int index) {
     _segmentIndex = index;
-    final segment = _path[index];
+    final segment = _path![index];
     _direction = segment.direction;
     _remaining = segment.duration.toDouble();
   }

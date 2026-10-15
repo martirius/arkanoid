@@ -5,73 +5,73 @@ import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('each arcade enemy follows its round-specific entry heading', () {
-    const expectedLeft = {
-      EnemyType.konerd: 0x0b,
-      EnemyType.pyradok: 0x0e,
-      EnemyType.triSphere: 0x0a,
-      EnemyType.opopo: 0x0f,
-    };
-    const expectedRight = {
-      EnemyType.konerd: 0x15,
-      EnemyType.pyradok: 0x12,
-      EnemyType.triSphere: 0x16,
-      EnemyType.opopo: 0x11,
-    };
-
+  test('each arcade enemy exits its gate vertically before free flight', () {
     for (final type in EnemyType.values) {
-      final left = ArcadeEnemyMotion(type: type, startsOnLeft: true);
-      final right = ArcadeEnemyMotion(type: type, startsOnLeft: false);
+      final motion = ArcadeEnemyMotion(
+        type: type,
+        random: math.Random(type.index),
+      );
 
-      expect(left.direction, expectedLeft[type], reason: '${type.name} left');
-      expect(left.velocity.x, greaterThan(0), reason: '${type.name} left');
-      expect(right.direction, expectedRight[type],
-          reason: '${type.name} right');
-      expect(right.velocity.x, lessThan(0), reason: '${type.name} right');
+      expect(motion.phase, EnemyMotionPhase.exiting, reason: type.name);
+      expect(motion.direction, 0x10, reason: type.name);
+      expect(motion.velocity.x.abs(), lessThan(0.0001), reason: type.name);
+      expect(motion.velocity.y, greaterThan(0), reason: type.name);
+
+      motion.finishGateExit();
+      expect(motion.phase, EnemyMotionPhase.flying, reason: type.name);
     }
   });
 
-  test('movement advances to the next ROM segment after its duration', () {
+  test('ROM movement pattern starts only when explicitly requested', () {
     final motion = ArcadeEnemyMotion(
       type: EnemyType.konerd,
-      startsOnLeft: true,
+      random: math.Random(1),
     );
 
+    motion.finishGateExit();
+    final freeFlightDirection = motion.direction;
     motion.advance(47 / ArcadeEnemyMotion.framesPerSecond);
+    expect(motion.phase, EnemyMotionPhase.flying);
+    expect(motion.direction, freeFlightDirection);
+
+    motion.startObstaclePattern(onLeftSide: true);
+    expect(motion.phase, EnemyMotionPhase.followingPattern);
     expect(motion.direction, 0x0b);
-    motion.advance(2 / ArcadeEnemyMotion.framesPerSecond);
+    motion.advance(25 / ArcadeEnemyMotion.framesPerSecond);
     expect(motion.direction, 0x0a);
   });
 
-  test('arcade obstacle reactions change heading and speed by enemy type', () {
+  test('starting an obstacle pattern changes speed only once by enemy type',
+      () {
     final konerd = ArcadeEnemyMotion(
       type: EnemyType.konerd,
-      startsOnLeft: true,
       random: math.Random(1),
     );
     final triSphere = ArcadeEnemyMotion(
       type: EnemyType.triSphere,
-      startsOnLeft: true,
       random: math.Random(1),
     );
 
-    konerd.hitObstacle(bounceX: true);
-    triSphere.hitObstacle(bounceX: true);
+    konerd
+      ..finishGateExit()
+      ..startObstaclePattern(onLeftSide: true)
+      ..startObstaclePattern(onLeftSide: true);
+    triSphere
+      ..finishGateExit()
+      ..startObstaclePattern(onLeftSide: true);
 
     expect(konerd.speedStage, 2);
     expect(triSphere.speedStage, 1);
-    expect(konerd.velocity.x, lessThan(0));
-    expect(triSphere.velocity.x, lessThan(0));
   });
 
   test('alien collision headings point away from one another', () {
     final first = ArcadeEnemyMotion(
       type: EnemyType.konerd,
-      startsOnLeft: true,
+      random: math.Random(1),
     );
     final second = ArcadeEnemyMotion(
       type: EnemyType.konerd,
-      startsOnLeft: false,
+      random: math.Random(2),
     );
 
     first.headAwayFrom(Vector2(-1, 0));

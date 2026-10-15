@@ -27,6 +27,9 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
         );
 
   static const arcadeFramesPerSecond = 60.0;
+  static const _collisionRadius = 6.0;
+  static const _gateExitDistance = 8.0;
+  static const _brickNavigationTopOffset = 32.0;
   static const _spriteLayouts = {
     EnemyType.konerd: (y: 0.0, framesPerRow: 8),
     EnemyType.pyradok: (y: 16.0, framesPerRow: 6),
@@ -146,7 +149,11 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   final void Function(Enemy) onDestroyed;
   final void Function(Enemy) onRemoved;
   late final ArcadeEnemyMotion _motion;
+  late final double _gateExitY;
+  final Set<Brick> _brickContacts = {};
+  final Set<Brick> _resolvedBrickContacts = {};
   double _explosionElapsed = 0;
+  bool _handledBrickCollisionThisFrame = false;
   bool _destroyed = false;
 
   @override
@@ -180,10 +187,10 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     };
     _motion = ArcadeEnemyMotion(
       type: type,
-      startsOnLeft: x < playArea().center.dx,
     );
+    _gateExitY = y + _gateExitDistance;
     current = EnemyState.active;
-    add(CircleHitbox(radius: 6, position: Vector2.all(2)));
+    add(CircleHitbox(radius: _collisionRadius, position: Vector2.all(2)));
   }
 
   static Sprite _spriteAt(
@@ -204,6 +211,7 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   @override
   void update(double dt) {
     super.update(dt);
+    _handledBrickCollisionThisFrame = false;
     if (_destroyed) {
       _explosionElapsed += dt;
       if (_explosionElapsed >= _explosionDuration) {
@@ -213,6 +221,10 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     }
 
     position.add(_motion.advance(dt));
+    if (_motion.phase == EnemyMotionPhase.exiting && y >= _gateExitY) {
+      y = _gateExitY;
+      _motion.finishGateExit();
+    }
 
     final area = playArea();
     final halfWidth = width / 2;
@@ -238,8 +250,14 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
-    if (!_destroyed && other is Enemy) {
+    if (_destroyed) {
+      return;
+    }
+    if (other is Enemy) {
       _separateFrom(other);
+    } else if (other is Brick) {
+      _brickContacts.add(other);
+      _handleBrickContact(other);
     }
   }
 
@@ -258,14 +276,57 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     } else if (other is Starship) {
       destroy();
     } else if (other is Brick) {
-      _bounceFrom(other);
+      _brickContacts.add(other);
+      _handleBrickContact(other);
     }
+  }
+
+  @override
+  void onCollisionEnd(PositionComponent other) {
+    if (other is Brick) {
+      _brickContacts.remove(other);
+      _resolvedBrickContacts.remove(other);
+    }
+    super.onCollisionEnd(other);
+  }
+
+  void _handleBrickContact(Brick brick) {
+    final area = playArea();
+    if (_motion.phase == EnemyMotionPhase.exiting ||
+        y < area.top + _brickNavigationTopOffset ||
+        _resolvedBrickContacts.contains(brick)) {
+      return;
+    }
+    if (_handledBrickCollisionThisFrame) {
+      _resolvedBrickContacts.add(brick);
+      return;
+    }
+    _handledBrickCollisionThisFrame = true;
+    _resolvedBrickContacts.addAll(_brickContacts);
+    _bounceFrom(brick);
   }
 
   void _bounceFrom(PositionComponent other) {
     final deltaX = x - other.center.x;
     final deltaY = y - other.center.y;
-    _motion.hitObstacle(bounceX: deltaX.abs() > deltaY.abs());
+    final overlapX = _collisionRadius + other.width / 2 - deltaX.abs();
+    final overlapY = _collisionRadius + other.height / 2 - deltaY.abs();
+    final bounceX = overlapX < overlapY;
+    if (bounceX && overlapX > 0) {
+      final side = deltaX == 0 ? -_motion.velocity.x.sign : deltaX.sign;
+      x += overlapX * (side == 0 ? 1 : side);
+    } else if (!bounceX && overlapY > 0) {
+      final side = deltaY == 0 ? -_motion.velocity.y.sign : deltaY.sign;
+      y += overlapY * (side == 0 ? 1 : side);
+    }
+
+    if (_motion.phase == EnemyMotionPhase.flying) {
+      _motion.startObstaclePattern(
+        onLeftSide: x < playArea().center.dx,
+      );
+    } else {
+      _motion.reflectFromObstacle(bounceX: bounceX);
+    }
   }
 
   void _separateFrom(Enemy other) {
@@ -287,6 +348,10 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     final correction = normal * (overlap / 2);
     position.add(correction);
     other.position.sub(correction);
+    if (_motion.phase == EnemyMotionPhase.exiting ||
+        other._motion.phase == EnemyMotionPhase.exiting) {
+      return;
+    }
     _motion.headAwayFrom(normal);
     other._motion.headAwayFrom(-normal);
   }
