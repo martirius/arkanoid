@@ -180,6 +180,7 @@ sostituire un comportamento arcade funzionante con dettagli specifici MSX.
 - usare tempi di simulazione in secondi, indipendenti dal frame rate;
 - scegliere la porta sul lato della Vaus come nella ROM arcade;
 - implementare le quattro forme arcade e il comportamento rispetto ai mattoni;
+- usare i quattro percorsi arcade e gestire le collisioni fra alieni;
 - gestire collisioni con pallina, laser e Vaus, esplosione, suono e 100 punti;
 - assicurare che gli alieni non siano necessari per completare il round e
   vengano rimossi durante ogni transizione.

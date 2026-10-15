@@ -1,15 +1,15 @@
-import 'dart:math' as math;
 import 'dart:ui' show Image, Rect;
 
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/laser.dart';
 import 'package:arkanoid/components/starship.dart';
+import 'package:arkanoid/enemy_motion.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
-enum EnemyType { konerd, pyradok, triSphere, opopo }
+export 'package:arkanoid/enemy_motion.dart' show EnemyType;
 
 enum EnemyState { active, exploding }
 
@@ -141,19 +141,11 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   static const _explosionFrameTicks = 5;
   static const _explosionDuration =
       7 * _explosionFrameTicks / arcadeFramesPerSecond;
-  static const _baseVelocities = {
-    EnemyType.konerd: (x: 38.0, y: 24.0),
-    EnemyType.pyradok: (x: -32.0, y: 27.0),
-    EnemyType.triSphere: (x: 24.0, y: 32.0),
-    EnemyType.opopo: (x: -20.0, y: 22.0),
-  };
-
   final EnemyType type;
   final Rect Function() playArea;
   final void Function(Enemy) onDestroyed;
   final void Function(Enemy) onRemoved;
-  final Vector2 _velocity = Vector2.zero();
-  double _elapsed = 0;
+  late final ArcadeEnemyMotion _motion;
   double _explosionElapsed = 0;
   bool _destroyed = false;
 
@@ -186,8 +178,10 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
         loop: false,
       ),
     };
-    final baseVelocity = _baseVelocities[type]!;
-    _velocity.setValues(baseVelocity.x, baseVelocity.y);
+    _motion = ArcadeEnemyMotion(
+      type: type,
+      startsOnLeft: x < playArea().center.dx,
+    );
     current = EnemyState.active;
     add(CircleHitbox(radius: 6, position: Vector2.all(2)));
   }
@@ -218,29 +212,21 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
       return;
     }
 
-    _elapsed += dt;
-    final horizontalDrift = switch (type) {
-      EnemyType.konerd => 0.0,
-      EnemyType.pyradok => math.sin(_elapsed * 5) * 22,
-      EnemyType.triSphere => math.sin(_elapsed * 3) * 30,
-      EnemyType.opopo => math.sin(_elapsed * 2) * 12,
-    };
-    position.x += (_velocity.x + horizontalDrift) * dt;
-    position.y += _velocity.y * dt;
+    position.add(_motion.advance(dt));
 
     final area = playArea();
     final halfWidth = width / 2;
     final halfHeight = height / 2;
-    if (x - halfWidth <= area.left && _velocity.x < 0) {
+    if (x - halfWidth <= area.left && _motion.velocity.x < 0) {
       x = area.left + halfWidth;
-      _velocity.x = _velocity.x.abs();
-    } else if (x + halfWidth >= area.right && _velocity.x > 0) {
+      _motion.reflectX();
+    } else if (x + halfWidth >= area.right && _motion.velocity.x > 0) {
       x = area.right - halfWidth;
-      _velocity.x = -_velocity.x.abs();
+      _motion.reflectX();
     }
-    if (y - halfHeight <= area.top && _velocity.y < 0) {
+    if (y - halfHeight <= area.top && _motion.velocity.y < 0) {
       y = area.top + halfHeight;
-      _velocity.y = _velocity.y.abs();
+      _motion.reflectY();
     } else if (y + halfHeight >= area.bottom) {
       removeFromParent();
     }
@@ -260,6 +246,8 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
       destroy();
     } else if (other is Starship) {
       destroy();
+    } else if (other is Enemy) {
+      _separateFrom(other);
     } else if (other is Brick) {
       _bounceFrom(other);
     }
@@ -268,11 +256,29 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
   void _bounceFrom(PositionComponent other) {
     final deltaX = x - other.center.x;
     final deltaY = y - other.center.y;
-    if (deltaX.abs() > deltaY.abs()) {
-      _velocity.x = deltaX.isNegative ? -_velocity.x.abs() : _velocity.x.abs();
-    } else {
-      _velocity.y = deltaY.isNegative ? -_velocity.y.abs() : _velocity.y.abs();
+    _motion.hitObstacle(bounceX: deltaX.abs() > deltaY.abs());
+  }
+
+  void _separateFrom(Enemy other) {
+    if (other._destroyed || identityHashCode(this) > identityHashCode(other)) {
+      return;
     }
+    var normal = position - other.position;
+    var distance = normal.length;
+    if (distance == 0) {
+      normal = Vector2(1, 0);
+    } else {
+      normal.scale(1 / distance);
+    }
+    const minimumDistance = 12.0;
+    final overlap = minimumDistance - distance;
+    if (overlap > 0) {
+      final correction = normal * (overlap / 2);
+      position.add(correction);
+      other.position.sub(correction);
+    }
+    _motion.headAwayFrom(normal);
+    other._motion.headAwayFrom(-normal);
   }
 
   void destroy() {
@@ -280,7 +286,6 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
       return;
     }
     _destroyed = true;
-    _velocity.setZero();
     removeAll(children);
     current = EnemyState.exploding;
     animationTicker?.reset();

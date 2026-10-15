@@ -21,8 +21,9 @@ Il progetto usa sempre il profilo arcade Hard. Dalla ROM arcade risultano:
 - sequenze e tempi di animazione ricavati dalle tabelle arcade.
 
 La difficoltà Easy e la crescita progressiva del limite non vengono
-implementate. Movimento e reazioni casuali agli ostacoli saranno ricavati
-dalle quattro routine arcade, senza importare le tabelle del port MSX.
+implementate. Movimento, accelerazione e reazioni agli ostacoli usano le
+quattro coppie di tabelle arcade; anche gli urti fra i tre alieni modificano le
+rispettive direzioni. Non vengono importate le tabelle del port MSX.
 
 ## Progressione e livelli
 

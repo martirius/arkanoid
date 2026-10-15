@@ -56,5 +56,11 @@ void main() {
     expect(explosion.first.sprite.srcPosition, Vector2(0, 128));
     expect(explosion.last.sprite.srcPosition, Vector2(80, 128));
     expect(explosion[4].sprite.srcPosition, Vector2(0, 128));
+
+    final first = enemies[EnemyType.konerd]!..position = Vector2(80, 80);
+    final second = enemies[EnemyType.pyradok]!..position = Vector2(80, 80);
+    first.onCollision(<Vector2>{}, second);
+    second.onCollision(<Vector2>{}, first);
+    expect(first.position.distanceTo(second.position), 12);
   });
 }
