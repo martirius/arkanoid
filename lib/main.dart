@@ -21,7 +21,7 @@ import 'package:flutter/services.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Flame.device.fullScreen();
-  Flame.device.setPortraitUpOnly();
+  Flame.device.setOrientations(const []);
 
   final arkanoidGame = Arkanoid();
   runApp(
