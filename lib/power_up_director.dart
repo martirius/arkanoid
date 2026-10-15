@@ -69,6 +69,9 @@ class PowerUpDirector {
         breakableBricksRemaining < 4) {
       return null;
     }
+    if (_randomInt(8) == 0) {
+      return null;
+    }
 
     if (_shouldSpawnBreak()) {
       return PowerUpType.break_;

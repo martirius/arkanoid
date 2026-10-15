@@ -38,11 +38,11 @@ class LevelEditor extends StatefulWidget {
 class _LevelEditorState extends State<LevelEditor> {
   final bricks = List<List<Brick>>.generate(LevelDefinition.rowCount, (index) {
     return List<Brick>.generate(LevelDefinition.columnCount,
-        (index2) => Brick(BrickModel.blue, false, index, index2));
+        (index2) => Brick(BrickModel.blue, index, index2));
   });
 
   FieldType currentFieldType = FieldType.blue;
-  Brick? currentBrick = Brick(null, false, 0, 0);
+  Brick? currentBrick = Brick(null, 0, 0);
   int currentLevel = 1;
   bool modificationEnabled = false;
 
@@ -73,7 +73,6 @@ class _LevelEditorState extends State<LevelEditor> {
                               setState(() {
                                 bricks[brick.xIndex][brick.yIndex] = Brick(
                                   currentBrick?.model,
-                                  currentBrick?.dropsCapsule ?? false,
                                   brick.xIndex,
                                   brick.yIndex,
                                 );
@@ -83,7 +82,6 @@ class _LevelEditorState extends State<LevelEditor> {
                             setState(() {
                               bricks[brick.xIndex][brick.yIndex] = Brick(
                                 currentBrick?.model,
-                                currentBrick?.dropsCapsule ?? false,
                                 brick.xIndex,
                                 brick.yIndex,
                               );
@@ -290,14 +288,11 @@ class BrickWidget extends StatelessWidget {
         onTap: () {
           _onPressed(_brick);
         },
-        child: Stack(children: [
-          MouseRegion(
-            onEnter: (event) {
-              _onHover(_brick);
-            },
-          ),
-          _brick.dropsCapsule ? const Text('P') : Container()
-        ]),
+        child: MouseRegion(
+          onEnter: (event) {
+            _onHover(_brick);
+          },
+        ),
       ),
     );
   }
@@ -305,9 +300,8 @@ class BrickWidget extends StatelessWidget {
 
 class Brick {
   final BrickModel? model;
-  final bool dropsCapsule;
   final int xIndex;
   final int yIndex;
 
-  Brick(this.model, this.dropsCapsule, this.xIndex, this.yIndex);
+  Brick(this.model, this.xIndex, this.yIndex);
 }

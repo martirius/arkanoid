@@ -108,8 +108,8 @@ Arkanoid
   alieni e variante grafica.
 - `BallDirector` possiede contatori e stadi della fisica arcade; `Ball` continua
   a usare il resolver swept già presente per evitare tunneling.
-- `PowerUpDirector` decide se e quale capsula generare. `BrickSpec` indica
-  `dropsCapsule`, non il tipo concreto.
+- `PowerUpDirector` decide se e quale capsula generare quando viene distrutto
+  un mattone colorato; i dati del livello non contengono marker di rilascio.
 - `EnemyDirector` gestisce timer, cap degli alieni e porta di ingresso. I singoli
   alieni gestiscono soltanto movimento, animazione e collisioni locali.
 - I tempi originali in tick vengono espressi come secondi di simulazione e
@@ -149,7 +149,8 @@ successiva.
 
 ### Fase 3 - Ciclo completo delle capsule
 
-- sostituire il tipo fisso nei livelli con il flag `dropsCapsule`;
+- spostare la decisione di rilascio dai dati del livello al
+  `PowerUpDirector`;
 - introdurre il limite di una capsula in caduta e i blocchi con multiball,
   portale aperto e meno di quattro mattoni rimasti;
 - implementare selezione pesata, esclusione della trasformazione già attiva e

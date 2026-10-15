@@ -37,9 +37,7 @@ final level$_level = LevelDefinition(
   }
 
   String _brickString(Brick brick) {
-    return brick.model != null
-        ? "BrickSpec(${brick.model}${brick.dropsCapsule ? ", dropsCapsule: true" : ""})"
-        : "null";
+    return brick.model != null ? "BrickSpec(${brick.model})" : "null";
   }
 
   String _bricksString(List<List<Brick>> bricks) {

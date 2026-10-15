@@ -39,9 +39,15 @@ void main() {
     expect(_select(director, breakableBricksRemaining: 3), isNull);
   });
 
+  test('an eligible brick may not release a capsule', () {
+    final director = PowerUpDirector(randomInt: (_) => 0);
+
+    expect(_select(director), isNull);
+  });
+
   test('the active persistent power-up is excluded from weighted selection',
       () {
-    final random = _SequenceRandom([31, 31, 1]);
+    final random = _SequenceRandom([1, 31, 31, 1]);
     final director = PowerUpDirector(randomInt: random.nextInt);
 
     expect(
@@ -51,7 +57,7 @@ void main() {
   });
 
   test('break uses one stateful position in each 33-capsule cycle', () {
-    final random = _SequenceRandom([1, 31, 0]);
+    final random = _SequenceRandom([1, 1, 31, 0, 1]);
     final director = PowerUpDirector(randomInt: random.nextInt);
 
     expect(_select(director), PowerUpType.slow);
@@ -59,7 +65,7 @@ void main() {
   });
 
   test('player is excluded after it has already been awarded', () {
-    final random = _SequenceRandom([31, 0]);
+    final random = _SequenceRandom([1, 31, 0]);
     final director = PowerUpDirector(randomInt: random.nextInt);
 
     expect(

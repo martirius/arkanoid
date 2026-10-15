@@ -398,7 +398,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
 
     bricks[rowIndex][columnIndex] = null;
     addScore(brick.value);
-    if (brick.dropsCapsule) {
+    if (brick.model != BrickModel.silver) {
       _spawnCapsule(brick.position);
     }
     final isLevelCompleted = bricks.every((row) => row.every(

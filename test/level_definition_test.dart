@@ -68,27 +68,6 @@ void main() {
     }
   });
 
-  test('capsule markers only use colored breakable bricks', () {
-    expect(
-      levelCatalog.take(5).map(
-            (level) => level.rows
-                .expand((row) => row)
-                .where((brick) => brick?.dropsCapsule ?? false)
-                .length,
-          ),
-      orderedEquals([12, 15, 12, 16, 5]),
-    );
-
-    for (final level in levelCatalog) {
-      for (final brick
-          in level.rows.expand((row) => row).whereType<BrickSpec>()) {
-        if (brick.dropsCapsule) {
-          expect(brick.model, isNot(anyOf(BrickModel.silver, BrickModel.gold)));
-        }
-      }
-    }
-  });
-
   test('a definition rejects an invalid number of rows or columns', () {
     expect(
       () => LevelDefinition(
@@ -118,7 +97,7 @@ void main() {
       fieldType: FieldType.blue,
       rows: [
         const [
-          BrickSpec(BrickModel.red, dropsCapsule: true),
+          BrickSpec(BrickModel.red),
           null,
           null,
           null,
@@ -140,8 +119,8 @@ void main() {
     final secondRound = definition.createBricks();
 
     expect(firstRound.first.first, isNot(same(secondRound.first.first)));
-    expect(firstRound.first.first!.dropsCapsule, isTrue);
-    expect(secondRound.first.first!.dropsCapsule, isTrue);
+    expect(firstRound.first.first!.model, BrickModel.red);
+    expect(secondRound.first.first!.model, BrickModel.red);
     expect(() => definition.rows.add(emptyBrickRow), throwsUnsupportedError);
     expect(() => definition.rows.first.add(null), throwsUnsupportedError);
   });

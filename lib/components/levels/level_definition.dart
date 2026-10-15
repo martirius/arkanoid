@@ -3,14 +3,12 @@ import 'package:arkanoid/components/field.dart';
 import 'package:arkanoid/round_rules.dart';
 
 class BrickSpec {
-  const BrickSpec(this.model, {this.dropsCapsule = false});
+  const BrickSpec(this.model);
 
   final BrickModel model;
-  final bool dropsCapsule;
 
   Brick createBrick(RoundRules rules) => Brick(
         model,
-        dropsCapsule: dropsCapsule,
         rules: rules,
       );
 }

@@ -23,20 +23,6 @@ LevelDefinition _createRound(int roundNumber, String layout) {
   final models = [
     for (final cell in cells.split('')) _modelFor(cell.toUpperCase()),
   ];
-  // Lowercase codes preserve the hand-authored capsule markers of rounds 1-5.
-  final markedCapsules = {
-    for (var index = 0; index < cells.length; index++)
-      if (cells[index] != cells[index].toUpperCase()) index,
-  };
-  final capsuleCandidates = <int>[
-    for (var index = 0; index < models.length; index++)
-      if (models[index] case final model?
-          when model != BrickModel.silver && model != BrickModel.gold)
-        index,
-  ];
-  final capsuleIndexes = markedCapsules.isEmpty
-      ? _evenlySpacedCapsules(capsuleCandidates)
-      : markedCapsules;
 
   return LevelDefinition(
     roundNumber: roundNumber,
@@ -46,27 +32,12 @@ LevelDefinition _createRound(int roundNumber, String layout) {
         [
           for (var column = 0; column < LevelDefinition.columnCount; column++)
             switch (models[row * LevelDefinition.columnCount + column]) {
-              final model? => BrickSpec(
-                  model,
-                  dropsCapsule: capsuleIndexes
-                      .contains(row * LevelDefinition.columnCount + column),
-                ),
+              final model? => BrickSpec(model),
               null => null,
             },
         ],
     ],
   );
-}
-
-Set<int> _evenlySpacedCapsules(List<int> candidates) {
-  if (candidates.isEmpty) {
-    return const {};
-  }
-  final target = (candidates.length / 5).round().clamp(5, 16);
-  return {
-    for (var index = 0; index < target; index++)
-      candidates[((index + 0.5) * candidates.length / target).floor()],
-  };
 }
 
 BrickModel? _modelFor(String cell) => switch (cell) {
@@ -88,11 +59,11 @@ const _layouts = <String>[
   '''.............
 .............
 SSSSSSSSSSSSS
-RRRrRRRrRRRRR
-YYYYYyYYYyYYY
-BBbBBBBBBBBBb
-PPPPPPpPPPPPP
-GgGGgGGGwGwGg
+RRRRRRRRRRRRR
+YYYYYYYYYYYYY
+BBBBBBBBBBBBB
+PPPPPPPPPPPPP
+GGGGGGGGWGWGG
 .............
 .............
 .............
@@ -101,62 +72,62 @@ GgGGgGGGwGwGg
 .............
 .............
 .............''',
-  '''w............
+  '''W............
 WO...........
 WOC..........
-WOcG.........
-WOCgR........
+WOCG.........
+WOCGR........
 WOCGRB.......
-WOCGrBP......
-wOCGRBPy.....
-WOCgRBPYW....
-WOCGRBPyWO...
-WOcGrBPYWOC..
-wOCGRBPYwOcg.
-SSSSSSSSSSSSr
+WOCGRBP......
+WOCGRBPY.....
+WOCGRBPYW....
+WOCGRBPYWO...
+WOCGRBPYWOC..
+WOCGRBPYWOCG.
+SSSSSSSSSSSSR
 .............
 .............
 .............''',
   '''.............
-gGGGGGgGGGgGg
+GGGGGGGGGGGGG
 .............
 WWWDDDDDDDDDD
 .............
-RRrRRRRRRRRrR
+RRRRRRRRRRRRR
 .............
 DDDDDDDDDDWWW
 .............
-PPpPPPPPpPPPP
+PPPPPPPPPPPPP
 .............
 BBBDDDDDDDDDD
 .............
-CCCCCccCCcCCC
+CCCCCCCCCCCCC
 .............
-DDDDDDDDDDCcC''',
+DDDDDDDDDDCCC''',
   '''.............
 .............
-.OCGSb.YWOCG.
+.OCGSB.YWOCG.
 .CGSBP.WOCGS.
-.GSBPY.OCgSB.
-.SbPYW.CGSBP.
-.BPyWO.GSbPY.
-.PYWoC.SBPyW.
-.YWOCG.BPYWo.
-.WoCGS.pYWOC.
+.GSBPY.OCGSB.
+.SBPYW.CGSBP.
+.BPYWO.GSBPY.
+.PYWOC.SBPYW.
+.YWOCG.BPYWO.
+.WOCGS.PYWOC.
 .OCGSB.yWOCG.
 .CGSBP.WOCGS.
-.GSbPY.OCGSB.
-.SBPyW.CGSbP.
-.BPYWO.gSBPY.
-.pYWOC.SBPYW.''',
-  '''...y.....Y...
+.GSBPY.OCGSB.
+.SBPYW.CGSBP.
+.BPYWO.GSBPY.
+.PYWOC.SBPYW.''',
+  '''...Y.....Y...
 ...Y.....Y...
 ....Y...Y....
-....Y...y....
+....Y...Y....
 ...SSSSSSS...
 ...SSSSSSS...
-..SSrSSSRSS..
-..SSrSSSrSS..
+..SSRSSSRSS..
+..SSRSSSRSS..
 .SSSSSSSSSSS.
 .SSSSSSSSSSS.
 .SSSSSSSSSSS.

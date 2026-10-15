@@ -16,13 +16,11 @@ class BrickDetails extends StatefulWidget {
 
 class _BrickDetailsState extends State<BrickDetails> {
   BrickModel? brickModel;
-  bool dropsCapsule = false;
 
   @override
   void initState() {
     super.initState();
     brickModel = widget._brick.model;
-    dropsCapsule = widget._brick.dropsCapsule;
   }
 
   @override
@@ -45,17 +43,13 @@ class _BrickDetailsState extends State<BrickDetails> {
         const SizedBox(
           height: 16,
         ),
-        CheckboxListTile(
-          title: const Text('Drops capsule'),
-          value: dropsCapsule,
-          onChanged: (value) => setState(() {
-            dropsCapsule = value ?? false;
-          }),
-        ),
         ElevatedButton(
             onPressed: () {
-              widget._onSettingsSet(Brick(brickModel, dropsCapsule,
-                  widget._brick.xIndex, widget._brick.yIndex));
+              widget._onSettingsSet(Brick(
+                brickModel,
+                widget._brick.xIndex,
+                widget._brick.yIndex,
+              ));
             },
             child: const Text("Set on brick"))
       ],

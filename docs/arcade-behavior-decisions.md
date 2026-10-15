@@ -32,10 +32,10 @@ dal progetto. Dopo il completamento del round 32 il livello rimane nello stato
 concluso finché Doh non è implementato, invece di ricominciare in silenzio dal
 round 1.
 
-La mappa mostra colori e tipi di mattone, ma non i marker nascosti delle
-capsule. Per i round 6-32 questi marker sono quindi distribuiti in modo
-deterministico solo sui mattoni colorati e distruttibili. La loro posizione
-esatta andrà calibrata da una fonte arcade verificabile prima del rilascio.
+La ROM non associa marker nascosti ai mattoni. Quando viene distrutto un
+mattone colorato, la routine arcade decide a runtime se rilasciare una capsula;
+una capsula già in caduta, il multiball, il portale aperto e meno di quattro
+mattoni distruttibili rimasti impediscono un nuovo rilascio.
 
 Fonte dei layout:
 [Arkanoid - Rounds (VGMaps)](https://vgmaps.com/Atlas/Arcade/Arkanoid-Rounds.png).

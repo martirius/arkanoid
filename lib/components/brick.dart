@@ -25,11 +25,10 @@ class Brick extends SpriteAnimationComponent
   late final bool canBeBroken;
   late final int _numberOfHitToBroke;
   final BrickModel model;
-  final bool dropsCapsule;
   void Function()? onDestroyed;
   late final int value;
   static const int _baseBrickValue = 50;
-  Brick(this.model, {this.dropsCapsule = false, RoundRules? rules})
+  Brick(this.model, {RoundRules? rules})
       : rules = rules ?? RoundRules(1),
         super(size: Vector2(16, 8)) {
     canBeBroken = model != BrickModel.gold;
