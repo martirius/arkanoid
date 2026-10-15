@@ -36,6 +36,7 @@ void main() {
             overlayBuilderMap: {
               Arkanoid.mainMenuOverlay: (context, game) => MainMenuOverlay(
                     highScore: game.topScore,
+                    credits: game.credits,
                     onStart: game.startNewGame,
                   ),
               Arkanoid.pauseOverlay: (context, game) => PauseOverlay(
@@ -48,6 +49,11 @@ void main() {
               Arkanoid.introOverlay: (context, game) => IntroOverlay(
                     onSkip: game.skipIntro,
                   ),
+              Arkanoid.continueOverlay: (context, game) => ContinueOverlay(
+                    credits: game.credits,
+                    onContinue: game.continueGame,
+                    onExit: game.returnToMenu,
+                  ),
             },
           ),
         ),
@@ -56,7 +62,7 @@ void main() {
   );
 }
 
-enum GameFlowState { menu, intro, playing, paused }
+enum GameFlowState { menu, intro, playing, paused, continuePrompt }
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
@@ -80,6 +86,7 @@ class Arkanoid extends FlameGame
   static const pauseOverlay = 'pause';
   static const gameplayOverlay = 'gameplay';
   static const introOverlay = 'intro';
+  static const continueOverlay = 'continue';
 
   final GameAudio audio = GameAudio();
   final GameSession session;
@@ -91,6 +98,7 @@ class Arkanoid extends FlameGame
   int get topScore => session.highScore;
   int get currentScore => session.score;
   int get numberOfLives => session.lives;
+  int get credits => session.credits;
 
   @override
   Future<void>? onLoad() async {
@@ -231,7 +239,35 @@ class Arkanoid extends FlameGame
   }
 
   void gameOver() {
-    returnToMenu();
+    if (currentLevel is DohLevel) {
+      returnToMenu();
+      return;
+    }
+    flowState = GameFlowState.continuePrompt;
+    hud.setGameplayActive(false);
+    pauseEngine();
+    _showOnlyOverlay(continueOverlay);
+  }
+
+  void continueGame() {
+    if (flowState != GameFlowState.continuePrompt || !session.useContinue()) {
+      return;
+    }
+    if (paused) {
+      resumeEngine();
+    }
+    unawaited(audio.stopAll());
+    final definition = currentLevel.definition;
+    if (currentLevel.parent != null) {
+      currentLevel.removeFromParent();
+    }
+    currentLevel = BaseLevel(definition);
+    session.currentRound = definition.roundNumber;
+    world.add(currentLevel);
+    hud.updateScores(score: currentScore, topScore: topScore);
+    hud.setGameplayActive(true);
+    flowState = GameFlowState.playing;
+    _showOnlyOverlay(gameplayOverlay);
   }
 
   void _showOnlyOverlay(String name) {
@@ -266,6 +302,10 @@ class Arkanoid extends FlameGame
       } else if (flowState == GameFlowState.paused &&
           (isPause || key == LogicalKeyboardKey.enter)) {
         resumeGame();
+      } else if (flowState == GameFlowState.continuePrompt && isAction) {
+        continueGame();
+      } else if (flowState == GameFlowState.continuePrompt && isPause) {
+        returnToMenu();
       } else if (flowState == GameFlowState.playing && isPause) {
         pauseGame();
       }

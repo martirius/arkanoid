@@ -40,6 +40,15 @@ mattoni distruttibili rimasti impediscono un nuovo rilascio.
 Fonte dei layout:
 [Arkanoid - Rounds (VGMaps)](https://vgmaps.com/Atlas/Arcade/Arkanoid-Rounds.png).
 
+## Continue e crediti
+
+La schermata riprende dalla ROM arcade le stringhe `TO CONTINUE GAME`,
+`BEFORE TIMER REACHES "0"` e il conteggio iniziale da 9, adattando le istruzioni
+al pulsante FIRE, alla tastiera e al touch. Ogni nuova partita dispone di tre
+crediti virtuali; continuare ne consuma uno, ripristina tre vite e ricrea il
+round corrente, conservando punteggio e progressione della sessione. Come
+nell'arcade, Doh non permette continue.
+
 ## Traiettoria della pallina
 
 I cambi automatici di traiettoria dopo 40 rimbalzi sui bordi o 20 colpi sui

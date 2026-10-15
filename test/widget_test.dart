@@ -19,16 +19,25 @@ class _ReadyLevel extends BaseLevel {
 }
 
 void main() {
-  test('a game over resets the session and returns to the menu', () {
+  test('a game over offers a continue without resetting the session', () {
     final game = Arkanoid(
-      session: GameSession(score: 50000, lives: 0),
-    );
+      session: GameSession(score: 50000, lives: 0, currentRound: 12),
+    )..currentLevel = BaseLevel(levelCatalog[11]);
 
     game.gameOver();
 
-    expect(game.currentScore, 0);
-    expect(game.numberOfLives, 3);
-    expect(game.flowState, GameFlowState.menu);
+    expect(game.currentScore, 50000);
+    expect(game.numberOfLives, 0);
+    expect(game.credits, 3);
+    expect(game.flowState, GameFlowState.continuePrompt);
+
+    game.continueGame();
+
+    expect(game.currentScore, 50000);
+    expect(game.numberOfLives, GameSession.initialLives);
+    expect(game.credits, 2);
+    expect(game.currentLevel.definition, same(levelCatalog[11]));
+    expect(game.flowState, GameFlowState.playing);
   });
 
   test('starting a new game resets the session and selects round one', () {
@@ -85,14 +94,53 @@ void main() {
     var starts = 0;
     await tester.pumpWidget(
       MaterialApp(
-        home: MainMenuOverlay(highScore: 50000, onStart: () => starts++),
+        home: MainMenuOverlay(
+          highScore: 50000,
+          credits: 3,
+          onStart: () => starts++,
+        ),
       ),
     );
 
     expect(find.byKey(const Key('main-menu-title')), findsOneWidget);
     expect(find.text('HIGH SCORE\n50000'), findsOneWidget);
+    expect(find.text('CREDIT 3'), findsOneWidget);
     await tester.tap(find.text('START'));
     expect(starts, 1);
+  });
+
+  testWidgets('continue consumes the action or expires after nine seconds',
+      (tester) async {
+    var continues = 0;
+    var exits = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ContinueOverlay(
+          credits: 3,
+          onContinue: () => continues++,
+          onExit: () => exits++,
+        ),
+      ),
+    );
+
+    expect(find.text('TIME  9'), findsOneWidget);
+    await tester.tap(find.text('CONTINUE  1 CREDIT'));
+    expect(continues, 1);
+    expect(exits, 0);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ContinueOverlay(
+          credits: 0,
+          onContinue: () => continues++,
+          onExit: () => exits++,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 9));
+    expect(continues, 1);
+    expect(exits, 1);
   });
 
   testWidgets('pause menu resumes or exits once', (tester) async {

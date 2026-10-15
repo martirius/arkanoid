@@ -3,12 +3,14 @@ class GameSession {
     this.score = 0,
     int highScore = 50000,
     this.lives = initialLives,
+    this.credits = initialCredits,
     this.currentRound = 1,
     this.lifeCapsuleAlreadyAwarded = false,
   })  : highScore = score > highScore ? score : highScore,
         nextExtraLifeScore = _nextExtraLifeTarget(score);
 
   static const int initialLives = 3;
+  static const int initialCredits = 3;
   static const int _firstExtraLifeScore = 20000;
   static const int _secondExtraLifeScore = 60000;
   static const int _repeatingExtraLifeStep = 60000;
@@ -16,6 +18,7 @@ class GameSession {
   int score;
   int highScore;
   int lives;
+  int credits;
   int currentRound;
   int nextExtraLifeScore;
   bool lifeCapsuleAlreadyAwarded;
@@ -61,9 +64,19 @@ class GameSession {
     return lives;
   }
 
+  bool useContinue() {
+    if (credits == 0) {
+      return false;
+    }
+    credits -= 1;
+    lives = initialLives;
+    return true;
+  }
+
   void reset() {
     score = 0;
     lives = initialLives;
+    credits = initialCredits;
     currentRound = 1;
     nextExtraLifeScore = _firstExtraLifeScore;
     lifeCapsuleAlreadyAwarded = false;

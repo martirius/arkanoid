@@ -35,15 +35,29 @@ void main() {
     session.currentRound = 5;
     session.addLife();
     session.awardLifeCapsule();
+    session.useContinue();
 
     session.reset();
 
     expect(session.score, 0);
     expect(session.highScore, 80000);
     expect(session.lives, GameSession.initialLives);
+    expect(session.credits, GameSession.initialCredits);
     expect(session.currentRound, 1);
     expect(session.nextExtraLifeScore, 20000);
     expect(session.lifeCapsuleAlreadyAwarded, isFalse);
+  });
+
+  test('a continue consumes one credit and restores the initial lives', () {
+    final session = GameSession(lives: 0);
+
+    expect(session.useContinue(), isTrue);
+    expect(session.credits, 2);
+    expect(session.lives, GameSession.initialLives);
+
+    final noCredits = GameSession(lives: 0, credits: 0);
+    expect(noCredits.useContinue(), isFalse);
+    expect(noCredits.lives, 0);
   });
 
   test('the player capsule awards only one life per game', () {
