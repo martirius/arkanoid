@@ -1,3 +1,4 @@
+import 'package:arkanoid/components/game_hud.dart';
 import 'package:arkanoid/components/gameplay_viewport.dart';
 import 'package:arkanoid/components/inputs/fire_button.dart';
 import 'package:arkanoid/components/inputs/pointer_input_surface.dart';
@@ -76,18 +77,26 @@ void main() {
       greaterThan(fireButton.position.x + fireButton.size.x),
     );
     expect(touchSurface.touchAreaPosition.y, fireButton.position.y);
+    expect(
+      touchSurface.touchAreaSize.x,
+      lessThanOrEqualTo(GameHud.maxTouchControlWidth),
+    );
   });
 
   testWidgets('landscape puts controls beside and scores above the playfield',
       (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1600, 900);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
     final game = _HudTestGame();
 
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
         child: SizedBox(
-          width: 800,
-          height: 360,
+          width: 1600,
+          height: 900,
           child: GameWidget(game: game),
         ),
       ),
@@ -95,12 +104,26 @@ void main() {
     await tester.pump();
 
     final viewport = game.camera.viewport;
+    final fireButton = game.hud.children.whereType<FireButton>().single;
     final touchSurface =
         game.hud.children.whereType<PointerInputSurface>().single;
     expect(
       touchSurface.touchAreaPosition.x,
       greaterThanOrEqualTo(viewport.position.x + viewport.size.x),
     );
+    expect(
+      touchSurface.touchAreaSize,
+      Vector2(
+        GameHud.maxTouchControlWidth,
+        GameHud.maxTouchControlHeight,
+      ),
+    );
+    expect(
+      touchSurface.touchAreaPosition.y + touchSurface.touchAreaSize.y,
+      900 - 24,
+    );
+    expect(fireButton.position.y + fireButton.size.y, 900 - 24);
+    expect(fireButton.center.y, greaterThan(900 / 2));
     for (final score in game.hud.children.whereType<TopText>()) {
       expect(score.position.y, lessThan(viewport.position.y));
       expect(score.position.x, greaterThanOrEqualTo(viewport.position.x));
@@ -109,5 +132,35 @@ void main() {
         lessThanOrEqualTo(viewport.position.x + viewport.size.x),
       );
     }
+  });
+
+  testWidgets('the intro shows scores without showing touch controls',
+      (tester) async {
+    final game = _HudTestGame();
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 360,
+          height: 800,
+          child: GameWidget(game: game),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    game.hud.showIntroScoreboard();
+
+    expect(game.hud.isVisible, isTrue);
+    expect(game.hud.children.whereType<TopText>(), hasLength(2));
+    expect(
+      game.hud.children.whereType<FireButton>().single.isVisible,
+      isFalse,
+    );
+    expect(
+      game.hud.children.whereType<PointerInputSurface>().single.isVisible,
+      isFalse,
+    );
   });
 }

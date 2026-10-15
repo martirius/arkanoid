@@ -32,6 +32,11 @@ class GameHud extends PositionComponent with HasVisibility {
   int _topScore;
   bool _gameplayActive = false;
   bool _controlsEnabled = false;
+  bool _scoreboardVisible = false;
+
+  static const maxTouchControlWidth = 240.0;
+  static const maxTouchControlHeight = 100.0;
+  static const _landscapeBottomMargin = 24.0;
 
   @override
   Future<void> onLoad() async {
@@ -75,21 +80,34 @@ class GameHud extends PositionComponent with HasVisibility {
     final viewport = findGame()!.camera.viewport;
     final isLandscape = size.x > size.y;
     if (isLandscape) {
-      final controlHeight = min(100.0, max(0.0, size.y - 48));
-      final controlY = (size.y - controlHeight) / 2;
+      final controlHeight = min(
+        maxTouchControlHeight,
+        max(0.0, size.y - _landscapeBottomMargin * 2),
+      );
+      final controlY = max(
+        0.0,
+        size.y - controlHeight - _landscapeBottomMargin,
+      );
       final viewportRight = viewport.position.x + viewport.size.x;
       final rightAreaWidth = max(0.0, size.x - viewportRight);
       final rightMargin = min(24.0, rightAreaWidth / 4);
+      final controlWidth = min(
+        maxTouchControlWidth,
+        max(0.0, rightAreaWidth - rightMargin * 2),
+      );
       _fireButton.position = Vector2(
         max(0.0, (viewport.position.x - _fireButton.size.x) / 2),
-        (size.y - _fireButton.size.y) / 2,
+        max(
+          0.0,
+          size.y - _fireButton.size.y - _landscapeBottomMargin,
+        ),
       );
       _pointerInputSurface.setTouchArea(
-        position: Vector2(viewportRight + rightMargin, controlY),
-        size: Vector2(
-          max(0.0, rightAreaWidth - rightMargin * 2),
-          controlHeight,
+        position: Vector2(
+          viewportRight + (rightAreaWidth - controlWidth) / 2,
+          controlY,
         ),
+        size: Vector2(controlWidth, controlHeight),
       );
     } else {
       _fireButton.position = Vector2(
@@ -100,8 +118,11 @@ class GameHud extends PositionComponent with HasVisibility {
       _pointerInputSurface.setTouchArea(
         position: Vector2(controlX, _fireButton.position.y),
         size: Vector2(
-          max(0.0, size.x - controlX - 24),
-          _fireButton.size.y,
+          min(
+            maxTouchControlWidth,
+            max(0.0, size.x - controlX - 24),
+          ),
+          min(maxTouchControlHeight, _fireButton.size.y),
         ),
       );
     }
@@ -149,10 +170,21 @@ class GameHud extends PositionComponent with HasVisibility {
   void setGameplayActive(bool active) {
     _gameplayActive = active;
     _controlsEnabled = active;
+    _scoreboardVisible = active;
     if (!active && isLoaded) {
       _inputController.reset();
     }
     if (isLoaded) {
+      _applyGameplayState();
+    }
+  }
+
+  void showIntroScoreboard() {
+    _gameplayActive = false;
+    _controlsEnabled = false;
+    _scoreboardVisible = true;
+    if (isLoaded) {
+      _inputController.reset();
       _applyGameplayState();
     }
   }
@@ -169,7 +201,7 @@ class GameHud extends PositionComponent with HasVisibility {
   }
 
   void _applyGameplayState() {
-    isVisible = _gameplayActive;
+    isVisible = _scoreboardVisible;
     _fireButton.isVisible = _controlsEnabled;
     _pointerInputSurface.isVisible = _controlsEnabled;
   }

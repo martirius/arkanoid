@@ -164,7 +164,7 @@ class Arkanoid extends FlameGame
     _introSequence = IntroSequence(onFinished: _beginGameplay);
     world.add(_introSequence!);
     flowState = GameFlowState.intro;
-    hud.setGameplayActive(false);
+    hud.showIntroScoreboard();
     _showOnlyOverlay(introOverlay);
     audio.play(GameSound.intro);
   }
