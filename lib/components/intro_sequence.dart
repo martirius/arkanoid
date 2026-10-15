@@ -77,7 +77,7 @@ class IntroSequence extends PositionComponent {
       srcPosition: Vector2(0, 16),
       srcSize: Vector2(_width, _height),
     );
-    _mothershipFrames = List.generate(20, (index) {
+    _mothershipFrames = List.generate(7, (index) {
       return Sprite(
         Flame.images.fromCache('intro.png'),
         srcPosition: Vector2(
@@ -140,13 +140,16 @@ class IntroSequence extends PositionComponent {
   }
 
   void _renderMothership(Canvas canvas) {
-    final frameIndex = _elapsed < _impactStart
-        ? (_elapsed / 0.15).floor() % 2
-        : 2 + ((_elapsed - _impactStart) / 0.085).floor() % 18;
-    _mothershipFrames[frameIndex].render(
+    _mothershipFrames[mothershipFrameAt(_elapsed)].render(
       canvas,
       position: Vector2(0, 137),
     );
+  }
+
+  static int mothershipFrameAt(double seconds) {
+    return seconds < _impactStart
+        ? (seconds / 0.06).floor() % 2
+        : 2 + ((seconds - _impactStart) / 0.18).floor() % 5;
   }
 
   void _renderFighter(Canvas canvas) {
@@ -183,7 +186,12 @@ class IntroSequence extends PositionComponent {
   }
 
   void _renderVaus(Canvas canvas) {
-    if (_elapsed >= _vausStart && _elapsed < _vausShrinkEnd) {
+    final frameIndex = vausFrameAt(_elapsed);
+    if (frameIndex == null) {
+      return;
+    }
+
+    if (frameIndex <= 12) {
       final progress = ((_elapsed - _vausStart) / (_vausShrinkEnd - _vausStart))
           .clamp(0.0, 1.0);
       final arc = math.sin(progress * math.pi);
@@ -191,22 +199,26 @@ class IntroSequence extends PositionComponent {
         90 + 45 * arc - 25 * progress,
         145 - 50 * arc - 30 * progress,
       );
-      final frameIndex = math.min(12, (progress * 13).floor());
       _vausFrames[frameIndex].render(canvas, position: position);
       return;
     }
 
-    if (_elapsed >= _warpStart && _elapsed < duration) {
-      final warpProgress =
-          ((_elapsed - _warpStart) / (_warpEnd - _warpStart)).clamp(0.0, 1.0);
-      final frameIndex = warpProgress < 1
-          ? 13 + math.min(4, (warpProgress * 5).floor()).toInt()
-          : 18;
-      _vausFrames[frameIndex].render(
-        canvas,
-        position: Vector2(64, 112),
-      );
+    _vausFrames[frameIndex].render(
+      canvas,
+      position: Vector2(64, 112),
+    );
+  }
+
+  static int? vausFrameAt(double seconds) {
+    if (seconds >= _vausStart && seconds < _vausShrinkEnd) {
+      final progress = (seconds - _vausStart) / (_vausShrinkEnd - _vausStart);
+      return math.min(12, (progress * 13).floor());
     }
+    if (seconds >= _warpStart && seconds < _warpEnd) {
+      final progress = (seconds - _warpStart) / (_warpEnd - _warpStart);
+      return 13 + math.min(4, (progress * 5).floor()).toInt();
+    }
+    return null;
   }
 
   static Vector2 _lerpPosition(Vector2 from, Vector2 to, double progress) {

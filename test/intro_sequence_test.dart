@@ -32,4 +32,17 @@ void main() {
 
     expect(completions, 1);
   });
+
+  test('intro only uses the arcade mothership and Vaus frames', () {
+    expect(IntroSequence.mothershipFrameAt(0), 0);
+    expect(IntroSequence.mothershipFrameAt(0.06), 1);
+    expect(IntroSequence.mothershipFrameAt(0.12), 0);
+    expect(IntroSequence.mothershipFrameAt(1.42), 2);
+    expect(IntroSequence.mothershipFrameAt(1.61), 3);
+    expect(IntroSequence.mothershipFrameAt(6), inInclusiveRange(2, 6));
+
+    expect(IntroSequence.vausFrameAt(5.46), inInclusiveRange(13, 17));
+    expect(IntroSequence.vausFrameAt(5.47), isNull);
+    expect(IntroSequence.vausFrameAt(7), isNull);
+  });
 }
