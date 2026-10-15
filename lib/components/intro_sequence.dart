@@ -140,9 +140,10 @@ class IntroSequence extends PositionComponent {
   }
 
   void _renderMothership(Canvas canvas) {
-    _mothershipFrames[mothershipFrameAt(_elapsed)].render(
+    final frameIndex = mothershipFrameAt(_elapsed);
+    _mothershipFrames[frameIndex].render(
       canvas,
-      position: Vector2(0, 137),
+      position: Vector2(mothershipXForFrame(frameIndex), 137),
     );
   }
 
@@ -150,6 +151,11 @@ class IntroSequence extends PositionComponent {
     return seconds < _impactStart
         ? (seconds / 0.06).floor() % 2
         : 2 + ((seconds - _impactStart) / 0.18).floor() % 5;
+  }
+
+  // Right-column frames have four extra transparent pixels on their left.
+  static double mothershipXForFrame(int frameIndex) {
+    return frameIndex.isOdd ? -4 : 0;
   }
 
   void _renderFighter(Canvas canvas) {

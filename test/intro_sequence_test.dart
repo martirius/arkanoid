@@ -40,6 +40,8 @@ void main() {
     expect(IntroSequence.mothershipFrameAt(1.42), 2);
     expect(IntroSequence.mothershipFrameAt(1.61), 3);
     expect(IntroSequence.mothershipFrameAt(6), inInclusiveRange(2, 6));
+    expect(IntroSequence.mothershipXForFrame(0), 0);
+    expect(IntroSequence.mothershipXForFrame(1), -4);
 
     expect(IntroSequence.vausFrameAt(5.46), inInclusiveRange(13, 17));
     expect(IntroSequence.vausFrameAt(5.47), isNull);
