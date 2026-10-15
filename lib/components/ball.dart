@@ -79,6 +79,7 @@ class Ball extends PositionedEntity
       y = starship.y - size.y * scale.y - 1;
       motion.bounceFromPaddle(normalizedHitPosition);
       _applyMotionVelocity();
+      _registerImpact();
       game.audio.play(GameSound.ballHitStarship);
     }
   }

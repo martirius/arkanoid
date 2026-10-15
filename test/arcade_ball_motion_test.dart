@@ -15,28 +15,43 @@ void main() {
   test('speed advances with the original impact thresholds', () {
     final motion = ArcadeBallMotion(speedStage: 12);
 
-    for (var impact = 0; impact < 8; impact++) {
+    for (var impact = 0; impact < 199; impact++) {
       expect(motion.registerImpact(), isFalse);
     }
     expect(motion.speedStage, 12);
+    expect(motion.speedProgress, 199);
     expect(motion.registerImpact(), isTrue);
     expect(motion.speedStage, 13);
     expect(motion.speedProgress, 0);
   });
 
-  test('advanced stages use the original speed table', () {
+  test('advanced stages keep discrete speeds below the arcade cap', () {
     expect(
       [
-        for (var stage = 12; stage <= 15; stage++)
+        for (var stage = 12; stage <= ArcadeBallMotion.maxSpeedStage; stage++)
           ArcadeBallMotion(speedStage: stage).velocity,
       ],
       [
         (x: 130.0, y: -130.0),
         (x: 195.0, y: -195.0),
         (x: 260.0, y: -260.0),
-        (x: 390.0, y: -390.0),
       ],
     );
+  });
+
+  test('the arcade maximum stage never advances', () {
+    final motion = ArcadeBallMotion(
+      speedStage: ArcadeBallMotion.maxSpeedStage,
+    );
+
+    for (var impact = 0;
+        impact < ArcadeBallMotion.speedThresholds[motion.speedStage];
+        impact++) {
+      expect(motion.registerImpact(), isFalse);
+    }
+
+    expect(motion.speedStage, ArcadeBallMotion.maxSpeedStage);
+    expect(motion.speedProgress, 0);
   });
 
   test('slow drops exactly one stage and clears its progress', () {

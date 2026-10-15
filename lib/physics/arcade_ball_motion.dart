@@ -1,26 +1,34 @@
 class ArcadeBallMotion {
   ArcadeBallMotion({required this.speedStage, this.trajectory = 3}) {
-    RangeError.checkValueInInterval(speedStage, 0, 15, 'speedStage');
+    RangeError.checkValueInInterval(
+      speedStage,
+      0,
+      maxSpeedStage,
+      'speedStage',
+    );
     _checkTrajectory(trajectory);
   }
 
+  static const maxSpeedStage = 14;
+
+  // Original US arcade ROM table at 0x094C.
   static const speedThresholds = [
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    4,
-    8,
-    16,
-    24,
-    31,
+    0,
+    25,
+    25,
+    35,
+    35,
+    45,
+    60,
+    80,
+    120,
+    140,
+    160,
+    180,
+    200,
+    220,
+    240,
+    255,
   ];
 
   static const _pixelsPerSecondPerUnit = 130.0;
@@ -94,12 +102,12 @@ class ArcadeBallMotion {
 
   bool registerImpact() {
     speedProgress += 1;
-    if (speedProgress <= speedThresholds[speedStage]) {
+    if (speedProgress < speedThresholds[speedStage]) {
       return false;
     }
 
     speedProgress = 0;
-    if (speedStage == speedThresholds.length - 1) {
+    if (speedStage == maxSpeedStage) {
       return false;
     }
     speedStage += 1;

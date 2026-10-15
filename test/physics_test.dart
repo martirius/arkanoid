@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:arkanoid/components/ball.dart';
 import 'package:arkanoid/components/brick.dart';
 import 'package:arkanoid/components/field.dart';
+import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/main.dart';
 import 'package:arkanoid/physics/ball_collision_resolver.dart';
 import 'package:flame/components.dart';
@@ -98,6 +99,24 @@ void main() {
     expect(ball.velocity.x, 130);
     expect(ball.velocity.y, 130);
     expect(ball.speedProgress, 3);
+  });
+
+  test('a paddle bounce advances the arcade speed counter', () {
+    final game = Arkanoid();
+    game.currentLevel.field = Field(FieldType.blue)..position = Vector2(112, 0);
+    final starship = Starship(onPowerUp: (_) {}, onEscape: () {})
+      ..game = game
+      ..position = Vector2(100, 200);
+    final ball = Ball()
+      ..game = game
+      ..ballCanMove = true
+      ..position = Vector2(112, 196)
+      ..velocity = Vector2(130, 130);
+
+    ball.onCollision({Vector2.zero()}, starship);
+
+    expect(ball.speedProgress, 1);
+    expect(ball.velocity.y, lessThan(0));
   });
 
   test('forty wall bounces do not redirect another active ball', () {
