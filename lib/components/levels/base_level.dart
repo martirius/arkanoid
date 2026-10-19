@@ -52,7 +52,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
   RoundPhase get phase => _phase;
 
   late final _roundNumberComponent = TextComponent(
-      text: "ROUND ${definition.roundNumber}\nREADY",
+      text: "ROUND ${definition.roundNumber}\n READY",
       textRenderer: TextPaint(
           style: const TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),

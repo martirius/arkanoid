@@ -8,6 +8,7 @@
 .buildlog/
 .history
 .svn/
+.vscode
 migrate_working_dir/
 
 # IntelliJ related
@@ -33,7 +34,6 @@ migrate_working_dir/
 /build/
 
 # Web related
-lib/generated_plugin_registrant.dart
 
 # Symbolication related
 app.*.symbols
