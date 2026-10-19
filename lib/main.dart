@@ -37,14 +37,15 @@ void main() {
               Arkanoid.mainMenuOverlay: (context, game) => MainMenuOverlay(
                     highScore: game.topScore,
                     credits: game.credits,
-                    difficulty: game.session.difficulty,
-                    onDifficultyChanged: (difficulty) {
-                      game.session.difficulty = difficulty;
-                    },
+                    difficulty: game.menuDifficulty,
+                    onDifficultyChanged: game.selectDifficulty,
+                    canResume: game.hasSuspendedGame,
+                    onResume: game.resumeSuspendedGame,
                     onStart: game.startNewGame,
                   ),
               Arkanoid.pauseOverlay: (context, game) => PauseOverlay(
                     onResume: game.resumeGame,
+                    onSuspend: game.suspendGame,
                     onExit: game.returnToMenu,
                   ),
               Arkanoid.gameplayOverlay: (context, game) => GameplayOverlay(
@@ -66,13 +67,14 @@ void main() {
   );
 }
 
-enum GameFlowState { menu, intro, playing, paused, continuePrompt }
+enum GameFlowState { menu, intro, playing, paused, suspended, continuePrompt }
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
   Arkanoid({GameSession? session})
       : session = session ?? GameSession(),
         super(camera: _createCamera()) {
+    _menuDifficulty = this.session.difficulty;
     hud = GameHud(
       onMove: (direction) => currentLevel.setMovementDirection(direction),
       onMoveTo: (canvasPosition) => currentLevel.setHorizontalTarget(
@@ -94,6 +96,7 @@ class Arkanoid extends FlameGame
 
   final GameAudio audio = GameAudio();
   final GameSession session;
+  late GameDifficulty _menuDifficulty;
   late final GameHud hud;
   BaseLevel currentLevel = BaseLevel(levelCatalog.first);
   IntroSequence? _introSequence;
@@ -103,6 +106,12 @@ class Arkanoid extends FlameGame
   int get currentScore => session.score;
   int get numberOfLives => session.lives;
   int get credits => session.credits;
+  bool get hasSuspendedGame => flowState == GameFlowState.suspended;
+  GameDifficulty get menuDifficulty => _menuDifficulty;
+
+  void selectDifficulty(GameDifficulty difficulty) {
+    _menuDifficulty = difficulty;
+  }
 
   @override
   Future<void>? onLoad() async {
@@ -169,6 +178,7 @@ class Arkanoid extends FlameGame
       currentLevel.removeFromParent();
     }
     unawaited(audio.stopAll());
+    session.difficulty = _menuDifficulty;
     session.reset();
     hud.updateScores(score: currentScore, topScore: topScore);
     currentLevel = BaseLevel(levelCatalog.first);
@@ -219,6 +229,27 @@ class Arkanoid extends FlameGame
       return;
     }
     flowState = GameFlowState.playing;
+    hud.setControlsEnabled(true);
+    _showOnlyOverlay(gameplayOverlay);
+    resumeEngine();
+    unawaited(audio.resume());
+  }
+
+  void suspendGame() {
+    if (flowState != GameFlowState.paused) {
+      return;
+    }
+    flowState = GameFlowState.suspended;
+    hud.setGameplayActive(false);
+    _showOnlyOverlay(mainMenuOverlay);
+  }
+
+  void resumeSuspendedGame() {
+    if (flowState != GameFlowState.suspended) {
+      return;
+    }
+    flowState = GameFlowState.playing;
+    hud.setGameplayActive(true);
     hud.setControlsEnabled(true);
     _showOnlyOverlay(gameplayOverlay);
     resumeEngine();
@@ -299,6 +330,8 @@ class Arkanoid extends FlameGame
           key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.keyP;
       if (flowState == GameFlowState.menu && isAction) {
         startNewGame();
+      } else if (flowState == GameFlowState.suspended && isAction) {
+        resumeSuspendedGame();
       } else if (flowState == GameFlowState.intro && isAction) {
         skipIntro();
       } else if (flowState == GameFlowState.intro && isPause) {

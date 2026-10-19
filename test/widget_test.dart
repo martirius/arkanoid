@@ -71,6 +71,31 @@ void main() {
     expect(game.paused, isFalse);
   });
 
+  test('a suspended game can resume without losing its state', () {
+    final level = _ReadyLevel();
+    final session = GameSession(score: 12340, lives: 2, currentRound: 7);
+    final game = Arkanoid(session: session)
+      ..currentLevel = level
+      ..flowState = GameFlowState.playing;
+
+    game.pauseGame();
+    game.suspendGame();
+
+    expect(game.flowState, GameFlowState.suspended);
+    expect(game.paused, isTrue);
+    expect(game.currentLevel, same(level));
+    expect(game.currentScore, 12340);
+    expect(game.numberOfLives, 2);
+    expect(game.session.currentRound, 7);
+
+    game.resumeSuspendedGame();
+
+    expect(game.flowState, GameFlowState.playing);
+    expect(game.paused, isFalse);
+    expect(game.currentLevel, same(level));
+    expect(game.currentScore, 12340);
+  });
+
   test('completing level five advances to level six', () {
     final game = Arkanoid()..currentLevel = BaseLevel(levelCatalog[4]);
 
@@ -151,20 +176,47 @@ void main() {
 
   testWidgets('pause menu resumes or exits once', (tester) async {
     var resumes = 0;
+    var suspends = 0;
     var exits = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: PauseOverlay(
           onResume: () => resumes++,
+          onSuspend: () => suspends++,
           onExit: () => exits++,
         ),
       ),
     );
 
     await tester.tap(find.text('RESUME'));
-    await tester.tap(find.text('EXIT'));
+    await tester.tap(find.text('SUSPEND'));
+    await tester.tap(find.text('END GAME'));
     expect(resumes, 1);
+    expect(suspends, 1);
     expect(exits, 1);
+  });
+
+  testWidgets('main menu offers resume for a suspended game', (tester) async {
+    var resumes = 0;
+    var starts = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MainMenuOverlay(
+          highScore: 50000,
+          credits: 3,
+          difficulty: GameDifficulty.easy,
+          onDifficultyChanged: (_) {},
+          canResume: true,
+          onResume: () => resumes++,
+          onStart: () => starts++,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('RESUME GAME'));
+    await tester.tap(find.text('NEW GAME'));
+    expect(resumes, 1);
+    expect(starts, 1);
   });
 
   testWidgets('intro can be skipped with a tap', (tester) async {

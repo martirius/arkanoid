@@ -12,14 +12,18 @@ class MainMenuOverlay extends StatefulWidget {
     required this.difficulty,
     required this.onDifficultyChanged,
     required this.onStart,
+    this.canResume = false,
+    this.onResume,
     super.key,
-  });
+  }) : assert(!canResume || onResume != null);
 
   final int highScore;
   final int credits;
   final GameDifficulty difficulty;
   final ValueChanged<GameDifficulty> onDifficultyChanged;
   final VoidCallback onStart;
+  final bool canResume;
+  final VoidCallback? onResume;
 
   @override
   State<MainMenuOverlay> createState() => _MainMenuOverlayState();
@@ -102,7 +106,17 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _MenuButton(label: 'START', onPressed: widget.onStart),
+                  if (widget.canResume) ...[
+                    _MenuButton(
+                      label: 'RESUME GAME',
+                      onPressed: widget.onResume,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  _MenuButton(
+                    label: widget.canResume ? 'NEW GAME' : 'START',
+                    onPressed: widget.onStart,
+                  ),
                   const SizedBox(height: 20),
                   Text(
                     'CREDIT ${widget.credits}',
@@ -294,11 +308,13 @@ class _ContinueOverlayState extends State<ContinueOverlay> {
 class PauseOverlay extends StatelessWidget {
   const PauseOverlay({
     required this.onResume,
+    required this.onSuspend,
     required this.onExit,
     super.key,
   });
 
   final VoidCallback onResume;
+  final VoidCallback onSuspend;
   final VoidCallback onExit;
 
   @override
@@ -320,7 +336,9 @@ class PauseOverlay extends StatelessWidget {
             const SizedBox(height: 32),
             _MenuButton(label: 'RESUME', onPressed: onResume),
             const SizedBox(height: 14),
-            _MenuButton(label: 'EXIT', onPressed: onExit),
+            _MenuButton(label: 'SUSPEND', onPressed: onSuspend),
+            const SizedBox(height: 14),
+            _MenuButton(label: 'END GAME', onPressed: onExit),
           ],
         ),
       ),
