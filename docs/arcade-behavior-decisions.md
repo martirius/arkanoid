@@ -19,7 +19,7 @@ mantengono tre slot disponibili; cambia il ritmo con cui vengono occupati:
 - porta di ingresso sullo stesso lato della Vaus;
 - in Hard gli slot vengono riempiti appena la sequenza della porta lo consente;
 - in Easy il primo alieno entra normalmente, mentre gli ingressi successivi
-  vengono distanziati di sei secondi;
+  vengono distanziati di due secondi;
 - sequenze e tempi di animazione ricavati dalle tabelle arcade.
 
 La difficoltà non riduce il numero massimo di alieni. Movimento, accelerazione

@@ -41,11 +41,12 @@ class EnemyDirector extends Component {
     if (!isPlaying() || roundNumber >= 33) {
       return;
     }
+    if (_activeEnemies.length + _pendingSpawns >= maxActiveEnemies) {
+      return;
+    }
     _elapsed += dt;
     final requiredDelay = _hasSpawned ? spawnInterval : _initialSpawnDelay;
-    if (_elapsed < requiredDelay ||
-        _activeGates.isNotEmpty ||
-        _activeEnemies.length + _pendingSpawns >= maxActiveEnemies) {
+    if (_elapsed < requiredDelay || _activeGates.isNotEmpty) {
       return;
     }
     _elapsed = 0;

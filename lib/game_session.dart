@@ -2,7 +2,7 @@ enum GameDifficulty { easy, hard }
 
 extension GameDifficultyRules on GameDifficulty {
   double get enemySpawnInterval => switch (this) {
-        GameDifficulty.easy => 6,
+        GameDifficulty.easy => 2,
         GameDifficulty.hard => 0,
       };
 }

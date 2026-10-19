@@ -50,7 +50,7 @@ void main() {
   });
 
   test('difficulty changes enemy pacing without reducing their limit', () {
-    expect(GameDifficulty.easy.enemySpawnInterval, 6);
+    expect(GameDifficulty.easy.enemySpawnInterval, 2);
     expect(GameDifficulty.hard.enemySpawnInterval, 0);
   });
 

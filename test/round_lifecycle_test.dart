@@ -274,7 +274,7 @@ void main() {
     expect(director.activeEnemyCount, 1);
 
     for (var step = 0;
-        step < 800 &&
+        step < 1200 &&
             director.activeEnemyCount < EnemyDirector.maxActiveEnemies;
         step++) {
       await tester.pump(const Duration(milliseconds: 17));
@@ -305,6 +305,11 @@ void main() {
     enemy.destroy();
     enemy.destroy();
     expect(game.currentScore, scoreBefore + 100);
+
+    for (var step = 0; step < 120; step++) {
+      await tester.pump(const Duration(milliseconds: 17));
+    }
+    expect(director.activeEnemyCount, 2);
   });
 
   testWidgets('removing a round cancels its pending game-over transition',
