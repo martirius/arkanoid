@@ -49,11 +49,6 @@ void main() {
     expect(session.difficulty, GameDifficulty.hard);
   });
 
-  test('difficulty changes enemy pacing without reducing their limit', () {
-    expect(GameDifficulty.easy.enemySpawnInterval, 2);
-    expect(GameDifficulty.hard.enemySpawnInterval, 0);
-  });
-
   test('a continue consumes one credit and restores the initial lives', () {
     final session = GameSession(lives: 0);
 

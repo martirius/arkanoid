@@ -54,12 +54,12 @@ e selezione/azioni delle capsule in
 1. **Vite extra legate al punteggio (integrato).** Si ottiene una vita a 20.000 punti, poi
    a 60.000 e successivamente ogni 60.000 punti (120.000, 180.000, ...). La
    capsula Player è un meccanismo aggiuntivo e separato.
-2. **Alieni (integrato, da calibrare).** Il progetto segue il profilo Hard
-   arcade: tre slot fin dal primo round, porta sul lato della Vaus e una forma
-   fissa per round. Le regole MSX del limite progressivo, della porta più
-   lontana e dei 240 tick non vengono importate. Pallina, laser e Vaus li
-   distruggono; la collisione con la Vaus non costa una vita. Ogni alieno vale
-   100 punti e fa rimbalzare la pallina.
+2. **Alieni (integrato).** Il profilo Hard arcade abilita subito tre slot;
+   Easy usa il limite iniziale previsto per ogni round e lo aumenta alle tre
+   soglie temporali della ROM. La porta è sul lato della Vaus e la forma resta
+   fissa per round. Le regole specifiche del port MSX non vengono importate.
+   Pallina, laser e Vaus distruggono gli alieni; la collisione con la Vaus non
+   costa una vita. Ogni alieno vale 100 punti e fa rimbalzare la pallina.
 3. **Progressione completa (integrata).** Il gioco MSX ha 32 round, mentre la versione
    arcade scelta come riferimento ha 32 round di mattoni seguiti da Doh. Il
    progetto deve mantenere intenzionalmente questa differenza dal port.

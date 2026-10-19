@@ -1,12 +1,5 @@
 enum GameDifficulty { easy, hard }
 
-extension GameDifficultyRules on GameDifficulty {
-  double get enemySpawnInterval => switch (this) {
-        GameDifficulty.easy => 2,
-        GameDifficulty.hard => 0,
-      };
-}
-
 class GameSession {
   GameSession({
     this.score = 0,

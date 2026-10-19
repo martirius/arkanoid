@@ -246,7 +246,7 @@ void main() {
     final level = _testLevel();
     final game = _TestArkanoid(
       level,
-      session: GameSession(difficulty: GameDifficulty.easy),
+      session: GameSession(difficulty: GameDifficulty.hard),
     );
     await tester.pumpWidget(
       Directionality(
@@ -268,7 +268,7 @@ void main() {
     level.performAction();
     level.balls.single.ballCanMove = false;
     final director = level.children.whereType<EnemyDirector>().single;
-    for (var step = 0; step < 120; step++) {
+    for (var step = 0; step < 180 && director.activeEnemyCount < 1; step++) {
       await tester.pump(const Duration(milliseconds: 17));
     }
     expect(director.activeEnemyCount, 1);
@@ -306,10 +306,13 @@ void main() {
     enemy.destroy();
     expect(game.currentScore, scoreBefore + 100);
 
-    for (var step = 0; step < 120; step++) {
+    for (var step = 0;
+        step < 180 &&
+            director.activeEnemyCount < EnemyDirector.maxActiveEnemies;
+        step++) {
       await tester.pump(const Duration(milliseconds: 17));
     }
-    expect(director.activeEnemyCount, 2);
+    expect(director.activeEnemyCount, EnemyDirector.maxActiveEnemies);
   });
 
   testWidgets('removing a round cancels its pending game-over transition',

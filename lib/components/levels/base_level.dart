@@ -13,7 +13,6 @@ import 'package:arkanoid/components/starship.dart';
 import 'package:arkanoid/game_audio.dart';
 import 'package:arkanoid/enemy_director.dart';
 import 'package:arkanoid/main.dart';
-import 'package:arkanoid/game_session.dart';
 import 'package:arkanoid/power_up_director.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
@@ -303,7 +302,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
         vausCenterX: () =>
             _starship.x + _starship.width * _starship.scale.x / 2,
         isPlaying: () => _phase == RoundPhase.playing,
-        spawnInterval: game.session.difficulty.enemySpawnInterval,
+        difficulty: game.session.difficulty,
         onEnemyDestroyed: (enemy) {
           addScore(100);
           game.audio.play(GameSound.alienHit);
@@ -311,7 +310,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
       );
 
   void _removeTemporaryComponents() {
-    _enemyDirector.reset();
+    _enemyDirector.reset(preserveRoundTime: true);
     for (final component in children.toList()) {
       if (component is PowerUp ||
           component is BreakAnimationComponent ||

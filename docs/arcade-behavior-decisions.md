@@ -11,15 +11,16 @@ Konerd, Pyradok, Tri-sphere e Opopo. Gli ostacoli deviano la pallina, possono
 essere distrutti dalla pallina, dal laser o dalla Vaus, assegnano 100 punti e
 non sono necessari per completare il round.
 
-Il progetto permette di scegliere il profilo arcade Easy o Hard. Entrambi
-mantengono tre slot disponibili; cambia il ritmo con cui vengono occupati:
+Il progetto permette di scegliere il profilo arcade Easy o Hard. Il limite
+massimo resta di tre alieni, ma gli slot vengono abilitati come nella ROM:
 
-- tre slot disponibili fin dal primo round;
 - una sola forma per round, scelta ciclicamente ogni quattro round;
 - porta di ingresso sullo stesso lato della Vaus;
-- in Hard gli slot vengono riempiti appena la sequenza della porta lo consente;
-- in Easy il primo alieno entra normalmente, mentre gli ingressi successivi
-  vengono distanziati di due secondi;
+- in Hard i tre slot sono disponibili immediatamente;
+- in Easy il numero iniziale di slot dipende dal round e cresce dopo `0x0700`,
+  `0x0e00` e `0x1500` frame, fino a un massimo di tre;
+- il contatore Easy prosegue dopo la perdita di una vita e si azzera al cambio
+  di round;
 - sequenze e tempi di animazione ricavati dalle tabelle arcade.
 
 La difficoltà non riduce il numero massimo di alieni. Movimento, accelerazione
