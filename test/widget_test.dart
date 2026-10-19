@@ -92,11 +92,14 @@ void main() {
 
   testWidgets('main menu starts a game once', (tester) async {
     var starts = 0;
+    var difficulty = GameDifficulty.easy;
     await tester.pumpWidget(
       MaterialApp(
         home: MainMenuOverlay(
           highScore: 50000,
           credits: 3,
+          difficulty: difficulty,
+          onDifficultyChanged: (value) => difficulty = value,
           onStart: () => starts++,
         ),
       ),
@@ -105,6 +108,9 @@ void main() {
     expect(find.byKey(const Key('main-menu-title')), findsOneWidget);
     expect(find.text('HIGH SCORE\n50000'), findsOneWidget);
     expect(find.text('CREDIT 3'), findsOneWidget);
+    expect(find.text('DIFFICULTY'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('difficulty-hard')));
+    expect(difficulty, GameDifficulty.hard);
     await tester.tap(find.text('START'));
     expect(starts, 1);
   });

@@ -266,8 +266,7 @@ void main() {
     level.balls.single.ballCanMove = false;
     final director = level.children.whereType<EnemyDirector>().single;
     for (var step = 0;
-        step < 800 &&
-            director.activeEnemyCount < EnemyDirector.maxActiveEnemies;
+        step < 800 && director.activeEnemyCount < director.maxActiveEnemies;
         step++) {
       await tester.pump(const Duration(milliseconds: 17));
       if (step % 30 == 0) {
@@ -278,7 +277,7 @@ void main() {
     }
 
     expect(level.phase, RoundPhase.playing);
-    expect(director.activeEnemyCount, EnemyDirector.maxActiveEnemies);
+    expect(director.activeEnemyCount, director.maxActiveEnemies);
     final enemy = director.activeEnemies.first;
     for (var attempt = 0;
         attempt < 20 && level.children.whereType<Enemy>().isEmpty;

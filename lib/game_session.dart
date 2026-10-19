@@ -1,3 +1,12 @@
+enum GameDifficulty { easy, hard }
+
+extension GameDifficultyRules on GameDifficulty {
+  int get maxActiveEnemies => switch (this) {
+        GameDifficulty.easy => 1,
+        GameDifficulty.hard => 3,
+      };
+}
+
 class GameSession {
   GameSession({
     this.score = 0,
@@ -6,6 +15,7 @@ class GameSession {
     this.credits = initialCredits,
     this.currentRound = 1,
     this.lifeCapsuleAlreadyAwarded = false,
+    this.difficulty = GameDifficulty.easy,
   })  : highScore = score > highScore ? score : highScore,
         nextExtraLifeScore = _nextExtraLifeTarget(score);
 
@@ -22,6 +32,7 @@ class GameSession {
   int currentRound;
   int nextExtraLifeScore;
   bool lifeCapsuleAlreadyAwarded;
+  GameDifficulty difficulty;
 
   int addScore(int points) {
     if (points < 0) {

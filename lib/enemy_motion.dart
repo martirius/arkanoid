@@ -174,6 +174,15 @@ class ArcadeEnemyMotion {
     }
   }
 
+  void turnFromHorizontalBoundary({required bool onLeftSide}) {
+    if (_phase != EnemyMotionPhase.followingPattern) {
+      reflectX();
+      return;
+    }
+    _path = _pathFor(type, onLeftSide);
+    _loadSegment(0);
+  }
+
   void reflectX() {
     final reflected = (-_direction) & 0x1f;
     final expectedSign = -velocity.x.sign;

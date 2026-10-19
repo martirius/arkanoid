@@ -231,10 +231,10 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
     final halfHeight = height / 2;
     if (x - halfWidth <= area.left && _motion.velocity.x < 0) {
       x = area.left + halfWidth;
-      _motion.reflectX();
+      _motion.turnFromHorizontalBoundary(onLeftSide: true);
     } else if (x + halfWidth >= area.right && _motion.velocity.x > 0) {
       x = area.right - halfWidth;
-      _motion.reflectX();
+      _motion.turnFromHorizontalBoundary(onLeftSide: false);
     }
     if (y - halfHeight <= area.top && _motion.velocity.y < 0) {
       y = area.top + halfHeight;
@@ -298,11 +298,10 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
       return;
     }
     if (_handledBrickCollisionThisFrame) {
-      _resolvedBrickContacts.add(brick);
       return;
     }
     _handledBrickCollisionThisFrame = true;
-    _resolvedBrickContacts.addAll(_brickContacts);
+    _resolvedBrickContacts.add(brick);
     _bounceFrom(brick);
   }
 
@@ -324,9 +323,8 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyState>
       _motion.startObstaclePattern(
         onLeftSide: x < playArea().center.dx,
       );
-    } else {
-      _motion.reflectFromObstacle(bounceX: bounceX);
     }
+    _motion.reflectFromObstacle(bounceX: bounceX);
   }
 
   void _separateFrom(Enemy other) {

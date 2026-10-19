@@ -37,6 +37,10 @@ void main() {
               Arkanoid.mainMenuOverlay: (context, game) => MainMenuOverlay(
                     highScore: game.topScore,
                     credits: game.credits,
+                    difficulty: game.session.difficulty,
+                    onDifficultyChanged: (difficulty) {
+                      game.session.difficulty = difficulty;
+                    },
                     onStart: game.startNewGame,
                   ),
               Arkanoid.pauseOverlay: (context, game) => PauseOverlay(

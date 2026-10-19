@@ -80,4 +80,35 @@ void main() {
     expect(first.velocity.x, lessThan(0));
     expect(second.velocity.x, greaterThan(0));
   });
+
+  test('a patterned enemy turns back into the field at either side', () {
+    final motion = ArcadeEnemyMotion(
+      type: EnemyType.triSphere,
+      random: math.Random(1),
+    )
+      ..finishGateExit()
+      ..startObstaclePattern(onLeftSide: true);
+
+    expect(motion.velocity.x, greaterThan(0));
+
+    motion.turnFromHorizontalBoundary(onLeftSide: false);
+    expect(motion.velocity.x, lessThan(0));
+
+    motion.turnFromHorizontalBoundary(onLeftSide: true);
+    expect(motion.velocity.x, greaterThan(0));
+  });
+
+  test('the first patterned brick collision keeps the reflected heading', () {
+    final motion = ArcadeEnemyMotion(
+      type: EnemyType.triSphere,
+      random: math.Random(1),
+    )
+      ..finishGateExit()
+      ..startObstaclePattern(onLeftSide: true);
+    final verticalDirectionBeforeCollision = motion.velocity.y.sign;
+
+    motion.reflectFromObstacle(bounceX: false);
+
+    expect(motion.velocity.y.sign, -verticalDirectionBeforeCollision);
+  });
 }

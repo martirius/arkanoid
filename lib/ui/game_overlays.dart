@@ -1,20 +1,40 @@
 import 'dart:async';
 
+import 'package:arkanoid/game_session.dart';
 import 'package:flutter/material.dart';
 
 const _orange = Color(0xffff5a1f);
 
-class MainMenuOverlay extends StatelessWidget {
+class MainMenuOverlay extends StatefulWidget {
   const MainMenuOverlay({
     required this.highScore,
     required this.credits,
+    required this.difficulty,
+    required this.onDifficultyChanged,
     required this.onStart,
     super.key,
   });
 
   final int highScore;
   final int credits;
+  final GameDifficulty difficulty;
+  final ValueChanged<GameDifficulty> onDifficultyChanged;
   final VoidCallback onStart;
+
+  @override
+  State<MainMenuOverlay> createState() => _MainMenuOverlayState();
+}
+
+class _MainMenuOverlayState extends State<MainMenuOverlay> {
+  late GameDifficulty _difficulty = widget.difficulty;
+
+  void _selectDifficulty(GameDifficulty difficulty) {
+    if (_difficulty == difficulty) {
+      return;
+    }
+    setState(() => _difficulty = difficulty);
+    widget.onDifficultyChanged(difficulty);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +68,7 @@ class MainMenuOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'HIGH SCORE\n$highScore',
+                    'HIGH SCORE\n${widget.highScore}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
@@ -57,11 +77,35 @@ class MainMenuOverlay extends StatelessWidget {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  _MenuButton(label: 'START', onPressed: onStart),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'DIFFICULTY',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Joystix',
+                      fontSize: 10,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final difficulty in GameDifficulty.values) ...[
+                        _DifficultyButton(
+                          difficulty: difficulty,
+                          selected: difficulty == _difficulty,
+                          onPressed: () => _selectDifficulty(difficulty),
+                        ),
+                        if (difficulty != GameDifficulty.values.last)
+                          const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _MenuButton(label: 'START', onPressed: widget.onStart),
                   const SizedBox(height: 20),
                   Text(
-                    'CREDIT $credits',
+                    'CREDIT ${widget.credits}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontFamily: 'Joystix',
@@ -83,6 +127,40 @@ class MainMenuOverlay extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DifficultyButton extends StatelessWidget {
+  const _DifficultyButton({
+    required this.difficulty,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final GameDifficulty difficulty;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 86,
+      child: OutlinedButton(
+        key: Key('difficulty-${difficulty.name}'),
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: selected ? Colors.black : Colors.white,
+          backgroundColor: selected ? _orange : Colors.transparent,
+          side: const BorderSide(color: _orange, width: 2),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          shape: const RoundedRectangleBorder(),
+        ),
+        child: Text(
+          difficulty.name.toUpperCase(),
+          style: const TextStyle(fontFamily: 'Joystix', fontSize: 9),
         ),
       ),
     );

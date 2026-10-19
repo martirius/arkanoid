@@ -11,9 +11,9 @@ class EnemyDirector extends Component {
     required this.vausCenterX,
     required this.isPlaying,
     required this.onEnemyDestroyed,
-  });
+    required this.maxActiveEnemies,
+  }) : assert(maxActiveEnemies > 0);
 
-  static const maxActiveEnemies = 3;
   static const _initialSpawnDelay = 16 / Enemy.arcadeFramesPerSecond;
   static const _gateOffsets = [56.0, 168.0];
 
@@ -22,6 +22,7 @@ class EnemyDirector extends Component {
   final double Function() vausCenterX;
   final bool Function() isPlaying;
   final void Function(Enemy) onEnemyDestroyed;
+  final int maxActiveEnemies;
   final Set<Enemy> _activeEnemies = {};
   final Set<EnemyGate> _activeGates = {};
   late final ArcadeEnemyRules _rules =

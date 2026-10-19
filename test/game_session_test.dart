@@ -30,7 +30,7 @@ void main() {
   });
 
   test('reset starts a new game but preserves the high score', () {
-    final session = GameSession();
+    final session = GameSession(difficulty: GameDifficulty.hard);
     session.addScore(80000);
     session.currentRound = 5;
     session.addLife();
@@ -46,6 +46,12 @@ void main() {
     expect(session.currentRound, 1);
     expect(session.nextExtraLifeScore, 20000);
     expect(session.lifeCapsuleAlreadyAwarded, isFalse);
+    expect(session.difficulty, GameDifficulty.hard);
+  });
+
+  test('difficulty controls only the simultaneous enemy limit', () {
+    expect(GameDifficulty.easy.maxActiveEnemies, 1);
+    expect(GameDifficulty.hard.maxActiveEnemies, 3);
   });
 
   test('a continue consumes one credit and restores the initial lives', () {
