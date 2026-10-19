@@ -303,7 +303,7 @@ class BaseLevel extends PositionedEntity with HasGameReference<Arkanoid> {
         vausCenterX: () =>
             _starship.x + _starship.width * _starship.scale.x / 2,
         isPlaying: () => _phase == RoundPhase.playing,
-        maxActiveEnemies: game.session.difficulty.maxActiveEnemies,
+        spawnInterval: game.session.difficulty.enemySpawnInterval,
         onEnemyDestroyed: (enemy) {
           addScore(100);
           game.audio.play(GameSound.alienHit);

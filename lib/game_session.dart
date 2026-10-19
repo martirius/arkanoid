@@ -1,9 +1,9 @@
 enum GameDifficulty { easy, hard }
 
 extension GameDifficultyRules on GameDifficulty {
-  int get maxActiveEnemies => switch (this) {
-        GameDifficulty.easy => 1,
-        GameDifficulty.hard => 3,
+  double get enemySpawnInterval => switch (this) {
+        GameDifficulty.easy => 6,
+        GameDifficulty.hard => 0,
       };
 }
 

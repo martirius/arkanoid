@@ -244,7 +244,10 @@ void main() {
   testWidgets('arcade enemies spawn only while the round is playing',
       (tester) async {
     final level = _testLevel();
-    final game = _TestArkanoid(level);
+    final game = _TestArkanoid(
+      level,
+      session: GameSession(difficulty: GameDifficulty.easy),
+    );
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -265,8 +268,14 @@ void main() {
     level.performAction();
     level.balls.single.ballCanMove = false;
     final director = level.children.whereType<EnemyDirector>().single;
+    for (var step = 0; step < 120; step++) {
+      await tester.pump(const Duration(milliseconds: 17));
+    }
+    expect(director.activeEnemyCount, 1);
+
     for (var step = 0;
-        step < 800 && director.activeEnemyCount < director.maxActiveEnemies;
+        step < 800 &&
+            director.activeEnemyCount < EnemyDirector.maxActiveEnemies;
         step++) {
       await tester.pump(const Duration(milliseconds: 17));
       if (step % 30 == 0) {
@@ -277,7 +286,7 @@ void main() {
     }
 
     expect(level.phase, RoundPhase.playing);
-    expect(director.activeEnemyCount, director.maxActiveEnemies);
+    expect(director.activeEnemyCount, EnemyDirector.maxActiveEnemies);
     final enemy = director.activeEnemies.first;
     for (var attempt = 0;
         attempt < 20 && level.children.whereType<Enemy>().isEmpty;

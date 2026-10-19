@@ -11,9 +11,10 @@ class EnemyDirector extends Component {
     required this.vausCenterX,
     required this.isPlaying,
     required this.onEnemyDestroyed,
-    required this.maxActiveEnemies,
-  }) : assert(maxActiveEnemies > 0);
+    required this.spawnInterval,
+  }) : assert(spawnInterval >= 0);
 
+  static const maxActiveEnemies = 3;
   static const _initialSpawnDelay = 16 / Enemy.arcadeFramesPerSecond;
   static const _gateOffsets = [56.0, 168.0];
 
@@ -22,13 +23,14 @@ class EnemyDirector extends Component {
   final double Function() vausCenterX;
   final bool Function() isPlaying;
   final void Function(Enemy) onEnemyDestroyed;
-  final int maxActiveEnemies;
+  final double spawnInterval;
   final Set<Enemy> _activeEnemies = {};
   final Set<EnemyGate> _activeGates = {};
   late final ArcadeEnemyRules _rules =
       ArcadeEnemyRules(roundNumber: roundNumber);
   double _elapsed = 0;
   int _pendingSpawns = 0;
+  bool _hasSpawned = false;
 
   int get activeEnemyCount => _activeEnemies.length;
   Iterable<Enemy> get activeEnemies => _activeEnemies;
@@ -40,11 +42,14 @@ class EnemyDirector extends Component {
       return;
     }
     _elapsed += dt;
-    if (_elapsed < _initialSpawnDelay ||
+    final requiredDelay = _hasSpawned ? spawnInterval : _initialSpawnDelay;
+    if (_elapsed < requiredDelay ||
         _activeGates.isNotEmpty ||
         _activeEnemies.length + _pendingSpawns >= maxActiveEnemies) {
       return;
     }
+    _elapsed = 0;
+    _hasSpawned = true;
     _openNextGate();
   }
 
@@ -107,6 +112,7 @@ class EnemyDirector extends Component {
     _activeGates.clear();
     _pendingSpawns = 0;
     _elapsed = 0;
+    _hasSpawned = false;
   }
 
   @override

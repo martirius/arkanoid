@@ -49,9 +49,9 @@ void main() {
     expect(session.difficulty, GameDifficulty.hard);
   });
 
-  test('difficulty controls only the simultaneous enemy limit', () {
-    expect(GameDifficulty.easy.maxActiveEnemies, 1);
-    expect(GameDifficulty.hard.maxActiveEnemies, 3);
+  test('difficulty changes enemy pacing without reducing their limit', () {
+    expect(GameDifficulty.easy.enemySpawnInterval, 6);
+    expect(GameDifficulty.hard.enemySpawnInterval, 0);
   });
 
   test('a continue consumes one credit and restores the initial lives', () {
