@@ -1,75 +1,113 @@
 # Project Arkanoid
 
-## WIP
-### The project is under development, the main menu is missing, it has some collision and audio bug, also aliens and some power ups effects are missing
+Remake in Flutter e Flame di **Arkanoid**, ispirato principalmente alla versione
+arcade Taito del 1986. Il progetto è giocabile, ma resta in sviluppo: l'obiettivo
+è riprodurre progressivamente regole, controlli, grafica e timing dell'arcade
+senza emularne direttamente il codice.
 
-This projects aims to replicate the old Arkanoid arcade game dated 1986!
-The sound effects and the sprites are from the original game, and took from here https://www.spriters-resource.com/arcade/arkanoid/
+## Stato del progetto
 
-## The game
+Attualmente sono disponibili:
 
-Actually the game should work on all supported platforms, although is designed for mobile nad some components still missing correct scaling.
-Currently only the first five levels are available
+- i 32 round arcade con griglia da 13 colonne, seguiti dal round 33 con Doh;
+- intro, menu principale, selezione Easy/Hard, HUD, pausa, continue e finale;
+- sospensione temporanea della partita e ripresa dal menu principale;
+- tre vite iniziali, crediti, vite extra a punteggio e capsula Player;
+- tutti i power-up: Slow, Catch, Laser, Extend, Disruption, Break e Player;
+- quattro tipi di alieni, porte animate e timing Easy/Hard ricavati dalla ROM
+  arcade;
+- fisica della pallina con collisioni continue per evitare attraversamenti e
+  rimbalzi errati ad alta velocità;
+- controlli touch, mouse e tastiera;
+- layout portrait e landscape nel rispetto della safe area del dispositivo.
 
-To install it is simple:
-Install the Flutter SDK, open the project with you preferred IDE (VS Code is recommended), run the command __flutter pub run build_runner build__,  select the platform and run it!
+La sospensione conserva lo stato soltanto mentre l'applicazione rimane aperta:
+non è ancora presente un salvataggio persistente su disco.
 
-## The level editor
+## Controlli
 
-This project also comes with a levels editor that is supported only on browser.
-It is still in an early stage and not so user friendly but it's working.
+### Desktop
 
-To launch it open the **level_editor.dart** file inside level_editor folder and press **Run** that's is above the **void main** function (probably the Run is availble only in VS Code). 
+- movimento del mouse: sposta la Vaus;
+- clic sinistro: lancia la pallina, rilascia Catch o spara i laser;
+- frecce sinistra/destra oppure `A`/`D`: movimento alternativo;
+- `Spazio` o `Invio`: azione;
+- `Esc` o `P`: pausa.
 
-To use it:
-Use the right column to select the color and/or the power up of the brick; then press the button below "Set on brick".
-If a brick is clicked, the previous selection is set on it.
-If you want to modify multiple brick, just right click and hover on bricks; right click again to stop hover modification.
+### Mobile
 
-The button below the brick [...] let you select the level number and the background.
+- trascina il dito nel riquadro di movimento per controllare la Vaus;
+- usa il pulsante Fire per le azioni;
+- usa il pulsante pausa per riprendere, sospendere o terminare la partita.
 
-When you are ready and your level is completed, press the button "Generate Code".
-The generated file can be added to the game just by moving the file to **levels** folder and modifying **main.dart**.
+## Avvio
 
+È richiesto un SDK Flutter compatibile con Dart 3.
 
-Game components:
+```bash
+flutter pub get
+flutter run
+```
 
-- Starship
-    - Power ups
-    - Lives
-    - Size
-    - Speed
-    - Movement
+Per scegliere esplicitamente una piattaforma:
 
-- Ball
-    - Speed
-    - Direction
-    - Hitting moving starship change ball direction
+```bash
+flutter devices
+flutter run -d <device-id>
+```
 
-- Power ups
-    - Glue
-    - Laser (if a laser touch an unbreakable block, the other one is stopped)
-    - Life
-    - Points
-    - Ball lower speed
-    - Triple balls
-    - Taking a power up invalidate the previous one
+Non è necessario eseguire `build_runner`.
 
+## Verifica
 
-- Blocks
-    - Breakable 1 hit(blue,red,yellow,green,light blue, pink, white)
-    - Breakable 4 hits (grey)
-    - Unbreakable (gold)
-    - Has power up
+```bash
+dart analyze
+flutter test
+```
 
-- Field
-    - Size
-    - Background
+La suite copre regole dei round, collisioni, velocità e traiettorie della
+pallina, power-up, alieni, Doh, audio, input, viewport e ciclo dei menu.
 
+## Struttura principale
 
-- Aliens
-    - Destroy on ball or starship hit
-    - Change ball direction like blocks
+- `lib/main.dart`: ciclo applicativo, menu, pausa, sospensione e progressione;
+- `lib/components/`: entità e sequenze Flame;
+- `lib/components/levels/`: definizioni e runtime dei round;
+- `lib/physics/`: movimento e risoluzione continua delle collisioni;
+- `lib/enemy_director.dart`: slot, porte e generazione degli alieni;
+- `lib/power_up_director.dart`: regole di rilascio delle capsule;
+- `lib/level_editor/`: editor visuale dei livelli;
+- `test/`: test unitari e widget.
 
-- Boss
-    - The Great DOH 
+Le decisioni di compatibilità sono documentate in
+[`docs/arcade-behavior-decisions.md`](docs/arcade-behavior-decisions.md). Il
+piano storico di confronto con la versione MSX è disponibile in
+[`docs/msx-gameplay-parity-plan.md`](docs/msx-gameplay-parity-plan.md).
+
+## Editor dei livelli
+
+L'editor è una utility web ancora essenziale. Può essere avviato con:
+
+```bash
+flutter run -d chrome -t lib/level_editor/level_editor.dart
+```
+
+Permette di scegliere mattoni, power-up, numero del round e sfondo, quindi
+generare il codice Dart della definizione. Il file prodotto deve essere
+integrato manualmente nel catalogo dei livelli.
+
+## Lavori ancora aperti
+
+- persistenza della partita sospesa dopo la chiusura dell'app;
+- ulteriore confronto visivo e frame-by-frame di animazioni e timing arcade;
+- rifinitura dell'editor dei livelli;
+- verifica sistematica di build e comportamento su tutte le piattaforme
+  Flutter configurate.
+
+## Asset e riferimenti
+
+Parte degli sprite e degli effetti sonori deriva dal gioco originale ed è stata
+reperita tramite
+[The Spriters Resource](https://www.spriters-resource.com/arcade/arkanoid/).
+Il progetto è destinato allo studio; prima di distribuire asset originali è
+necessario verificarne separatamente diritti e licenze.
