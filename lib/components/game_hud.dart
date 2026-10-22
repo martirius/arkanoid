@@ -13,16 +13,19 @@ class GameHud extends PositionComponent with HasVisibility {
     required void Function() onAction,
     required int score,
     required int topScore,
+    required bool touchControlsEnabled,
   })  : _onMove = onMove,
         _onMoveTo = onMoveTo,
         _onAction = onAction,
         _score = score,
         _topScore = topScore,
+        _touchControlsEnabled = touchControlsEnabled,
         super(priority: 100);
 
   final void Function(int direction) _onMove;
   final void Function(Vector2 canvasPosition) _onMoveTo;
   final void Function() _onAction;
+  final bool _touchControlsEnabled;
   late final FireButton _fireButton;
   late final PointerInputSurface _pointerInputSurface;
   late final InputController _inputController;
@@ -40,11 +43,19 @@ class GameHud extends PositionComponent with HasVisibility {
 
   @override
   Future<void> onLoad() async {
-    _fireButton = FireButton(Vector2.zero(), onPressed: _performAction);
+    _fireButton = FireButton(
+      Vector2.zero(),
+      onPressed: () {
+        if (_touchControlsEnabled) {
+          _performAction();
+        }
+      },
+    );
     _pointerInputSurface = PointerInputSurface(
       onMoveTo: _inputControllerMoveTo,
       onTouchMove: _inputControllerTouchMove,
       onAction: _performAction,
+      touchControlsEnabled: _touchControlsEnabled,
     );
     _inputController = InputController(
       onMove: _move,
@@ -195,14 +206,14 @@ class GameHud extends PositionComponent with HasVisibility {
       _inputController.reset();
     }
     if (isLoaded) {
-      _fireButton.isVisible = _controlsEnabled;
+      _fireButton.isVisible = _controlsEnabled && _touchControlsEnabled;
       _pointerInputSurface.isVisible = _controlsEnabled;
     }
   }
 
   void _applyGameplayState() {
     isVisible = _scoreboardVisible;
-    _fireButton.isVisible = _controlsEnabled;
+    _fireButton.isVisible = _controlsEnabled && _touchControlsEnabled;
     _pointerInputSurface.isVisible = _controlsEnabled;
   }
 

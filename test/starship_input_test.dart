@@ -99,6 +99,7 @@ void main() {
       onMoveTo: (_) {},
       onTouchMove: (_) {},
       onAction: () => actions++,
+      touchControlsEnabled: false,
     );
 
     surface.onTapDown(
@@ -112,6 +113,42 @@ void main() {
     expect(actions, 1);
   });
 
+  test('disabled mobile controls ignore touch input', () {
+    final positions = <double>[];
+    var actions = 0;
+    final game = FlameGame();
+    final surface = PointerInputSurface(
+      onMoveTo: (_) {},
+      onTouchMove: positions.add,
+      onAction: () => actions++,
+      touchControlsEnabled: false,
+    )..setTouchArea(position: Vector2.zero(), size: Vector2(100, 100));
+
+    surface.onDragStart(
+      DragStartEvent(
+        1,
+        game,
+        DragStartDetails(
+          globalPosition: const Offset(50, 50),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+    surface.onTapDown(
+      TapDownEvent(
+        2,
+        game,
+        TapDownDetails(
+          globalPosition: const Offset(50, 50),
+          kind: PointerDeviceKind.touch,
+        ),
+      ),
+    );
+
+    expect(positions, isEmpty);
+    expect(actions, 0);
+  });
+
   test('touch drag stays in its control box and ignores extra pointers', () {
     final positions = <double>[];
     final game = FlameGame();
@@ -119,6 +156,7 @@ void main() {
       onMoveTo: (_) {},
       onTouchMove: positions.add,
       onAction: () {},
+      touchControlsEnabled: true,
     )..setTouchArea(position: Vector2(100, 0), size: Vector2(100, 100));
 
     surface.onDragStart(

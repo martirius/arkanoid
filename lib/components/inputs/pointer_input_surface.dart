@@ -9,11 +9,13 @@ class PointerInputSurface extends PositionComponent
     required this.onMoveTo,
     required this.onTouchMove,
     required this.onAction,
+    required this.touchControlsEnabled,
   }) : super(priority: -1);
 
   final void Function(Vector2 canvasPosition) onMoveTo;
   final void Function(double horizontalPosition) onTouchMove;
   final void Function() onAction;
+  final bool touchControlsEnabled;
   final Vector2 touchAreaPosition = Vector2.zero();
   final Vector2 touchAreaSize = Vector2.zero();
   int? _activeDragPointer;
@@ -34,7 +36,8 @@ class PointerInputSurface extends PositionComponent
   }
 
   bool acceptsTouchAt(Vector2 canvasPosition) {
-    return touchAreaSize.x > 0 &&
+    return touchControlsEnabled &&
+        touchAreaSize.x > 0 &&
         touchAreaSize.y > 0 &&
         canvasPosition.x >= touchAreaPosition.x &&
         canvasPosition.x <= touchAreaPosition.x + touchAreaSize.x &&
@@ -55,7 +58,7 @@ class PointerInputSurface extends PositionComponent
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    if (touchAreaSize.x <= 0 || touchAreaSize.y <= 0) {
+    if (!touchControlsEnabled || touchAreaSize.x <= 0 || touchAreaSize.y <= 0) {
       return;
     }
     final rect = Rect.fromLTWH(
@@ -86,6 +89,7 @@ class PointerInputSurface extends PositionComponent
     super.onDragStart(event);
     final isMouse = event.deviceKind == PointerDeviceKind.mouse;
     if (_activeDragPointer != null ||
+        (!isMouse && !touchControlsEnabled) ||
         (!isMouse && !acceptsTouchAt(event.canvasPosition))) {
       return;
     }
@@ -122,7 +126,7 @@ class PointerInputSurface extends PositionComponent
   void onTapDown(TapDownEvent event) {
     if (event.deviceKind == PointerDeviceKind.mouse) {
       onAction();
-    } else if (acceptsTouchAt(event.canvasPosition)) {
+    } else if (touchControlsEnabled && acceptsTouchAt(event.canvasPosition)) {
       _moveTouch(event.canvasPosition);
     }
   }

@@ -15,6 +15,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -71,7 +72,7 @@ enum GameFlowState { menu, intro, playing, paused, suspended, continuePrompt }
 
 class Arkanoid extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
-  Arkanoid({GameSession? session})
+  Arkanoid({GameSession? session, bool? touchControlsEnabled})
       : session = session ?? GameSession(),
         super(camera: _createCamera()) {
     _menuDifficulty = this.session.difficulty;
@@ -83,8 +84,14 @@ class Arkanoid extends FlameGame
       onAction: () => currentLevel.performAction(),
       score: currentScore,
       topScore: topScore,
+      touchControlsEnabled:
+          touchControlsEnabled ?? _platformSupportsTouchControls,
     );
   }
+
+  static bool get _platformSupportsTouchControls =>
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
 
   static const double _physicsStep = 1 / 120;
   static const int _maxPhysicsSteps = 8;

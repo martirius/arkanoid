@@ -4,6 +4,7 @@ import 'package:arkanoid/game_session.dart';
 import 'package:flutter/material.dart';
 
 const _orange = Color(0xffff5a1f);
+const _mainMenuDesignSize = Size(328, 440);
 
 class MainMenuOverlay extends StatefulWidget {
   const MainMenuOverlay({
@@ -47,11 +48,14 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox(
+              key: const Key('main-menu-design-area'),
+              width: _mainMenuDesignSize.width,
+              height: _mainMenuDesignSize.height,
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(
                     key: Key('main-menu-title'),

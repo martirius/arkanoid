@@ -140,6 +140,41 @@ void main() {
     expect(starts, 1);
   });
 
+  testWidgets('main menu grows with the available window', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    Future<Rect> pumpMenuAt(Size size) async {
+      tester.view.physicalSize = size;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MainMenuOverlay(
+            highScore: 50000,
+            credits: 3,
+            difficulty: GameDifficulty.easy,
+            onDifficultyChanged: (_) {},
+            onStart: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      final title = tester.renderObject<RenderBox>(
+        find.byKey(const Key('main-menu-title')),
+      );
+      return Rect.fromPoints(
+        title.localToGlobal(Offset.zero),
+        title.localToGlobal(title.size.bottomRight(Offset.zero)),
+      );
+    }
+
+    final minimumTitle = await pumpMenuAt(const Size(360, 640));
+    final largeTitle = await pumpMenuAt(const Size(720, 1280));
+
+    expect(minimumTitle.width, closeTo(196, 0.1));
+    expect(largeTitle.width, greaterThan(minimumTitle.width * 1.9));
+  });
+
   testWidgets('continue consumes the action or expires after nine seconds',
       (tester) async {
     var continues = 0;

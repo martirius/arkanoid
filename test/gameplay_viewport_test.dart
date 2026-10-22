@@ -9,6 +9,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _HudTestGame extends Arkanoid {
+  _HudTestGame({bool touchControlsEnabled = true})
+      : super(touchControlsEnabled: touchControlsEnabled);
+
   @override
   Future<void> onLoad() async {
     add(hud);
@@ -160,6 +163,41 @@ void main() {
     );
     expect(
       game.hud.children.whereType<PointerInputSurface>().single.isVisible,
+      isFalse,
+    );
+  });
+
+  testWidgets('desktop keeps mouse input active without mobile controls',
+      (tester) async {
+    final game = _HudTestGame(touchControlsEnabled: false);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 800,
+          height: 600,
+          child: GameWidget(game: game),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    game.hud.setGameplayActive(true);
+
+    expect(
+      game.hud.children.whereType<FireButton>().single.isVisible,
+      isFalse,
+    );
+    expect(
+      game.hud.children.whereType<PointerInputSurface>().single.isVisible,
+      isTrue,
+    );
+    expect(
+      game.hud.children
+          .whereType<PointerInputSurface>()
+          .single
+          .touchControlsEnabled,
       isFalse,
     );
   });
