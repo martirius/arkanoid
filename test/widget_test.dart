@@ -18,6 +18,14 @@ class _ReadyLevel extends BaseLevel {
   void setMovementDirection(int direction) {}
 }
 
+Rect _transformedRect(WidgetTester tester, Finder finder) {
+  final box = tester.renderObject<RenderBox>(finder);
+  return Rect.fromPoints(
+    box.localToGlobal(Offset.zero),
+    box.localToGlobal(box.size.bottomRight(Offset.zero)),
+  );
+}
+
 void main() {
   test('a game over offers a continue without resetting the session', () {
     final game = Arkanoid(
@@ -145,34 +153,50 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
 
-    Future<Rect> pumpMenuAt(Size size) async {
+    Future<({Rect designArea, Rect startButton, Rect title})> pumpMenuAt(
+      Size size,
+    ) async {
       tester.view.physicalSize = size;
       await tester.pumpWidget(
         MaterialApp(
-          home: MainMenuOverlay(
-            highScore: 50000,
-            credits: 3,
-            difficulty: GameDifficulty.easy,
-            onDifficultyChanged: (_) {},
-            onStart: () {},
+          home: Align(
+            alignment: Alignment.topLeft,
+            child: MainMenuOverlay(
+              highScore: 50000,
+              credits: 3,
+              difficulty: GameDifficulty.easy,
+              onDifficultyChanged: (_) {},
+              onStart: () {},
+            ),
           ),
         ),
       );
       await tester.pump();
-      final title = tester.renderObject<RenderBox>(
-        find.byKey(const Key('main-menu-title')),
+      final startButton = find.ancestor(
+        of: find.text('START'),
+        matching: find.byType(OutlinedButton),
       );
-      return Rect.fromPoints(
-        title.localToGlobal(Offset.zero),
-        title.localToGlobal(title.size.bottomRight(Offset.zero)),
+      return (
+        designArea: _transformedRect(
+          tester,
+          find.byKey(const Key('main-menu-design-area')),
+        ),
+        startButton: _transformedRect(tester, startButton),
+        title: _transformedRect(
+          tester,
+          find.byKey(const Key('main-menu-title')),
+        ),
       );
     }
 
-    final minimumTitle = await pumpMenuAt(const Size(360, 640));
-    final largeTitle = await pumpMenuAt(const Size(720, 1280));
+    final minimum = await pumpMenuAt(const Size(360, 640));
+    final large = await pumpMenuAt(const Size(720, 1280));
 
-    expect(minimumTitle.width, closeTo(196, 0.1));
-    expect(largeTitle.width, greaterThan(minimumTitle.width * 1.9));
+    expect(minimum.title.width, closeTo(196, 0.1));
+    expect(large.title.width, greaterThan(minimum.title.width * 1.9));
+    expect(
+        large.startButton.width, greaterThan(minimum.startButton.width * 1.9));
+    expect(large.designArea.center, const Offset(360, 640));
   });
 
   testWidgets('continue consumes the action or expires after nine seconds',
@@ -229,6 +253,52 @@ void main() {
     expect(resumes, 1);
     expect(suspends, 1);
     expect(exits, 1);
+  });
+
+  testWidgets('pause menu stays centered and scales with the window',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    Future<({Rect designArea, Rect resumeButton})> pumpPauseAt(
+        Size size) async {
+      tester.view.physicalSize = size;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Align(
+            alignment: Alignment.topLeft,
+            child: PauseOverlay(
+              onResume: () {},
+              onSuspend: () {},
+              onExit: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final resumeButton = find.ancestor(
+        of: find.text('RESUME'),
+        matching: find.byType(OutlinedButton),
+      );
+      return (
+        designArea: _transformedRect(
+          tester,
+          find.byKey(const Key('pause-menu-design-area')),
+        ),
+        resumeButton: _transformedRect(tester, resumeButton),
+      );
+    }
+
+    final minimum = await pumpPauseAt(const Size(360, 640));
+    final large = await pumpPauseAt(const Size(720, 1280));
+
+    expect(minimum.resumeButton.width, closeTo(180, 0.1));
+    expect(
+      large.resumeButton.width,
+      greaterThan(minimum.resumeButton.width * 1.9),
+    );
+    expect(large.designArea.center, const Offset(360, 640));
   });
 
   testWidgets('main menu offers resume for a suspended game', (tester) async {

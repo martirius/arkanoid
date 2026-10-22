@@ -4,7 +4,7 @@ import 'package:arkanoid/game_session.dart';
 import 'package:flutter/material.dart';
 
 const _orange = Color(0xffff5a1f);
-const _mainMenuDesignSize = Size(328, 440);
+const _menuDesignSize = Size(328, 440);
 
 class MainMenuOverlay extends StatefulWidget {
   const MainMenuOverlay({
@@ -48,101 +48,96 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: SizedBox(
-              key: const Key('main-menu-design-area'),
-              width: _mainMenuDesignSize.width,
-              height: _mainMenuDesignSize.height,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    key: Key('main-menu-title'),
-                    width: 196,
-                    height: 54,
-                    child: ClipRect(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/intro.png'),
-                            alignment: Alignment.topLeft,
-                            fit: BoxFit.none,
-                            filterQuality: FilterQuality.none,
-                          ),
+          child: _ResponsiveOverlayContent(
+            designAreaKey: const Key('main-menu-design-area'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  key: Key('main-menu-title'),
+                  width: 196,
+                  height: 54,
+                  child: ClipRect(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/intro.png'),
+                          alignment: Alignment.topLeft,
+                          fit: BoxFit.none,
+                          filterQuality: FilterQuality.none,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'HIGH SCORE\n${widget.highScore}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Joystix',
-                      fontSize: 13,
-                      height: 1.6,
-                    ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'HIGH SCORE\n${widget.highScore}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Joystix',
+                    fontSize: 13,
+                    height: 1.6,
                   ),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'DIFFICULTY',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Joystix',
-                      fontSize: 10,
-                    ),
+                ),
+                const SizedBox(height: 28),
+                const Text(
+                  'DIFFICULTY',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Joystix',
+                    fontSize: 10,
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final difficulty in GameDifficulty.values) ...[
-                        _DifficultyButton(
-                          difficulty: difficulty,
-                          selected: difficulty == _difficulty,
-                          onPressed: () => _selectDifficulty(difficulty),
-                        ),
-                        if (difficulty != GameDifficulty.values.last)
-                          const SizedBox(width: 8),
-                      ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final difficulty in GameDifficulty.values) ...[
+                      _DifficultyButton(
+                        difficulty: difficulty,
+                        selected: difficulty == _difficulty,
+                        onPressed: () => _selectDifficulty(difficulty),
+                      ),
+                      if (difficulty != GameDifficulty.values.last)
+                        const SizedBox(width: 8),
                     ],
-                  ),
-                  const SizedBox(height: 24),
-                  if (widget.canResume) ...[
-                    _MenuButton(
-                      label: 'RESUME GAME',
-                      onPressed: widget.onResume,
-                    ),
-                    const SizedBox(height: 12),
                   ],
+                ),
+                const SizedBox(height: 24),
+                if (widget.canResume) ...[
                   _MenuButton(
-                    label: widget.canResume ? 'NEW GAME' : 'START',
-                    onPressed: widget.onStart,
+                    label: 'RESUME GAME',
+                    onPressed: widget.onResume,
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'CREDIT ${widget.credits}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Joystix',
-                      fontSize: 10,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'MOUSE / TOUCH / A-D\nCLICK / SPACE / ENTER',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white54,
-                      fontFamily: 'Joystix',
-                      fontSize: 8,
-                      height: 1.8,
-                    ),
-                  ),
+                  const SizedBox(height: 12),
                 ],
-              ),
+                _MenuButton(
+                  label: widget.canResume ? 'NEW GAME' : 'START',
+                  onPressed: widget.onStart,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'CREDIT ${widget.credits}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Joystix',
+                    fontSize: 10,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'MOUSE / TOUCH / A-D\nCLICK / SPACE / ENTER',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontFamily: 'Joystix',
+                    fontSize: 8,
+                    height: 1.8,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -325,27 +320,72 @@ class PauseOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: Colors.black.withValues(alpha: 0.78),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'PAUSE',
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Joystix',
-                fontSize: 26,
-              ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: _ResponsiveOverlayContent(
+            designAreaKey: const Key('pause-menu-design-area'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'PAUSE',
+                  key: Key('pause-menu-title'),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Joystix',
+                    fontSize: 26,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _MenuButton(label: 'RESUME', onPressed: onResume),
+                const SizedBox(height: 14),
+                _MenuButton(label: 'SUSPEND', onPressed: onSuspend),
+                const SizedBox(height: 14),
+                _MenuButton(label: 'END GAME', onPressed: onExit),
+              ],
             ),
-            const SizedBox(height: 32),
-            _MenuButton(label: 'RESUME', onPressed: onResume),
-            const SizedBox(height: 14),
-            _MenuButton(label: 'SUSPEND', onPressed: onSuspend),
-            const SizedBox(height: 14),
-            _MenuButton(label: 'END GAME', onPressed: onExit),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _ResponsiveOverlayContent extends StatelessWidget {
+  const _ResponsiveOverlayContent({
+    required this.designAreaKey,
+    required this.child,
+  });
+
+  final Key designAreaKey;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : _menuDesignSize.width;
+        final height = constraints.hasBoundedHeight
+            ? constraints.maxHeight
+            : _menuDesignSize.height;
+        return SizedBox(
+          width: width,
+          height: height,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+            child: SizedBox(
+              key: designAreaKey,
+              width: _menuDesignSize.width,
+              height: _menuDesignSize.height,
+              child: Center(child: child),
+            ),
+          ),
+        );
+      },
     );
   }
 }
